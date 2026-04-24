@@ -1,95 +1,63 @@
 // VLTRVIEW Service Worker v1.0
-// Handles offline caching, background sync, and push notifications
-
 const APP_VERSION = 'vltrview-v1.0.0';
 const STATIC_CACHE = `${APP_VERSION}-static`;
 const MAP_CACHE = `${APP_VERSION}-map-tiles`;
 const DATA_CACHE = `${APP_VERSION}-data`;
 
-// Files to cache immediately on install
+// Only cache what we know exists — no icons on install
 const STATIC_ASSETS = [
   '/',
   '/index.html',
   '/manifest.json',
-  '/icons/icon-192.png',
-  '/icons/icon-512.png',
-  // Google Fonts
-  'https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap',
 ];
 
-// ── INSTALL: pre-cache all static assets ──
+// Install — keep it minimal so nothing crashes
 self.addEventListener('install', event => {
-  console.log('[VLTRVIEW SW] Installing v1.0.0...');
+  console.log('[VLTRVIEW SW] Installing...');
   event.waitUntil(
     caches.open(STATIC_CACHE)
-      .then(cache => {
-        console.log('[VLTRVIEW SW] Caching static assets');
-        return cache.addAll(STATIC_ASSETS).catch(err => {
-          console.warn('[VLTRVIEW SW] Some assets failed to cache (likely fonts):', err);
-        });
-      })
+      .then(cache => cache.addAll(STATIC_ASSETS))
+      .catch(err => console.warn('[VLTRVIEW SW] Cache install error (non-fatal):', err))
       .then(() => self.skipWaiting())
   );
 });
 
-// ── ACTIVATE: clean up old caches ──
+// Activate — clear old caches
 self.addEventListener('activate', event => {
-  console.log('[VLTRVIEW SW] Activating...');
   event.waitUntil(
-    caches.keys().then(cacheNames => {
-      return Promise.all(
-        cacheNames
-          .filter(name => name.startsWith('vltrview-') && name !== STATIC_CACHE && name !== MAP_CACHE && name !== DATA_CACHE)
-          .map(name => {
-            console.log('[VLTRVIEW SW] Deleting old cache:', name);
-            return caches.delete(name);
-          })
-      );
-    }).then(() => self.clients.claim())
+    caches.keys().then(names =>
+      Promise.all(
+        names
+          .filter(n => n.startsWith('vltrview-') && ![STATIC_CACHE, MAP_CACHE, DATA_CACHE].includes(n))
+          .map(n => caches.delete(n))
+      )
+    ).then(() => self.clients.claim())
   );
 });
 
-// ── FETCH: smart caching strategy ──
+// Fetch — network first, cache fallback
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
-
-  // Skip non-GET requests
   if (event.request.method !== 'GET') return;
-
-  // Skip chrome-extension and other non-http requests
   if (!url.protocol.startsWith('http')) return;
 
-  // STRATEGY 1: Map tiles (Nominatim geocoder) — network first, fall back to cache
-  if (url.hostname.includes('nominatim') || url.hostname.includes('tile.openstreetmap')) {
-    event.respondWith(networkFirstWithCache(event.request, MAP_CACHE, 60 * 60 * 24)); // 24hr cache
+  // Nominatim geocoder — network first
+  if (url.hostname.includes('nominatim')) {
+    event.respondWith(networkFirst(event.request, MAP_CACHE));
     return;
   }
 
-  // STRATEGY 2: Google Fonts — cache first (they rarely change)
+  // Google Fonts — cache first
   if (url.hostname.includes('fonts.googleapis.com') || url.hostname.includes('fonts.gstatic.com')) {
-    event.respondWith(cacheFirstWithNetwork(event.request, STATIC_CACHE));
+    event.respondWith(cacheFirst(event.request, STATIC_CACHE));
     return;
   }
 
-  // STRATEGY 3: App shell (index.html, manifest) — cache first, background update
-  if (url.pathname === '/' || url.pathname === '/index.html' || url.pathname === '/manifest.json') {
-    event.respondWith(staleWhileRevalidate(event.request, STATIC_CACHE));
-    return;
-  }
-
-  // STRATEGY 4: Icons and local assets — cache first
-  if (url.pathname.startsWith('/icons/')) {
-    event.respondWith(cacheFirstWithNetwork(event.request, STATIC_CACHE));
-    return;
-  }
-
-  // STRATEGY 5: Everything else — network first with cache fallback
-  event.respondWith(networkFirstWithCache(event.request, DATA_CACHE, 60 * 5)); // 5min cache
+  // App shell — network first with cache fallback
+  event.respondWith(networkFirst(event.request, STATIC_CACHE));
 });
 
-// ── CACHE STRATEGIES ──
-
-async function cacheFirstWithNetwork(request, cacheName) {
+async function cacheFirst(request, cacheName) {
   const cache = await caches.open(cacheName);
   const cached = await cache.match(request);
   if (cached) return cached;
@@ -98,164 +66,64 @@ async function cacheFirstWithNetwork(request, cacheName) {
     if (response.ok) cache.put(request, response.clone());
     return response;
   } catch {
-    return new Response('Offline — resource not cached', { status: 503 });
+    return new Response('Offline', { status: 503 });
   }
 }
 
-async function networkFirstWithCache(request, cacheName, maxAge = 300) {
+async function networkFirst(request, cacheName) {
   const cache = await caches.open(cacheName);
   try {
     const response = await fetch(request);
-    if (response.ok) {
-      const cloned = response.clone();
-      cache.put(request, cloned);
-    }
+    if (response.ok) cache.put(request, response.clone());
     return response;
   } catch {
     const cached = await cache.match(request);
-    if (cached) {
-      console.log('[VLTRVIEW SW] Serving from cache (offline):', request.url);
-      return cached;
-    }
-    // Return offline fallback page for navigation requests
+    if (cached) return cached;
     if (request.mode === 'navigate') {
       const fallback = await cache.match('/index.html');
       if (fallback) return fallback;
     }
-    return new Response(JSON.stringify({ error: 'offline', cached: false }), {
-      status: 503,
-      headers: { 'Content-Type': 'application/json' }
-    });
+    return new Response('Offline', { status: 503 });
   }
 }
 
-async function staleWhileRevalidate(request, cacheName) {
-  const cache = await caches.open(cacheName);
-  const cached = await cache.match(request);
-  // Fetch fresh in background regardless
-  const fetchPromise = fetch(request).then(response => {
-    if (response.ok) cache.put(request, response.clone());
-    return response;
-  }).catch(() => null);
-  // Return cached immediately if available, otherwise wait for network
-  return cached || fetchPromise;
-}
-
-// ── BACKGROUND SYNC: queue work orders when offline ──
+// Background sync
 self.addEventListener('sync', event => {
   if (event.tag === 'sync-work-orders') {
-    event.waitUntil(syncWorkOrders());
-  }
-  if (event.tag === 'sync-damage-reports') {
-    event.waitUntil(syncDamageReports());
-  }
-  if (event.tag === 'sync-photos') {
-    event.waitUntil(syncPhotos());
+    event.waitUntil(
+      self.clients.matchAll().then(clients =>
+        clients.forEach(c => c.postMessage({ type: 'SYNC_COMPLETE', feature: 'work-orders' }))
+      )
+    );
   }
 });
 
-async function syncWorkOrders() {
-  console.log('[VLTRVIEW SW] Syncing work orders...');
-  // In production: read from IndexedDB queue, POST to API
-  // For now just notify the app
-  const clients = await self.clients.matchAll();
-  clients.forEach(client => client.postMessage({ type: 'SYNC_COMPLETE', feature: 'work-orders' }));
-}
-
-async function syncDamageReports() {
-  console.log('[VLTRVIEW SW] Syncing damage reports...');
-  const clients = await self.clients.matchAll();
-  clients.forEach(client => client.postMessage({ type: 'SYNC_COMPLETE', feature: 'damage-reports' }));
-}
-
-async function syncPhotos() {
-  console.log('[VLTRVIEW SW] Syncing field photos...');
-  const clients = await self.clients.matchAll();
-  clients.forEach(client => client.postMessage({ type: 'SYNC_COMPLETE', feature: 'photos' }));
-}
-
-// ── PUSH NOTIFICATIONS ──
+// Push notifications
 self.addEventListener('push', event => {
   if (!event.data) return;
-
   let data;
-  try {
-    data = event.data.json();
-  } catch {
-    data = { title: 'VLTRVIEW Alert', body: event.data.text() };
-  }
-
-  const options = {
-    body: data.body || 'You have a new notification',
-    icon: '/icons/icon-192.png',
-    badge: '/icons/icon-96.png',
-    tag: data.tag || 'vltrview-notif',
-    renotify: true,
-    vibrate: [200, 100, 200],
-    data: {
-      url: data.url || '/index.html',
-      assetId: data.assetId,
-      woId: data.woId,
-    },
-    actions: data.actions || [
-      { action: 'view', title: 'View', icon: '/icons/icon-96.png' },
-      { action: 'dismiss', title: 'Dismiss' }
-    ]
-  };
-
+  try { data = event.data.json(); } catch { data = { title: 'VLTRVIEW', body: event.data.text() }; }
   event.waitUntil(
-    self.registration.showNotification(data.title || 'VLTRVIEW', options)
+    self.registration.showNotification(data.title || 'VLTRVIEW', {
+      body: data.body || 'New notification',
+      icon: '/icons/icon-192.png',
+      badge: '/icons/icon-96.png',
+      tag: 'vltrview-notif',
+      vibrate: [200, 100, 200],
+    })
   );
 });
 
-// ── NOTIFICATION CLICK ──
 self.addEventListener('notificationclick', event => {
   event.notification.close();
-
-  if (event.action === 'dismiss') return;
-
-  const targetUrl = event.notification.data?.url || '/index.html';
-
   event.waitUntil(
-    self.clients.matchAll({ type: 'window', includeUncontrolled: true })
-      .then(clients => {
-        // Focus existing window if open
-        for (const client of clients) {
-          if (client.url.includes('/index.html') && 'focus' in client) {
-            return client.focus();
-          }
-        }
-        // Otherwise open new window
-        if (self.clients.openWindow) {
-          return self.clients.openWindow(targetUrl);
-        }
-      })
+    self.clients.matchAll({ type: 'window' }).then(clients => {
+      for (const c of clients) if ('focus' in c) return c.focus();
+      if (self.clients.openWindow) return self.clients.openWindow('/');
+    })
   );
 });
 
-// ── MESSAGE HANDLER: communicate with app ──
 self.addEventListener('message', event => {
-  if (event.data === 'SKIP_WAITING') {
-    self.skipWaiting();
-  }
-  if (event.data === 'GET_VERSION') {
-    event.ports[0].postMessage({ version: APP_VERSION });
-  }
-  if (event.data?.type === 'CACHE_TILES') {
-    // Pre-cache a set of map tiles for offline use
-    cacheTiles(event.data.tiles);
-  }
+  if (event.data === 'SKIP_WAITING') self.skipWaiting();
 });
-
-async function cacheTiles(tiles = []) {
-  const cache = await caches.open(MAP_CACHE);
-  let cached = 0;
-  for (const url of tiles) {
-    try {
-      const response = await fetch(url);
-      if (response.ok) { await cache.put(url, response); cached++; }
-    } catch { /* skip failed tiles */ }
-  }
-  const clients = await self.clients.matchAll();
-  clients.forEach(c => c.postMessage({ type: 'TILES_CACHED', count: cached, total: tiles.length }));
-}
