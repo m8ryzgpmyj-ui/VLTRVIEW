@@ -272,6 +272,7 @@ html,body{height:100%;width:100%;background:var(--bg-base);font-family:'DM Sans'
 @keyframes menu-in{from{opacity:0;transform:translateY(-8px) scale(.97)}to{opacity:1;transform:translateY(0)}}
 @keyframes fade-in{from{opacity:0}to{opacity:1}}
 @keyframes slide-up{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes spin{to{transform:rotate(360deg)}}
 @keyframes gps-pulse{0%{transform:scale(1);opacity:.7}100%{transform:scale(3);opacity:0}}
 </style>
 </head>
@@ -315,6 +316,32 @@ html,body{height:100%;width:100%;background:var(--bg-base);font-family:'DM Sans'
 
     <!-- CITY BADGE -->
     <div id="city-badge"></div>
+
+    <!-- HIFLD STATUS BAR -->
+    <div id="hifld-status-bar" style="
+      position:absolute;top:0;left:0;right:0;z-index:600;
+      background:rgba(10,10,20,.92);backdrop-filter:blur(8px);
+      padding:8px 16px;display:none;align-items:center;gap:10px;
+      font-size:11px;color:var(--t2);font-family:'JetBrains Mono',monospace;
+      border-bottom:1px solid rgba(10,132,255,.15);
+      box-shadow:0 2px 12px rgba(0,0,0,.3);
+    "></div>
+
+    <!-- VOLTAGE LEGEND (shows when zoomed in) -->
+    <div id="volt-legend" style="
+      position:absolute;bottom:74px;left:14px;z-index:500;
+      background:rgba(10,10,20,.9);backdrop-filter:blur(8px);
+      border-radius:12px;padding:10px 12px;border:1px solid rgba(255,255,255,.08);
+      display:none;box-shadow:0 4px 16px rgba(0,0,0,.4);
+    ">
+      <div style="font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;font-weight:700;margin-bottom:7px;">Voltage key</div>
+      <div style="display:flex;flex-direction:column;gap:5px;">
+        <div style="display:flex;align-items:center;gap:7px;"><div style="width:24px;height:4px;background:#FF453A;border-radius:2px;"></div><span style="font-size:10px;color:var(--t2);font-family:'JetBrains Mono',monospace;">≥500 kV</span></div>
+        <div style="display:flex;align-items:center;gap:7px;"><div style="width:24px;height:3px;background:#FF6B35;border-radius:2px;"></div><span style="font-size:10px;color:var(--t2);font-family:'JetBrains Mono',monospace;">230–499</span></div>
+        <div style="display:flex;align-items:center;gap:7px;"><div style="width:24px;height:2px;background:#FF9F0A;border-radius:2px;"></div><span style="font-size:10px;color:var(--t2);font-family:'JetBrains Mono',monospace;">115–229</span></div>
+        <div style="display:flex;align-items:center;gap:7px;"><div style="width:24px;height:2px;background:#FFD60A;border-radius:2px;"></div><span style="font-size:10px;color:var(--t2);font-family:'JetBrains Mono',monospace;">69–114</span></div>
+      </div>
+    </div>
 
     <!-- OFFLINE BAR -->
     <div id="offline-bar">
@@ -626,14 +653,31 @@ let currentCity = CITIES[0]; // Raleigh default
 
 // ── UTILITY LAYERS CONFIG ──
 const LAYER_DEFS = [
-  {id:'elec',  label:'Electric',  sub:'13.2 kV primary', color:'#FF453A', icon:'⚡'},
-  {id:'elec2', label:'Secondary', sub:'Service laterals', color:'#FF9F0A', icon:'〜'},
-  {id:'telecom',label:'Telecom',  sub:'Fiber / coax',     color:'#30D158', icon:'📡'},
-  {id:'water', label:'Water',     sub:'Distribution mains',color:'#0A84FF',icon:'💧'},
-  {id:'sewer', label:'Sewer',     sub:'Gravity lines',    color:'#32D74B', icon:'🔄'},
-  {id:'gas',   label:'Gas',       sub:'Distribution',     color:'#FF9F0A', icon:'🔥'},
+  // HIFLD REAL DATA layers
+  {id:'hifld_lines',    label:'Transmission', sub:'HIFLD · Federal data',  color:'#FF453A', icon:'⚡', real:true},
+  {id:'hifld_sub',      label:'Substations',  sub:'HIFLD · 69kV+',         color:'#FF9F0A', icon:'🔌', real:true},
+  // Demo distribution layers
+  {id:'telecom',        label:'Telecom',       sub:'Demo · Fiber/coax',     color:'#30D158', icon:'📡', real:false},
+  {id:'water',          label:'Water',         sub:'Demo · Distribution',   color:'#0A84FF', icon:'💧', real:false},
+  {id:'sewer',          label:'Sewer',         sub:'Demo · Gravity lines',  color:'#32D74B', icon:'🔄', real:false},
+  {id:'gas',            label:'Gas',           sub:'Demo · Distribution',   color:'#FF9F0A', icon:'🔥', real:false},
 ];
-const layerState = {elec:true,elec2:true,telecom:true,water:true,sewer:true,gas:true};
+const layerState = {hifld_lines:true,hifld_sub:true,telecom:true,water:true,sewer:true,gas:true};
+
+// ── HIFLD API ENDPOINTS ──
+const HIFLD = {
+  // Electric transmission lines — Hp6G80Pky0om7QvQ service
+  lines: 'https://services1.arcgis.com/Hp6G80Pky0om7QvQ/arcgis/rest/services/Electric_Power_Transmission_Lines/FeatureServer/0/query',
+  // Electric substations — G4S1dGvn7PIgYd6Y service  
+  subs:  'https://services.arcgis.com/G4S1dGvn7PIgYd6Y/ArcGIS/rest/services/HIFLD_electric_power_substations/FeatureServer/0/query',
+};
+
+// Cache so we don't re-fetch when panning small amounts
+const hifldCache = {lines:{}, subs:{}};
+let hifldLinesLayer = null;   // Leaflet GeoJSON layer for lines
+let hifldSubsLayer  = null;   // Leaflet layer group for substation markers
+let hifldLoading = false;
+let lastFetchBounds = null;
 
 // ── MAP STYLES ──
 const MAP_STYLES = [
@@ -747,6 +791,248 @@ let gpsMode = 'demo', realGPS = null, gpsWatchId = null;
 let activeAsset = null;
 let searchDebounce = null;
 
+
+// ══════════════════════════════════════
+// HIFLD DATA — fetch + render
+// ══════════════════════════════════════
+
+function boundsKey(b) {
+  // Round to 2dp so minor pan doesn't re-fetch
+  return [b.getSouth(),b.getWest(),b.getNorth(),b.getEast()]
+    .map(v=>Math.round(v*100)/100).join(',');
+}
+
+function voltageColor(v) {
+  if(!v||v==='UNKNOWN'||v==='NOT AVAILABLE') return '#FF9F0A';
+  const kv = parseFloat(v);
+  if(kv >= 500) return '#FF453A';   // 500kV+ — thick red
+  if(kv >= 230) return '#FF6B35';   // 230–499kV — orange-red
+  if(kv >= 115) return '#FF9F0A';   // 115–229kV — amber
+  return '#FFD60A';                  // 69–114kV — yellow
+}
+
+function voltageWeight(v) {
+  if(!v||v==='UNKNOWN') return 2;
+  const kv = parseFloat(v);
+  if(kv >= 500) return 4;
+  if(kv >= 230) return 3;
+  return 2;
+}
+
+async function fetchHIFLDLines(bounds) {
+  const key = boundsKey(bounds);
+  if(hifldCache.lines[key]) return hifldCache.lines[key];
+
+  const params = new URLSearchParams({
+    where: "STATUS='IN SERVICE'",
+    outFields: 'VOLTAGE,TYPE,STATUS,OWNER,NAICS_DESC',
+    geometry: JSON.stringify({
+      xmin: bounds.getWest(), ymin: bounds.getSouth(),
+      xmax: bounds.getEast(), ymax: bounds.getNorth(),
+      spatialReference:{wkid:4326}
+    }),
+    geometryType: 'esriGeometryEnvelope',
+    spatialRel: 'esriSpatialRelIntersects',
+    resultRecordCount: 500,
+    outSR: 4326,
+    f: 'geojson',
+  });
+
+  const res = await fetch(HIFLD.lines + '?' + params);
+  if(!res.ok) throw new Error('HIFLD lines HTTP ' + res.status);
+  const data = await res.json();
+  hifldCache.lines[key] = data;
+  return data;
+}
+
+async function fetchHIFLDSubs(bounds) {
+  const key = boundsKey(bounds);
+  if(hifldCache.subs[key]) return hifldCache.subs[key];
+
+  const params = new URLSearchParams({
+    where: "STATUS='IN SERVICE'",
+    outFields: 'NAME,OWNER,MAX_VOLT,MIN_VOLT,STATUS,COUNTY,STATE',
+    geometry: JSON.stringify({
+      xmin: bounds.getWest(), ymin: bounds.getSouth(),
+      xmax: bounds.getEast(), ymax: bounds.getNorth(),
+      spatialReference:{wkid:4326}
+    }),
+    geometryType: 'esriGeometryEnvelope',
+    spatialRel: 'esriSpatialRelIntersects',
+    resultRecordCount: 300,
+    outSR: 4326,
+    f: 'geojson',
+  });
+
+  const res = await fetch(HIFLD.subs + '?' + params);
+  if(!res.ok) throw new Error('HIFLD subs HTTP ' + res.status);
+  const data = await res.json();
+  hifldCache.subs[key] = data;
+  return data;
+}
+
+function renderHIFLDLines(geojson) {
+  if(hifldLinesLayer) map.removeLayer(hifldLinesLayer);
+
+  hifldLinesLayer = L.geoJSON(geojson, {
+    style: feature => {
+      const v = feature.properties?.VOLTAGE;
+      return {
+        color: voltageColor(v),
+        weight: voltageWeight(v),
+        opacity: 0.85,
+        dashArray: null,
+      };
+    },
+    onEachFeature: (feature, layer) => {
+      const p = feature.properties || {};
+      const v = p.VOLTAGE || 'Unknown';
+      const owner = p.OWNER || 'Unknown utility';
+      layer.on('click', e => {
+        L.DomEvent.stopPropagation(e);
+        showTransmissionPopup(v, owner, p.TYPE, e.latlng);
+      });
+    }
+  });
+
+  if(layerState.hifld_lines) hifldLinesLayer.addTo(map);
+  updateHIFLDLineCount(geojson.features?.length || 0);
+}
+
+function renderHIFLDSubs(geojson) {
+  if(hifldSubsLayer) map.removeLayer(hifldSubsLayer);
+  hifldSubsLayer = L.layerGroup();
+
+  (geojson.features || []).forEach(f => {
+    const p = f.properties || {};
+    const coords = f.geometry?.coordinates;
+    if(!coords) return;
+
+    const maxV = p.MAX_VOLT || '?';
+    const icon = L.divIcon({
+      className: '',
+      html: `<div style="
+        width:20px;height:20px;border-radius:4px;
+        background:#FF9F0A;border:2px solid #fff;
+        display:flex;align-items:center;justify-content:center;
+        font-size:7px;font-weight:800;color:#fff;
+        font-family:'JetBrains Mono',monospace;
+        box-shadow:0 2px 6px rgba(0,0,0,.5);
+        cursor:pointer;
+      ">SUB</div>`,
+      iconSize:[20,20], iconAnchor:[10,10],
+    });
+
+    const marker = L.marker([coords[1], coords[0]], {icon});
+    marker.on('click', e => {
+      L.DomEvent.stopPropagation(e);
+      showSubstationPopup(p);
+    });
+    hifldSubsLayer.addLayer(marker);
+  });
+
+  if(layerState.hifld_sub) hifldSubsLayer.addTo(map);
+  updateHIFLDSubCount(geojson.features?.length || 0);
+}
+
+function showTransmissionPopup(voltage, owner, type, latlng) {
+  document.getElementById('ap-title').textContent = 'Transmission Line';
+  document.getElementById('ap-sub').textContent = 'HIFLD Federal Data · Real infrastructure';
+  document.getElementById('ap-rows').innerHTML = `
+    <div class="ap-row"><span class="ap-k">Voltage</span><span class="ap-v" style="color:${voltageColor(voltage)};font-weight:700;">${voltage} kV</span></div>
+    <div class="ap-row"><span class="ap-k">Owner</span><span class="ap-v">${owner}</span></div>
+    <div class="ap-row"><span class="ap-k">Type</span><span class="ap-v">${type||'AC Transmission'}</span></div>
+    <div class="ap-row"><span class="ap-k">Status</span><span class="ap-v"><span class="cond-badge cg">In Service</span></span></div>
+    <div class="ap-row"><span class="ap-k">Source</span><span class="ap-v">HIFLD · DHS / ORNL</span></div>
+    <div class="ap-row"><span class="ap-k">Data</span><span class="ap-v">Federal open data</span></div>
+  `;
+  document.getElementById('asset-popup').classList.add('open');
+}
+
+function showSubstationPopup(p) {
+  document.getElementById('ap-title').textContent = (p.NAME||'Substation') + ' — Substation';
+  document.getElementById('ap-sub').textContent = 'HIFLD Federal Data · ' + (p.COUNTY||'') + ', ' + (p.STATE||'');
+  document.getElementById('ap-rows').innerHTML = `
+    <div class="ap-row"><span class="ap-k">Owner</span><span class="ap-v">${p.OWNER||'Unknown'}</span></div>
+    <div class="ap-row"><span class="ap-k">Max voltage</span><span class="ap-v" style="color:#FF9F0A;font-weight:700;">${p.MAX_VOLT||'?'} kV</span></div>
+    <div class="ap-row"><span class="ap-k">Min voltage</span><span class="ap-v">${p.MIN_VOLT||'?'} kV</span></div>
+    <div class="ap-row"><span class="ap-k">Status</span><span class="ap-v"><span class="cond-badge cg">${p.STATUS||'In Service'}</span></span></div>
+    <div class="ap-row"><span class="ap-k">County</span><span class="ap-v">${p.COUNTY||'—'}, ${p.STATE||'—'}</span></div>
+    <div class="ap-row"><span class="ap-k">Source</span><span class="ap-v">HIFLD · DHS / ORNL</span></div>
+  `;
+  document.getElementById('asset-popup').classList.add('open');
+}
+
+function updateHIFLDLineCount(n) {
+  const el = document.getElementById('hifld-line-count');
+  if(el) el.textContent = n + ' lines';
+}
+function updateHIFLDSubCount(n) {
+  const el = document.getElementById('hifld-sub-count');
+  if(el) el.textContent = n + ' subs';
+}
+
+// Main loader — called on map move and zoom
+async function loadHIFLDData() {
+  if(hifldLoading) return;
+  const zoom = map.getZoom();
+  // Only fetch when zoomed in enough to be useful (avoid fetching entire USA at once)
+  if(zoom < 8) {
+    showToast('Zoom in to load real transmission data');
+    return;
+  }
+
+  const bounds = map.getBounds();
+  // Don't re-fetch if bounds haven't changed much
+  if(lastFetchBounds) {
+    const prev = lastFetchBounds;
+    const moved = Math.abs(bounds.getCenter().lat - prev.getCenter().lat) +
+                  Math.abs(bounds.getCenter().lng - prev.getCenter().lng);
+    if(moved < 0.05 && zoom === prev._zoom) return;
+  }
+
+  hifldLoading = true;
+  lastFetchBounds = bounds;
+  lastFetchBounds._zoom = zoom;
+
+  // Show loading indicator
+  showHIFLDStatus('loading');
+
+  try {
+    const [linesData, subsData] = await Promise.all([
+      layerState.hifld_lines ? fetchHIFLDLines(bounds) : Promise.resolve({features:[]}),
+      layerState.hifld_sub   ? fetchHIFLDSubs(bounds)  : Promise.resolve({features:[]}),
+    ]);
+
+    renderHIFLDLines(linesData);
+    renderHIFLDSubs(subsData);
+    showHIFLDStatus('loaded', (linesData.features?.length||0), (subsData.features?.length||0));
+
+  } catch(err) {
+    console.warn('HIFLD fetch error:', err);
+    showHIFLDStatus('error');
+  } finally {
+    hifldLoading = false;
+  }
+}
+
+function showHIFLDStatus(state, lines, subs) {
+  const bar = document.getElementById('hifld-status-bar');
+  if(!bar) return;
+  if(state === 'loading') {
+    bar.style.display = 'flex';
+    bar.innerHTML = `<div style="width:14px;height:14px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0;"></div> Loading real transmission data...`;
+  } else if(state === 'loaded') {
+    bar.style.display = 'flex';
+    bar.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#30D158" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> <span style="color:#30D158;font-weight:700;">HIFLD LIVE</span> &nbsp;·&nbsp; ${lines} transmission lines &nbsp;·&nbsp; ${subs} substations`;
+    setTimeout(()=>bar.style.display='none', 4000);
+  } else if(state === 'error') {
+    bar.style.display = 'flex';
+    bar.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#FF9F0A" stroke-width="2.5" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/></svg> HIFLD unavailable — using demo data`;
+    setTimeout(()=>bar.style.display='none', 3000);
+  }
+}
+
 function initMap() {
   map = L.map('map', {
     center: [currentCity.lat, currentCity.lon],
@@ -774,6 +1060,8 @@ function initMap() {
 
   // Update subtitle on move
   map.on('moveend', onMapMove);
+  map.on('moveend', () => { if(map.getZoom()>=8) loadHIFLDData(); });
+  map.on('zoomend', () => { if(map.getZoom()>=8) loadHIFLDData(); });
 
   // Init GPS dot at Raleigh center
   drawGPSDot(currentCity.lat, currentCity.lon, false);
@@ -845,6 +1133,10 @@ function plotCity(city) {
 }
 
 function onMapMove() {
+  // Show voltage legend when zoomed in enough for HIFLD data
+  const legend = document.getElementById('volt-legend');
+  if(legend) legend.style.display = map.getZoom() >= 8 ? 'block' : 'none';
+
   const center = map.getCenter();
   const zoom = map.getZoom();
   // Find closest city
@@ -864,6 +1156,24 @@ function onMapMove() {
 function toggleLayer(id) {
   layerState[id] = !layerState[id];
   const on = layerState[id];
+
+  // Handle HIFLD real layers
+  if(id === 'hifld_lines') {
+    if(hifldLinesLayer) {
+      if(on) hifldLinesLayer.addTo(map); else map.removeLayer(hifldLinesLayer);
+    }
+    if(on && !hifldLinesLayer) loadHIFLDData();
+    renderLayerGrid(); return;
+  }
+  if(id === 'hifld_sub') {
+    if(hifldSubsLayer) {
+      if(on) hifldSubsLayer.addTo(map); else map.removeLayer(hifldSubsLayer);
+    }
+    if(on && !hifldSubsLayer) loadHIFLDData();
+    renderLayerGrid(); return;
+  }
+
+  // Demo layers — toggle polyline opacity
   linePolys.forEach(p => {
     if (p.layerType === id) p.setStyle({opacity: on ? 0.75 : 0});
   });
@@ -872,15 +1182,37 @@ function toggleLayer(id) {
 
 function renderLayerGrid() {
   const grid = document.getElementById('layer-grid');
-  grid.innerHTML = LAYER_DEFS.map(l => `
+  // Section headers
+  grid.innerHTML = `
+    <div style="grid-column:1/-1;font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;font-weight:700;margin-bottom:2px;display:flex;align-items:center;gap:6px;">
+      <span style="width:6px;height:6px;border-radius:50%;background:#30D158;display:inline-block;"></span>
+      Real federal data (HIFLD)
+    </div>` +
+  LAYER_DEFS.filter(l=>l.real).map(l => `
+    <div class="util-tile ${layerState[l.id]?'on':'off'}" onclick="toggleLayer('${l.id}')" style="border-color:${layerState[l.id]?'rgba(48,209,88,.3)':'transparent'}">
+      <div class="ut-badge" style="background:${layerState[l.id]?'#30D158':'var(--t3)'};"></div>
+      <div style="position:absolute;top:6px;left:6px;font-size:7px;font-weight:700;color:#30D158;background:rgba(48,209,88,.15);padding:1px 5px;border-radius:4px;font-family:'JetBrains Mono',monospace;">LIVE</div>
+      <div class="ut-icon" style="background:${l.color}22;margin-top:8px;">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="${l.color}" stroke-width="2" stroke-linecap="round">
+          ${l.id==='hifld_lines'?'<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>':
+            '<rect x="3" y="8" width="18" height="8" rx="2"/><path d="M7 8V5m10 3V5M7 16v3m10-3v3"/>'}
+        </svg>
+      </div>
+      <div class="ut-label">${l.label}</div>
+      <div class="ut-sub" id="${l.id==='hifld_lines'?'hifld-line-count':l.id==='hifld_sub'?'hifld-sub-count':''}">${l.sub}</div>
+    </div>`).join('') +
+  `<div style="grid-column:1/-1;font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;font-weight:700;margin:10px 0 2px;display:flex;align-items:center;gap:6px;">
+    <span style="width:6px;height:6px;border-radius:50%;background:#0A84FF;display:inline-block;"></span>
+    Demo distribution data
+  </div>` +
+  LAYER_DEFS.filter(l=>!l.real).map(l => `
     <div class="util-tile ${layerState[l.id]?'on':'off'}" onclick="toggleLayer('${l.id}')">
       <div class="ut-badge"></div>
       <div class="ut-icon" style="background:${l.color}22;">
         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="${l.color}" stroke-width="2" stroke-linecap="round">
-          ${l.id==='elec'||l.id==='elec2'?'<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>':
-            l.id==='telecom'?'<path d="M1 6l10.07 10L22 6"/><path d="M22 18H2"/>':
+          ${l.id==='telecom'?'<path d="M1 6l10.07 10L22 6"/><path d="M22 18H2"/>':
             l.id==='water'?'<path d="M12 2v6m0 0C8 8 5 11 5 14a7 7 0 0 0 14 0c0-3-3-6-7-6z"/>':
-            l.id==='sewer'?'<path d="M5 12H3m4-7 1 1m6-1-1 1M5 7l1 1m12-1-1 1M21 12h-2"/><circle cx="12" cy="12" r="4"/>':
+            l.id==='sewer'?'<circle cx="12" cy="12" r="4"/><path d="M12 2v4m0 12v4M2 12h4m12 0h4"/>':
             '<path d="M12 2a8 8 0 0 0-8 8c0 3 2 5.5 5 7.4V20h6v-2.6c3-1.9 5-4.4 5-7.4a8 8 0 0 0-8-8z"/>'}
         </svg>
       </div>
@@ -1408,6 +1740,12 @@ window.addEventListener('DOMContentLoaded', function() {
 
   // Init map
   try { initMap(); } catch(e) { console.error('Map init error:',e); }
+
+  // Load HIFLD data after map is ready (slight delay for tiles to settle)
+  setTimeout(() => {
+    showToast('⚡ Loading real HIFLD transmission data...');
+    loadHIFLDData();
+  }, 2200);
 
   // Init panels
   try { renderWO(); } catch(e) { console.warn(e); }
