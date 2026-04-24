@@ -631,10 +631,13 @@ window.onerror = function(msg, src, line, col, err) {
           <div id="loc-title">Current location</div>
           <div id="loc-accuracy">GPS · Accuracy ±4 m</div>
         </div>
-        <button id="loc-recenter" onclick="centerGPS()">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="4" fill="currentColor"/><circle cx="12" cy="12" r="7" stroke="currentColor" fill="none"/><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/></svg>
-          Re-center
-        </button>
+        <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">
+          <button id="loc-recenter" onclick="centerGPS()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="4" fill="currentColor"/><circle cx="12" cy="12" r="7" stroke="currentColor" fill="none"/><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/></svg>
+            Re-center
+          </button>
+          <button id="gps-mode-btn" onclick="toggleGPSMode()" style="display:flex;align-items:center;gap:5px;padding:5px 10px;background:rgba(10,132,255,.15);border:1px solid rgba(10,132,255,.35);border-radius:20px;color:#0A84FF;font-size:11px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap;transition:all .2s;">Enable GPS</button>
+        </div>
       </div>
       <div id="loc-grid">
         <div class="loc-cell">
@@ -667,6 +670,23 @@ window.onerror = function(msg, src, line, col, err) {
       </div>
       <div id="loc-bar-label">Stop <span id="lc-stop">1</span> of <span id="lc-total">6</span> along route</div>
     </div>
+  </div>
+
+  <!-- ── OFF-MAP NOTICE ── -->
+  <div id="gps-offmap-notice" style="
+    position:fixed;top:56px;left:0;right:0;
+    background:rgba(10,132,255,.92);
+    display:none;align-items:center;justify-content:space-between;
+    padding:8px 14px;z-index:179;
+    font-size:12px;font-weight:500;color:#fff;
+    backdrop-filter:blur(8px);
+    box-shadow:0 2px 12px rgba(10,132,255,.3);
+  ">
+    <div style="display:flex;align-items:center;gap:8px;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <span>You're outside the demo map area — GPS active but dot is off-screen</span>
+    </div>
+    <button onclick="document.getElementById('gps-offmap-notice').style.display='none'" style="background:rgba(255,255,255,.2);border:none;color:#fff;font-size:11px;padding:3px 8px;border-radius:8px;cursor:pointer;">OK</button>
   </div>
 
   <!-- ── OFFLINE BAR ── -->
@@ -2147,12 +2167,211 @@ document.addEventListener('click',e=>{
   }
 });
 
-function centerGPS(){
-  updateGPS();
-  // flash the recenter button
-  const btn=document.getElementById('loc-recenter');
-  btn.style.background='rgba(76,175,80,.4)';
-  setTimeout(()=>btn.style.background='',400);
+// ══════════════════════════════════════
+// REAL DEVICE GPS SYSTEM
+// ══════════════════════════════════════
+let realGPS = null;          // {lat, lon, accuracy, heading, speed, altitude}
+let gpsWatchId = null;
+let gpsMode = 'demo';        // 'demo' | 'real'
+let recentering = false;
+
+// Map geo constants — SVG 800×500, anchored at Apex NC
+const MAP_CENTER_LAT = 35.732;
+const MAP_CENTER_LON = -78.856;
+const MAP_SCALE = 2600;      // SVG units per degree
+const SVG_CX = 400;
+const SVG_CY = 260;
+
+function latLonToSVG(lat, lon) {
+  const x = SVG_CX + (lon - MAP_CENTER_LON) * MAP_SCALE;
+  const y = SVG_CY - (lat - MAP_CENTER_LAT) * MAP_SCALE;
+  return {
+    x: Math.max(20, Math.min(780, x)),
+    y: Math.max(20, Math.min(480, y))
+  };
+}
+
+function svgToLatLon(x, y) {
+  return {
+    lat: MAP_CENTER_LAT + (SVG_CY - y) / MAP_SCALE,
+    lon: MAP_CENTER_LON + (x - SVG_CX) / MAP_SCALE
+  };
+}
+
+function startRealGPS() {
+  if (!('geolocation' in navigator)) {
+    showToast('GPS not available on this device');
+    return false;
+  }
+
+  // Request high accuracy position
+  gpsWatchId = navigator.geolocation.watchPosition(
+    onGPSSuccess,
+    onGPSError,
+    {
+      enableHighAccuracy: true,
+      timeout: 10000,
+      maximumAge: 2000
+    }
+  );
+
+  gpsMode = 'real';
+  showToast('📍 Live GPS activated');
+  updateGPSStatusDot('acquiring');
+  return true;
+}
+
+function stopRealGPS() {
+  if (gpsWatchId !== null) {
+    navigator.geolocation.clearWatch(gpsWatchId);
+    gpsWatchId = null;
+  }
+  gpsMode = 'demo';
+  realGPS = null;
+}
+
+function onGPSSuccess(position) {
+  const { latitude, longitude, accuracy, altitude, speed, heading } = position.coords;
+
+  realGPS = {
+    lat: latitude,
+    lon: longitude,
+    accuracy: Math.round(accuracy),
+    altitude: altitude ? Math.round(altitude * 3.281) : 312, // m to ft
+    speed: speed ? (speed * 2.237).toFixed(1) : '0.0',       // m/s to mph
+    heading: heading || 90
+  };
+
+  updateGPSStatusDot('live');
+  updateGPSDot();
+
+  if (locTabOpen) updateLocationTabReal();
+
+  // Show distance from demo area if far away
+  const dist = getDistanceMiles(latitude, longitude, MAP_CENTER_LAT, MAP_CENTER_LON);
+  if (dist > 2) {
+    document.getElementById('gps-offmap-notice')?.style && (
+      document.getElementById('gps-offmap-notice').style.display = 'flex'
+    );
+  } else {
+    const notice = document.getElementById('gps-offmap-notice');
+    if (notice) notice.style.display = 'none';
+  }
+}
+
+function onGPSError(err) {
+  const msgs = {
+    1: 'Location permission denied — tap to allow',
+    2: 'GPS signal unavailable',
+    3: 'GPS timed out — retrying...'
+  };
+  showToast('⚠️ ' + (msgs[err.code] || 'GPS error'));
+  updateGPSStatusDot('error');
+  gpsMode = 'demo';
+}
+
+function updateGPSDot() {
+  if (!realGPS) return;
+  const { x, y } = latLonToSVG(realGPS.lat, realGPS.lon);
+
+  // Move GPS dot
+  document.getElementById('gps-dot').setAttribute('cx', x);
+  document.getElementById('gps-dot').setAttribute('cy', y);
+
+  // Scale accuracy ring (1 degree lat ≈ 69 miles ≈ 364,320 ft)
+  // accuracy in meters → SVG units
+  const accRadius = Math.min(60, Math.max(8, (realGPS.accuracy / 111320) * MAP_SCALE));
+  document.getElementById('gps-acc').setAttribute('cx', x);
+  document.getElementById('gps-acc').setAttribute('cy', y);
+  document.getElementById('gps-acc').setAttribute('r', accRadius);
+
+  // Update heading cone
+  const rad = realGPS.heading * Math.PI / 180;
+  const d = 24, w = 9;
+  const tx = x + d * Math.cos(rad - Math.PI/2);
+  const ty = y + d * Math.sin(rad - Math.PI/2);
+  document.getElementById('gps-cone').setAttribute('points',
+    `${tx},${ty} ${x+w*Math.cos(rad)},${y+w*Math.sin(rad)} ${x-w*Math.cos(rad)},${y-w*Math.sin(rad)}`
+  );
+}
+
+function updateGPSStatusDot(state) {
+  const dot = document.getElementById('loc-status-dot');
+  const acc = document.getElementById('loc-accuracy');
+  const title = document.getElementById('loc-title');
+  const btn = document.getElementById('gps-mode-btn');
+
+  const states = {
+    acquiring: { bg:'#FF9F0A', label:'Acquiring GPS signal...', acc:'Searching...', btn:'Acquiring' },
+    live:      { bg:'#30D158', label:'Live device location',   acc:`GPS · ±${realGPS?.accuracy||'?'} m`, btn:'Live GPS ●' },
+    demo:      { bg:'#0A84FF', label:'Demo route (Apex NC)',   acc:'Simulated · 6-stop route', btn:'Enable GPS' },
+    error:     { bg:'#FF453A', label:'GPS unavailable',        acc:'Permission required', btn:'Retry GPS' },
+  };
+
+  const s = states[state] || states.demo;
+  if (dot) { dot.style.background = s.bg; dot.style.boxShadow = `0 0 0 3px ${s.bg}33`; }
+  if (acc) acc.textContent = s.acc;
+  if (title) title.textContent = s.label;
+  if (btn) { btn.textContent = s.btn; btn.style.background = state==='live' ? 'rgba(48,209,88,.2)' : state==='error' ? 'rgba(255,69,58,.15)' : ''; btn.style.borderColor = state==='live' ? 'rgba(48,209,88,.4)' : ''; btn.style.color = state==='live' ? '#30D158' : state==='error' ? '#FF453A' : ''; }
+}
+
+function getDistanceMiles(lat1, lon1, lat2, lon2) {
+  const R = 3958.8;
+  const dLat = (lat2-lat1) * Math.PI/180;
+  const dLon = (lon2-lon1) * Math.PI/180;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.sin(dLon/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+function updateLocationTabReal() {
+  if (!realGPS) return;
+  document.getElementById('lc-lat').textContent = realGPS.lat.toFixed(5) + '° N';
+  document.getElementById('lc-lon').textContent = Math.abs(realGPS.lon).toFixed(5) + '° W';
+  document.getElementById('lc-speed').textContent = realGPS.speed + ' mph';
+  document.getElementById('lc-alt').textContent = realGPS.altitude + ' ft';
+  document.getElementById('lc-heading').innerHTML =
+    `<span id="lc-compass">${hIcon(realGPS.heading)}</span> ${realGPS.heading.toFixed(0)}°`;
+  document.getElementById('lc-street').textContent = 'Live location';
+  document.getElementById('loc-accuracy').textContent = `GPS · ±${realGPS.accuracy} m`;
+  // Clear route progress in real mode
+  document.getElementById('lc-stop').textContent = '—';
+  document.getElementById('lc-total').textContent = '—';
+  document.getElementById('loc-bar-fill').style.width = '100%';
+  document.getElementById('loc-bar-fill').style.background = '#30D158';
+}
+
+function centerGPS() {
+  const btn = document.getElementById('loc-recenter');
+
+  if (gpsMode === 'real' && realGPS) {
+    // Snap SVG view to real location
+    updateGPSDot();
+    updateLocationTabReal();
+
+    // Visual feedback — pulse green
+    btn.style.background = 'rgba(48,209,88,.35)';
+    btn.style.borderColor = 'rgba(48,209,88,.6)';
+    btn.style.color = '#30D158';
+    setTimeout(() => {
+      btn.style.background = '';
+      btn.style.borderColor = '';
+      btn.style.color = '';
+    }, 600);
+    showToast('📍 Centered on your location');
+
+  } else {
+    // Demo mode — request real GPS
+    const granted = startRealGPS();
+    if (granted) {
+      // Visual feedback — pulse blue while acquiring
+      btn.style.background = 'rgba(10,132,255,.25)';
+      btn.textContent = 'Locating...';
+      setTimeout(() => {
+        btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="4" fill="currentColor"/><circle cx="12" cy="12" r="7" stroke="currentColor" fill="none"/><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/></svg> Re-center`;
+        btn.style.background = '';
+      }, 3000);
+    }
+  }
 }
 
 let locTabOpen=false;
@@ -2161,6 +2380,18 @@ function toggleLocationTab(){
   document.getElementById('loc-tab').classList.toggle('open',locTabOpen);
   document.getElementById('loc-btn').classList.toggle('active',locTabOpen);
   if(locTabOpen)updateLocationTab();
+}
+
+function toggleGPSMode() {
+  if (gpsMode === 'real') {
+    stopRealGPS();
+    updateGPSStatusDot('demo');
+    showToast('Switched to demo route');
+    // Restore demo GPS dot position
+    updateGPS();
+  } else {
+    startRealGPS();
+  }
 }
 
 function updateLocationTab(){
@@ -2634,6 +2865,25 @@ window.addEventListener('DOMContentLoaded', function() {
   try { renderNotifs(); } catch(e) { console.warn('renderNotifs error:', e); }
   try { renderRoute(); } catch(e) { console.warn('renderRoute error:', e); }
   try { updateGPS(); } catch(e) { console.warn('updateGPS error:', e); }
+
+  // Auto-attempt GPS on load (browser will prompt for permission)
+  setTimeout(() => {
+    if ('geolocation' in navigator) {
+      // Silently try GPS — if permission already granted it starts immediately
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          // Permission granted — start full watch
+          startRealGPS();
+        },
+        (err) => {
+          // Not granted or unavailable — stay in demo mode silently
+          console.log('[VLTRVIEW] GPS not available, using demo route:', err.message);
+          updateGPSStatusDot('demo');
+        },
+        { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+      );
+    }
+  }, 2000); // Wait 2s after splash before requesting GPS
   window.addEventListener('resize', () => { if(typeof svOpen !== 'undefined' && svOpen) renderSV(); });
 
   // Live crew simulation — update dots every 8 seconds
