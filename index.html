@@ -398,6 +398,16 @@ html,body{height:100%;width:100%;background:#1a1a1a;font-family:'DM Sans',sans-s
 .modal-title{font-size:17px;font-weight:500;color:#fff;padding:14px 18px 10px;}
 
 <body>
+<script>
+window.onerror = function(msg, src, line, col, err) {
+  document.body.style.background = '#0d0e12';
+  var d = document.createElement('div');
+  d.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#1c1c1e;color:#f0f0f0;padding:24px;border-radius:16px;font-family:monospace;font-size:13px;max-width:90%;z-index:9999;border:1px solid #333;';
+  d.innerHTML = '<div style="color:#E24B4A;font-weight:700;margin-bottom:8px">VLTRVIEW — Load Error</div>' + msg + '<br><span style="color:#666;font-size:11px">Line ' + line + '</span>';
+  document.body.appendChild(d);
+  return false;
+};
+</script>
 <div id="app">
 
   <!-- Top bar -->
@@ -2361,14 +2371,17 @@ function openDamage(){switchTab('damage',null);document.querySelectorAll('.bnav-
 // ══════════════════════════════════════
 // INIT ALL FEATURES
 // ══════════════════════════════════════
-renderWO();
-renderCrew();
-renderPhotos();
-renderDamage();
-renderNotifs();
-renderRoute();
-window.addEventListener('resize',()=>{if(svOpen)renderSV();});
-updateGPS();
+// ── SAFE INIT: wait for DOM to be fully ready ──
+window.addEventListener('DOMContentLoaded', function() {
+  try { renderWO(); } catch(e) { console.warn('renderWO error:', e); }
+  try { renderCrew(); } catch(e) { console.warn('renderCrew error:', e); }
+  try { renderPhotos(); } catch(e) { console.warn('renderPhotos error:', e); }
+  try { renderDamage(); } catch(e) { console.warn('renderDamage error:', e); }
+  try { renderNotifs(); } catch(e) { console.warn('renderNotifs error:', e); }
+  try { renderRoute(); } catch(e) { console.warn('renderRoute error:', e); }
+  try { updateGPS(); } catch(e) { console.warn('updateGPS error:', e); }
+  window.addEventListener('resize', () => { if(typeof svOpen !== 'undefined' && svOpen) renderSV(); });
+});
 </script>
 </body>
 </html>
