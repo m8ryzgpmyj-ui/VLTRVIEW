@@ -1,0 +1,2374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"/>
+<title>VLTRVIEW — Utility Locator</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+:root{
+  --green:#00e000;--green-dk:#006600;
+  --orange:#ff6633;--blue:#378ADD;--amber:#BA7517;
+  --red:#E24B4A;--red-dk:#791F1F;--sewer:#639922;
+  --topbar:#2a2a2a;--fab:rgba(68,68,74,.92);
+  --text1:#111;--text2:#555;--text3:#999;--border:#e0ddd6;
+}
+html,body{height:100%;width:100%;background:#1a1a1a;font-family:'DM Sans',sans-serif;overflow:hidden;}
+#app{width:100%;height:100%;display:flex;flex-direction:column;background:#000;}
+
+/* ── Top bar ── */
+#topbar{height:52px;background:var(--topbar);display:flex;align-items:center;padding:0 10px;gap:2px;flex-shrink:0;border-bottom:1px solid #3a3a3a;}
+#topbar .co{font-size:17px;color:#fff;font-weight:400;flex:1;padding-left:6px;letter-spacing:.1px;}
+.ti{width:44px;height:44px;display:flex;align-items:center;justify-content:center;cursor:pointer;border-radius:50%;border:none;background:none;transition:background .15s;}
+.ti:hover{background:rgba(255,255,255,.1);}
+.ti svg{width:23px;height:23px;}
+
+/* ── Main area ── */
+#main{flex:1;display:flex;flex-direction:column;overflow:hidden;position:relative;padding-bottom:56px;}
+
+/* ── Map ── */
+#mapwrap{position:relative;overflow:hidden;background:#ebe8e0;transition:height .3s cubic-bezier(.4,0,.2,1);height:100%;}
+#mapwrap.sv-open{height:42%;}
+#mapsvg{width:100%;height:100%;}
+
+/* ── Street View panel ── */
+#svpanel{position:relative;overflow:hidden;background:#1a1a1a;height:0;transition:height .3s cubic-bezier(.4,0,.2,1);flex-shrink:0;}
+#svpanel.open{height:58%;}
+#svcanvas{width:100%;height:100%;display:block;}
+#sv-overlays{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;}
+.sv-util-label{position:absolute;display:flex;flex-direction:column;align-items:center;gap:2px;pointer-events:none;}
+.sv-label-pill{font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px;color:#fff;white-space:nowrap;font-family:'JetBrains Mono',monospace;letter-spacing:.2px;}
+.sv-depth{font-size:9px;color:rgba(255,255,255,.7);background:rgba(0,0,0,.5);padding:1px 5px;border-radius:10px;}
+.sv-struct{position:absolute;width:18px;height:18px;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:700;font-family:'JetBrains Mono',monospace;}
+#sv-topbar{position:absolute;top:0;left:0;right:0;height:38px;background:linear-gradient(to bottom,rgba(0,0,0,.72),transparent);display:flex;align-items:center;padding:0 14px;gap:10px;z-index:10;}
+#sv-heading{font-size:12px;color:#fff;font-family:'JetBrains Mono',monospace;}
+#sv-addr{font-size:12px;color:rgba(255,255,255,.75);flex:1;}
+#sv-close{background:rgba(0,0,0,.4);border:none;color:#fff;font-size:16px;cursor:pointer;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;}
+#sv-controls{position:absolute;bottom:0;left:0;right:0;height:54px;background:linear-gradient(to top,rgba(0,0,0,.75),transparent);display:flex;align-items:center;justify-content:center;gap:18px;z-index:10;}
+.sv-btn{width:46px;height:46px;border-radius:50%;background:rgba(28,28,28,.88);border:1.5px solid rgba(255,255,255,.18);color:#fff;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s;backdrop-filter:blur(4px);}
+.sv-btn:hover{background:rgba(60,60,60,.95);}
+.sv-btn:active{transform:scale(.92);}
+#sv-pos-label{font-size:11px;color:rgba(255,255,255,.8);font-family:'JetBrains Mono',monospace;min-width:80px;text-align:center;}
+
+/* ── FABs ── */
+#sv-fab{position:absolute;bottom:14px;right:14px;width:48px;height:48px;border-radius:50%;background:var(--fab);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 10px rgba(0,0,0,.45);z-index:20;transition:background .15s;}
+#sv-fab:hover{background:rgba(88,88,98,.98);}
+#sv-fab svg{width:23px;height:23px;fill:none;stroke:#ddd;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+#sv-fab.active{background:rgba(55,138,221,.85);}
+#layer-fab{position:absolute;bottom:70px;right:14px;width:48px;height:48px;border-radius:50%;background:var(--fab);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 10px rgba(0,0,0,.45);z-index:20;}
+#layer-fab svg{width:23px;height:23px;fill:none;stroke:#ddd;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+
+/* ── GPS chip ── */
+/* ── Current location tab ── */
+#loc-tab{background:#1c1c1e;overflow:hidden;max-height:0;transition:max-height .3s cubic-bezier(.4,0,.2,1);flex-shrink:0;}
+#loc-tab.open{max-height:220px;}
+#loc-tab-handle{width:36px;height:3px;background:#444;border-radius:2px;margin:8px auto 4px;}
+#loc-tab-inner{padding:0 16px 14px;}
+#loc-header{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+#loc-status-dot{width:9px;height:9px;border-radius:50%;background:#4CAF50;flex-shrink:0;box-shadow:0 0 0 3px rgba(76,175,80,.2);}
+#loc-title{font-size:13px;font-weight:600;color:#fff;line-height:1.2;}
+#loc-accuracy{font-size:10px;color:#4CAF50;font-family:'JetBrains Mono',monospace;margin-top:1px;}
+#loc-recenter{margin-left:auto;display:flex;align-items:center;gap:5px;padding:5px 10px;background:rgba(76,175,80,.15);border:1px solid rgba(76,175,80,.35);border-radius:20px;color:#4CAF50;font-size:11px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;transition:background .15s;}
+#loc-recenter:hover{background:rgba(76,175,80,.25);}
+#loc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:10px;}
+.loc-cell{background:#2a2a2e;border-radius:8px;padding:7px 9px;}
+.lc-label{font-size:9px;color:#666;text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px;}
+.lc-val{font-size:12px;font-weight:500;color:#ddd;font-family:'JetBrains Mono',monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+#lc-compass{font-size:12px;color:#EF9F27;}
+#loc-bar{height:3px;background:#2a2a2e;border-radius:2px;overflow:hidden;margin-bottom:4px;}
+#loc-bar-fill{height:100%;background:#4CAF50;border-radius:2px;transition:width .4s ease;width:16.6%;}
+#loc-bar-label{font-size:10px;color:#555;font-family:'JetBrains Mono',monospace;}
+#loc-btn.active{background:rgba(76,175,80,.15);}
+#gps-chip{display:none;}
+
+/* ── Fault banner ── */
+#faultbar{position:absolute;top:0;left:0;right:0;background:rgba(158,38,38,.93);padding:8px 16px;display:none;align-items:center;gap:10px;z-index:30;}
+#faultbar span{font-size:12px;color:#fff;flex:1;}
+#faultbar button{background:rgba(255,255,255,.2);border:none;color:#fff;font-size:11px;padding:4px 12px;border-radius:20px;cursor:pointer;}
+
+/* ── Bottom sheet ── */
+#sheet{position:absolute;bottom:0;left:0;right:0;background:#f9f8f6;border-radius:22px 22px 0 0;transform:translateY(100%);transition:transform .26s cubic-bezier(.4,0,.2,1);max-height:60%;display:flex;flex-direction:column;box-shadow:0 -4px 28px rgba(0,0,0,.22);z-index:50;}
+#sheet.open{transform:translateY(0);}
+.sh-handle{width:40px;height:4px;background:#ccc;border-radius:2px;margin:12px auto 0;}
+.sh-head{padding:10px 18px 0;display:flex;align-items:flex-start;justify-content:space-between;}
+.sh-title{font-size:15px;font-weight:600;color:var(--text1);flex:1;line-height:1.3;}
+.sh-close{background:none;border:none;font-size:24px;color:#bbb;cursor:pointer;}
+.sh-sub{font-size:11px;color:var(--text2);padding:2px 18px 8px;}
+.sh-rows{overflow-y:auto;flex:1;padding-bottom:8px;}
+.sh-row{display:flex;justify-content:space-between;align-items:center;padding:8px 18px;border-top:.5px solid var(--border);}
+.sh-k{font-size:12px;color:var(--text2);}
+.sh-v{font-size:12px;font-weight:500;color:var(--text1);text-align:right;max-width:58%;}
+.sh-actions{display:flex;gap:8px;padding:10px 18px 16px;border-top:.5px solid var(--border);}
+.sh-btn{flex:1;padding:11px;border-radius:12px;border:none;font-size:12px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;}
+.sh-btn.pri{background:#2a2a2a;color:#fff;}
+.sh-btn.red{background:#FCEBEB;color:#A32D2D;}
+.sh-btn.blu{background:#e8f4ff;color:#185FA5;}
+.cond{display:inline-block;font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;}
+.cg{background:#e8f5e9;color:#27A045;}.cf{background:#fff3e0;color:#E67E00;}.cp{background:#FCEBEB;color:#C0392B;}.cu{background:#e8f0ff;color:#185FA5;}
+.imp-section{padding:8px 18px;}
+.imp-lbl{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px;}
+.imp-item{display:flex;align-items:center;gap:7px;padding:4px 0;font-size:11px;color:var(--text2);border-bottom:.5px solid var(--border);}
+.imp-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+
+/* ── Layer panel ── */
+#lpanel{position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.55);z-index:60;display:none;align-items:flex-end;}
+#lpanel.open{display:flex;}
+#linner{background:#1c1c1e;width:100%;border-radius:22px 22px 0 0;padding:20px 16px 28px;max-height:82%;overflow-y:auto;}
+.lp-handle{width:38px;height:4px;background:#555;border-radius:2px;margin:0 auto 18px;}
+.lp-title{font-size:15px;font-weight:600;color:#fff;margin-bottom:6px;letter-spacing:.1px;}
+.lp-subtitle{font-size:12px;color:#888;margin-bottom:18px;}
+.lp-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;}
+.util-tile{position:relative;border-radius:16px;padding:14px 10px 12px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;border:2px solid transparent;transition:all .18s cubic-bezier(.4,0,.2,1);background:#2a2a2e;user-select:none;}
+.util-tile.on{border-color:rgba(255,255,255,.18);}
+.util-tile.off{opacity:.42;filter:saturate(0.2);}
+.util-tile:active{transform:scale(.94);}
+.ut-icon{width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;}
+.ut-label{font-size:11px;font-weight:600;color:#fff;text-align:center;letter-spacing:.2px;line-height:1.2;}
+.ut-sub{font-size:9px;color:#888;text-align:center;letter-spacing:.1px;}
+.ut-badge{position:absolute;top:8px;right:8px;width:10px;height:10px;border-radius:50%;background:#4CAF50;border:1.5px solid #1c1c1e;transition:background .2s;}
+.util-tile.off .ut-badge{background:#555;}
+.lp-divider{height:1px;background:#333;margin:14px 0;}
+.lp-close{width:100%;margin-top:4px;padding:14px;border-radius:14px;border:none;background:#2a2a2e;color:#fff;font-size:14px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;transition:background .15s;}
+.lp-close:hover{background:#333;}
+.lp-section-label{font-size:10px;color:#666;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;padding-left:2px;}
+
+/* ── Search overlay ── */
+#search-overlay{position:absolute;top:0;left:0;right:0;z-index:80;display:none;flex-direction:column;background:var(--topbar);border-bottom:1px solid #444;box-shadow:0 4px 20px rgba(0,0,0,.35);}
+#search-overlay.open{display:flex;}
+#search-row{display:flex;align-items:center;gap:8px;padding:10px 14px;}
+#search-input{flex:1;height:40px;background:#3a3a3a;border:1.5px solid #555;border-radius:10px;padding:0 14px;font-size:15px;color:#fff;outline:none;font-family:'DM Sans',sans-serif;transition:border-color .15s;}
+#search-input:focus{border-color:#4CAF50;}
+#search-input::placeholder{color:#888;}
+#search-cancel{background:none;border:none;color:#aaa;font-size:14px;cursor:pointer;padding:0 4px;white-space:nowrap;font-family:'DM Sans',sans-serif;}
+#search-cancel:hover{color:#fff;}
+#search-results{max-height:260px;overflow-y:auto;border-top:1px solid #3a3a3a;}
+.sr-item{display:flex;flex-direction:column;gap:2px;padding:11px 16px;cursor:pointer;border-bottom:.5px solid #3a3a3a;transition:background .12s;}
+.sr-item:hover{background:#333;}
+.sr-item:last-child{border-bottom:none;}
+.sr-main{font-size:13px;color:#fff;font-weight:500;line-height:1.3;}
+.sr-sub{font-size:11px;color:#888;line-height:1.3;}
+@keyframes pin-drop{0%{transform:translateY(-20px);opacity:0}60%{transform:translateY(4px)}100%{transform:translateY(0);opacity:1}}
+#search-pin{animation:pin-drop .35s ease-out;}
+.sr-icon{width:28px;height:28px;border-radius:50%;background:#2a5c2a;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+.sr-icon svg{width:14px;height:14px;fill:none;stroke:#4CAF50;stroke-width:2;stroke-linecap:round;}
+.sr-name{font-size:13px;color:#eee;font-weight:500;line-height:1.3;}
+.sr-addr{font-size:11px;color:#888;margin-top:2px;line-height:1.4;}
+.sr-empty{padding:18px 16px;font-size:13px;color:#888;text-align:center;}
+.sr-loading{padding:14px 16px;font-size:13px;color:#888;display:flex;align-items:center;gap:8px;}
+.sr-spinner{width:14px;height:14px;border:2px solid #555;border-top-color:#4CAF50;border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0;}
+#search-pin{display:none;}
+@keyframes spin{to{transform:rotate(360deg);}}
+/* Map pin for searched location */
+#located-pin{transition:opacity .3s;}
+@keyframes pin-drop{0%{transform:translateY(-20px);opacity:0}60%{transform:translateY(4px)}100%{transform:translateY(0);opacity:1}}
+.pin-drop{animation:pin-drop .4s cubic-bezier(.34,1.56,.64,1) forwards;}
+@keyframes dash-march{to{stroke-dashoffset:-16;}}
+@keyframes flow-anim{to{stroke-dashoffset:-20;}}
+@keyframes fault-blink{0%,100%{opacity:1}50%{opacity:.2}}
+@keyframes shutter-flash{0%{opacity:.7}100%{opacity:0}}
+@keyframes menu-in{from{opacity:0;transform:translateY(-8px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+
+/* ── Tools dropdown ── */
+#tools-menu.open{display:block;}
+.tm-title{font-size:11px;font-weight:600;color:#666;text-transform:uppercase;letter-spacing:.08em;margin:0 6px 8px;}
+.tm-item{display:flex;align-items:center;gap:10px;padding:9px 8px;border-radius:10px;cursor:pointer;transition:background .14s;}
+.tm-item:hover,.tm-item.active-tool{background:#2a2a2e;}
+.tm-item.active-tool .tm-name{color:#4CAF50;}
+.tm-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.tm-text{flex:1;}
+.tm-name{font-size:13px;font-weight:500;color:#ddd;line-height:1.2;}
+.tm-sub{font-size:11px;color:#666;line-height:1.2;margin-top:1px;}
+.tm-badge{width:8px;height:8px;border-radius:50%;background:#4CAF50;display:none;flex-shrink:0;}
+.tm-item.active-tool .tm-badge{display:block;}
+
+/* ── Tool panels ── */
+.tool-panel{position:fixed;top:56px;left:14px;width:260px;background:#1c1c1e;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,.55);z-index:190;display:none;animation:menu-in .18s ease-out;overflow:hidden;}
+.tool-panel.open{display:block;}
+.tp-head{display:flex;align-items:center;justify-content:space-between;padding:12px 14px 10px;border-bottom:1px solid #2a2a2e;}
+.tp-title{font-size:13px;font-weight:600;color:#fff;}
+.tp-close{background:none;border:none;color:#666;font-size:20px;cursor:pointer;line-height:1;padding:0;}
+.tp-close:hover{color:#fff;}
+.tp-body{padding:12px 14px 14px;}
+.tp-hint{font-size:12px;color:#777;line-height:1.5;background:#2a2a2e;border-radius:8px;padding:8px 10px;}
+.tp-action{width:100%;padding:9px;border-radius:10px;border:none;background:#2a2a2e;color:#ccc;font-size:12px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;margin-top:8px;transition:background .14s;}
+.tp-action:hover{background:#333;}
+
+/* Measure */
+.measure-row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:.5px solid #2a2a2e;font-size:12px;}
+.mr-label{color:#666;}
+.mr-val{color:#ccc;font-family:'JetBrains Mono',monospace;font-size:11px;}
+.measure-big{font-size:28px;font-weight:600;color:#4CAF50;text-align:center;padding:10px 0 4px;font-family:'JetBrains Mono',monospace;}
+.measure-units{display:flex;gap:6px;justify-content:center;}
+.mu-btn{padding:4px 12px;border-radius:20px;border:1px solid #444;background:none;color:#888;font-size:11px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .14s;}
+.mu-btn.active{background:#378ADD;border-color:#378ADD;color:#fff;}
+
+/* Draw */
+.draw-tools{display:flex;gap:6px;margin-bottom:10px;}
+.dt-btn{width:38px;height:38px;border-radius:10px;border:1.5px solid #444;background:#2a2a2e;color:#888;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .14s;}
+.dt-btn:hover{border-color:#666;color:#ccc;}
+.dt-btn.active{border-color:#00e000;color:#00e000;background:rgba(0,224,0,.08);}
+.draw-colors{display:flex;gap:8px;margin-bottom:10px;}
+.dc-dot{width:22px;height:22px;border-radius:50%;cursor:pointer;transition:transform .14s;border:2px solid transparent;}
+.dc-dot:hover{transform:scale(1.15);}
+.dc-dot.active{border-color:#fff;transform:scale(1.1);}
+
+/* Legend */
+.leg-section{font-size:10px;font-weight:600;color:#666;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;padding-top:2px;}
+.leg-row{display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:.5px solid #2a2a2e;}
+.leg-line{width:22px;height:3px;border-radius:1px;flex-shrink:0;}
+.leg-lbl{font-size:11px;color:#bbb;line-height:1.3;}
+
+/* Search utility */
+.utype-filters{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px;}
+.utf-btn{padding:4px 10px;border-radius:20px;border:1px solid #444;background:#2a2a2e;color:#888;font-size:11px;cursor:pointer;font-family:'JetBrains Mono',monospace;transition:all .14s;}
+.utf-btn:hover{border-color:#666;color:#ccc;}
+.utf-btn.active{background:#E24B4A;border-color:#E24B4A;color:#fff;}
+.ur-item{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:.5px solid #2a2a2e;cursor:pointer;}
+.ur-item:hover .ur-name{color:#fff;}
+.ur-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.ur-name{font-size:12px;color:#ccc;flex:1;}
+.ur-id{font-size:10px;color:#555;font-family:'JetBrains Mono',monospace;}
+.ur-cond{font-size:10px;padding:1px 6px;border-radius:10px;}
+
+/* Measure line on map */
+#measure-line{pointer-events:none;}
+#measure-dot-a,#measure-dot-b{pointer-events:none;}
+
+/* ── Map style dropdown ── */
+#map-menu{position:fixed;top:52px;right:8px;width:292px;background:#1c1c1e;border-radius:16px;padding:14px;box-shadow:0 8px 32px rgba(0,0,0,.55);z-index:200;display:none;animation:menu-in .18s ease-out;}
+#map-menu.open{display:block;}
+/* ── Tools dropdown ── */
+#tools-menu{position:fixed;top:52px;right:56px;width:248px;background:#1c1c1e;border-radius:16px;padding:10px 8px;box-shadow:0 8px 32px rgba(0,0,0,.55);z-index:200;display:none;animation:menu-in .18s ease-out;}
+#tools-menu.open{display:block;}
+.mm-title{font-size:12px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px;padding-left:2px;}
+.mm-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.mm-tile{border-radius:12px;overflow:hidden;cursor:pointer;border:2px solid transparent;transition:all .15s cubic-bezier(.4,0,.2,1);background:#2a2a2e;position:relative;}
+.mm-tile:hover{border-color:rgba(255,255,255,.2);transform:scale(1.03);}
+.mm-tile.active{border-color:#4CAF50;}
+.mm-tile:active{transform:scale(.96);}
+.mm-preview{width:100%;height:56px;overflow:hidden;border-radius:8px 8px 0 0;}
+.mm-label{font-size:11px;font-weight:500;color:#ccc;padding:5px 6px 6px;text-align:center;letter-spacing:.1px;}
+.mm-check{position:absolute;top:5px;right:5px;width:16px;height:16px;border-radius:50%;background:#4CAF50;color:#fff;font-size:9px;font-weight:700;display:none;align-items:center;justify-content:center;line-height:1;}
+.mm-tile.active .mm-check{display:flex;}
+
+#shutter-flash{position:fixed;top:0;left:0;right:0;bottom:0;background:#fff;pointer-events:none;opacity:0;z-index:9999;}
+#shutter-flash.flash{animation:shutter-flash .35s ease-out forwards;}
+#screenshot-toast{position:absolute;bottom:80px;left:50%;transform:translateX(-50%);background:rgba(20,20,20,.9);color:#fff;font-size:12px;font-weight:500;padding:8px 16px;border-radius:20px;white-space:nowrap;opacity:0;transition:opacity .2s;pointer-events:none;z-index:200;backdrop-filter:blur(6px);}
+#screenshot-toast.show{opacity:1;}
+#screenshot-btn.capturing svg{animation:btn-confirm .4s ease-in-out;}
+.march{animation:dash-march .9s linear infinite;}
+.flow{animation:flow-anim 1.1s linear infinite;}
+.fb{animation:fault-blink .7s ease-in-out infinite;}
+/* ── BOTTOM NAV BAR ── */
+#bottomnav{position:fixed;bottom:0;left:0;right:0;height:56px;background:var(--topbar);border-top:1px solid #3a3a3a;display:flex;align-items:center;justify-content:space-around;z-index:150;padding:0 4px;}
+.bnav-btn{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 12px;border-radius:10px;border:none;background:none;cursor:pointer;transition:background .15s;min-width:52px;}
+.bnav-btn:hover{background:rgba(255,255,255,.08);}
+.bnav-btn.active{background:rgba(55,138,221,.18);}
+.bnav-btn svg{width:20px;height:20px;fill:none;stroke:#999;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+.bnav-btn.active svg{stroke:#378ADD;}
+.bnav-label{font-size:10px;color:#888;font-family:'DM Sans',sans-serif;font-weight:500;}
+.bnav-btn.active .bnav-label{color:#378ADD;}
+.bnav-badge{position:absolute;top:4px;right:6px;width:16px;height:16px;border-radius:50%;background:#E24B4A;font-size:9px;font-weight:700;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;}
+
+/* ── PANEL SHEETS (full-screen overlays) ── */
+.feature-panel{position:fixed;top:0;left:0;right:0;bottom:0;background:var(--bg,#1c1c1e);z-index:200;display:none;flex-direction:column;overflow:hidden;}
+.feature-panel.open{display:flex;}
+.fp-head{height:52px;background:#2a2a2e;display:flex;align-items:center;padding:0 14px;gap:10px;flex-shrink:0;border-bottom:1px solid rgba(255,255,255,.08);}
+.fp-title{font-size:16px;font-weight:500;color:#fff;flex:1;}
+.fp-close{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.08);border:none;color:#aaa;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.fp-body{flex:1;overflow-y:auto;padding:0;}
+.fp-body::-webkit-scrollbar{width:3px;}
+.fp-body::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15);border-radius:2px;}
+
+/* ── WORK ORDERS ── */
+.wo-fab{position:absolute;bottom:70px;right:14px;width:48px;height:48px;border-radius:50%;background:#378ADD;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 12px rgba(55,138,221,.5);z-index:20;}
+.wo-fab svg{width:22px;height:22px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;}
+.wo-card{background:#2a2a2e;border-radius:14px;margin:10px 14px;padding:14px;border:1px solid rgba(255,255,255,.08);}
+.wo-card:active{opacity:.88;}
+.wo-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px;}
+.wo-id{font-size:11px;font-weight:600;color:#378ADD;font-family:'JetBrains Mono',monospace;}
+.wo-status{font-size:10px;padding:2px 9px;border-radius:20px;font-weight:600;}
+.st-open{background:rgba(55,138,221,.2);color:#378ADD;}
+.st-progress{background:rgba(239,159,39,.2);color:#EF9F27;}
+.st-done{background:rgba(61,214,140,.2);color:#3DD68C;}
+.st-urgent{background:rgba(226,75,74,.2);color:#E24B4A;}
+.wo-title{font-size:14px;font-weight:500;color:#f0f0f0;margin-bottom:4px;}
+.wo-meta{font-size:12px;color:#666;margin-bottom:8px;}
+.wo-asset-tag{display:inline-flex;align-items:center;gap:5px;font-size:11px;padding:3px 9px;border-radius:20px;background:rgba(255,255,255,.06);color:#aaa;border:1px solid rgba(255,255,255,.1);}
+.wo-actions{display:flex;gap:6px;margin-top:10px;}
+.wo-btn{flex:1;padding:8px;border-radius:10px;border:none;font-size:12px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;}
+.wo-btn-pri{background:#378ADD;color:#fff;}
+.wo-btn-sec{background:rgba(255,255,255,.08);color:#aaa;}
+.wo-filter-row{display:flex;gap:6px;padding:12px 14px;overflow-x:auto;flex-shrink:0;}
+.wo-filter-row::-webkit-scrollbar{display:none;}
+.wof{padding:5px 12px;border-radius:20px;border:1px solid rgba(255,255,255,.12);background:none;color:#888;font-size:11px;cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap;}
+.wof.on{background:#378ADD;border-color:#378ADD;color:#fff;font-weight:600;}
+.new-wo-form{padding:14px;}
+.nwf-input{width:100%;background:#2a2a2e;border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:10px 12px;font-size:13px;color:#f0f0f0;font-family:'DM Sans',sans-serif;outline:none;margin-bottom:10px;}
+.nwf-input:focus{border-color:#378ADD;}
+.nwf-label{font-size:11px;color:#666;margin-bottom:4px;display:block;}
+.nwf-select{width:100%;background:#2a2a2e;border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:10px 12px;font-size:13px;color:#f0f0f0;font-family:'DM Sans',sans-serif;outline:none;margin-bottom:10px;cursor:pointer;}
+.nwf-select option{background:#1c1c1e;}
+
+/* ── CREW TRACKING ── */
+.crew-list{padding:10px 14px;}
+.crew-card{display:flex;align-items:center;gap:12px;background:#2a2a2e;border-radius:12px;padding:12px;margin-bottom:8px;border:1px solid rgba(255,255,255,.06);}
+.crew-avatar{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:#fff;flex-shrink:0;position:relative;}
+.crew-online-dot{position:absolute;bottom:0;right:0;width:11px;height:11px;border-radius:50%;border:2px solid #2a2a2e;}
+.crew-dot-online{background:#3DD68C;}
+.crew-dot-offline{background:#555;}
+.crew-dot-busy{background:#EF9F27;}
+.crew-info{flex:1;}
+.crew-name{font-size:14px;font-weight:500;color:#f0f0f0;margin-bottom:2px;}
+.crew-loc{font-size:11px;color:#666;}
+.crew-task{font-size:11px;color:#888;margin-top:2px;}
+.crew-dist{font-size:11px;color:#378ADD;font-family:'JetBrains Mono',monospace;text-align:right;}
+.crew-map-dot{width:28px;height:28px;border-radius:50%;border:3px solid #fff;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff;position:absolute;}
+
+/* ── PHOTOS ── */
+.photo-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:12px 14px;}
+.photo-card{background:#2a2a2e;border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,.06);}
+.photo-thumb{width:100%;height:110px;object-fit:cover;background:#1a1a1a;display:flex;align-items:center;justify-content:center;}
+.photo-thumb svg{width:32px;height:32px;stroke:#444;fill:none;stroke-width:1.5;}
+.photo-meta{padding:8px 10px;}
+.photo-asset{font-size:11px;font-weight:600;color:#378ADD;font-family:'JetBrains Mono',monospace;}
+.photo-note{font-size:12px;color:#aaa;margin-top:2px;line-height:1.4;}
+.photo-time{font-size:10px;color:#555;margin-top:4px;font-family:'JetBrains Mono',monospace;}
+.photo-add-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;background:rgba(55,138,221,.08);border:1.5px dashed rgba(55,138,221,.3);border-radius:12px;height:160px;cursor:pointer;margin:0 14px 14px;transition:background .15s;}
+.photo-add-btn:hover{background:rgba(55,138,221,.14);}
+.photo-add-btn svg{width:28px;height:28px;stroke:#378ADD;fill:none;stroke-width:2;}
+.photo-add-btn span{font-size:13px;color:#378ADD;font-weight:500;}
+
+/* ── DAMAGE REPORTS ── */
+.dmg-card{background:#2a2a2e;border-radius:14px;margin:10px 14px;padding:14px;border:1px solid rgba(255,255,255,.08);}
+.dmg-sev{display:inline-block;font-size:10px;font-weight:700;padding:2px 9px;border-radius:20px;}
+.sev-critical{background:rgba(226,75,74,.2);color:#E24B4A;}
+.sev-high{background:rgba(239,159,39,.2);color:#EF9F27;}
+.sev-low{background:rgba(61,214,140,.2);color:#3DD68C;}
+.dmg-title{font-size:14px;font-weight:500;color:#f0f0f0;margin:6px 0 3px;}
+.dmg-desc{font-size:12px;color:#888;line-height:1.5;margin-bottom:8px;}
+.dmg-detail-row{display:flex;justify-content:space-between;font-size:12px;padding:5px 0;border-top:1px solid rgba(255,255,255,.06);}
+.dmg-key{color:#555;}
+.dmg-val{color:#aaa;font-weight:500;}
+
+/* ── NOTIFICATIONS ── */
+.notif-card{display:flex;gap:12px;padding:14px;border-bottom:1px solid rgba(255,255,255,.06);}
+.notif-card.unread{background:rgba(55,138,221,.05);}
+.notif-icon{width:36px;height:36px;border-radius:10px;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+.notif-icon svg{width:18px;height:18px;fill:none;stroke-width:2;stroke-linecap:round;}
+.notif-body{flex:1;}
+.notif-title{font-size:13px;font-weight:500;color:#f0f0f0;margin-bottom:2px;}
+.notif-desc{font-size:12px;color:#777;line-height:1.4;}
+.notif-time{font-size:10px;color:#555;margin-top:4px;font-family:'JetBrains Mono',monospace;}
+.notif-dot{width:8px;height:8px;border-radius:50%;background:#378ADD;flex-shrink:0;margin-top:6px;}
+
+/* ── ROUTE PLANNING ── */
+.route-card{background:#2a2a2e;border-radius:14px;margin:10px 14px;padding:14px;border:1px solid rgba(255,255,255,.08);}
+.route-stop{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.06);}
+.route-stop:last-child{border-bottom:none;}
+.stop-num{width:26px;height:26px;border-radius:50%;background:#378ADD;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0;font-family:'JetBrains Mono',monospace;}
+.stop-num.done{background:#3DD68C;}
+.stop-num.current{background:#EF9F27;box-shadow:0 0 0 3px rgba(239,159,39,.25);}
+.stop-info{flex:1;}
+.stop-name{font-size:13px;font-weight:500;color:#f0f0f0;margin-bottom:2px;}
+.stop-addr{font-size:11px;color:#666;}
+.stop-dist{font-size:11px;color:#378ADD;font-family:'JetBrains Mono',monospace;text-align:right;padding-top:2px;}
+.stop-connector{width:2px;height:16px;background:rgba(55,138,221,.3);margin:2px 0 2px 12px;}
+.route-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:12px 14px;}
+.rs-box{background:#2a2a2e;border-radius:10px;padding:10px;text-align:center;}
+.rs-val{font-size:18px;font-weight:600;color:#378ADD;font-family:'JetBrains Mono',monospace;}
+.rs-lbl{font-size:10px;color:#555;margin-top:2px;}
+.route-nav-btn{margin:0 14px 14px;width:calc(100% - 28px);padding:13px;border-radius:12px;background:#378ADD;border:none;color:#fff;font-size:14px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;}
+
+/* ── OFFLINE BANNER ── */
+#offline-bar{position:fixed;top:52px;left:0;right:0;height:28px;background:#EF9F27;display:none;align-items:center;justify-content:center;gap:8px;z-index:180;font-size:12px;font-weight:600;color:#fff;}
+#offline-bar.show{display:flex;}
+#offline-bar svg{width:14px;height:14px;fill:none;stroke:#fff;stroke-width:2.5;stroke-linecap:round;}
+.cache-badge{position:absolute;bottom:2px;right:2px;font-size:8px;background:#EF9F27;color:#fff;border-radius:3px;padding:1px 3px;font-weight:700;font-family:'JetBrains Mono',monospace;}
+
+/* ── MAP CREW DOTS ── */
+.map-crew{position:absolute;transform:translate(-50%,-50%);cursor:pointer;z-index:25;}
+
+/* ── MODAL ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:250;display:none;align-items:flex-end;justify-content:center;}
+.modal-overlay.open{display:flex;}
+.modal-sheet{background:#1c1c1e;border-radius:22px 22px 0 0;width:100%;max-height:85vh;overflow-y:auto;padding-bottom:24px;}
+.modal-handle{width:38px;height:4px;background:#444;border-radius:2px;margin:14px auto 0;}
+.modal-title{font-size:17px;font-weight:500;color:#fff;padding:14px 18px 10px;}
+
+<body>
+<div id="app">
+
+  <!-- Top bar -->
+  <div id="topbar">
+    <span class="co">VLTRVIEW</span>
+    <button class="ti" id="loc-btn" onclick="toggleLocationTab()" title="Current location">
+      <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="4" fill="#4CAF50"/><circle cx="12" cy="12" r="7" stroke="#4CAF50" stroke-width="2" fill="none"/><line x1="12" y1="2" x2="12" y2="6" stroke="#4CAF50" stroke-width="2"/><line x1="12" y1="18" x2="12" y2="22" stroke="#4CAF50" stroke-width="2"/><line x1="2" y1="12" x2="6" y2="12" stroke="#4CAF50" stroke-width="2"/><line x1="18" y1="12" x2="22" y2="12" stroke="#4CAF50" stroke-width="2"/></svg>
+    </button>
+    <button class="ti" onclick="toggleSearch()" title="Search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#bbb" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="22" y2="22"/></svg>
+    </button>
+    <button class="ti" onclick="toggleLayers()" title="Layers">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#bbb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 22 8.5 12 15 2 8.5"/><polyline points="2 15.5 12 22 22 15.5"/><polyline points="2 12 12 18.5 22 12"/></svg>
+    </button>
+    <button class="ti" id="screenshot-btn" onclick="takeScreenshot()" title="Screenshot">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#bbb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+    </button>
+    <button class="ti" id="tools-btn" onclick="toggleToolsMenu()" title="Tools">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#bbb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+    </button>
+    <button class="ti" id="mapstyle-btn" onclick="toggleMapMenu()" title="Map style">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#bbb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polygon points="3 6 12 3 21 6 12 9"/>
+        <polyline points="3 6 3 18 12 21 21 18 21 6"/>
+        <line x1="12" y1="9" x2="12" y2="21"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- ── Current location tab ── -->
+  <div id="loc-tab">
+    <div id="loc-tab-handle"></div>
+    <div id="loc-tab-inner">
+      <div id="loc-header">
+        <div id="loc-status-dot"></div>
+        <div>
+          <div id="loc-title">Current location</div>
+          <div id="loc-accuracy">GPS · Accuracy ±4 m</div>
+        </div>
+        <button id="loc-recenter" onclick="centerGPS()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="4" fill="currentColor"/><circle cx="12" cy="12" r="7" stroke="currentColor" fill="none"/><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/></svg>
+          Re-center
+        </button>
+      </div>
+      <div id="loc-grid">
+        <div class="loc-cell">
+          <div class="lc-label">Latitude</div>
+          <div class="lc-val" id="lc-lat">35.7320° N</div>
+        </div>
+        <div class="loc-cell">
+          <div class="lc-label">Longitude</div>
+          <div class="lc-val" id="lc-lon">78.8560° W</div>
+        </div>
+        <div class="loc-cell">
+          <div class="lc-label">Heading</div>
+          <div class="lc-val" id="lc-heading"><span id="lc-compass">→</span> E 90°</div>
+        </div>
+        <div class="loc-cell">
+          <div class="lc-label">Speed</div>
+          <div class="lc-val" id="lc-speed">0.0 mph</div>
+        </div>
+        <div class="loc-cell">
+          <div class="lc-label">Altitude</div>
+          <div class="lc-val" id="lc-alt">312 ft</div>
+        </div>
+        <div class="loc-cell">
+          <div class="lc-label">Street</div>
+          <div class="lc-val" id="lc-street">Hunter Dr</div>
+        </div>
+      </div>
+      <div id="loc-bar">
+        <div id="loc-bar-fill"></div>
+      </div>
+      <div id="loc-bar-label">Stop <span id="lc-stop">1</span> of <span id="lc-total">6</span> along route</div>
+    </div>
+  </div>
+
+  <!-- ── OFFLINE BAR ── -->
+  <div id="offline-bar">
+    <svg viewBox="0 0 24 24"><path d="M1 1l22 22M16.72 11.06A10.94 10.94 0 0 1 19 12.55M5 12.55a10.94 10.94 0 0 1 5.17-2.39M10.71 5.05A16 16 0 0 1 22.56 9M1.42 9a15.91 15.91 0 0 1 4.7-2.88M8.53 16.11a6 6 0 0 1 6.95 0M12 20h.01"/></svg>
+    Offline — cached tiles active · 14 tiles stored
+  </div>
+
+  <!-- ── BOTTOM NAV ── -->
+  <div id="bottomnav">
+    <button class="bnav-btn active" id="bn-map" onclick="switchTab('map',this)" title="Map">
+      <svg viewBox="0 0 24 24"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+      <span class="bnav-label">Map</span>
+    </button>
+    <button class="bnav-btn" id="bn-orders" onclick="switchTab('orders',this)" title="Work Orders" style="position:relative">
+      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+      <span class="bnav-label">Orders</span>
+      <div class="bnav-badge">4</div>
+    </button>
+    <button class="bnav-btn" id="bn-crew" onclick="switchTab('crew',this)" title="Crew">
+      <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      <span class="bnav-label">Crew</span>
+    </button>
+    <button class="bnav-btn" id="bn-route" onclick="switchTab('route',this)" title="Route">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      <span class="bnav-label">Route</span>
+    </button>
+    <button class="bnav-btn" id="bn-notif" onclick="switchTab('notif',this)" title="Alerts" style="position:relative">
+      <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      <span class="bnav-label">Alerts</span>
+      <div class="bnav-badge">7</div>
+    </button>
+  </div>
+
+  <!-- ════════════════════════════════
+       WORK ORDERS PANEL
+  ════════════════════════════════ -->
+  <div class="feature-panel" id="panel-orders">
+    <div class="fp-head">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#378ADD" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      <span class="fp-title">Work orders</span>
+      <button class="fp-close" onclick="switchTab('map',document.getElementById('bn-map'))">×</button>
+    </div>
+    <div class="wo-filter-row">
+      <button class="wof on" onclick="filterWO('all',this)">All</button>
+      <button class="wof" onclick="filterWO('open',this)">Open</button>
+      <button class="wof" onclick="filterWO('progress',this)">In progress</button>
+      <button class="wof" onclick="filterWO('urgent',this)">Urgent</button>
+      <button class="wof" onclick="filterWO('done',this)">Done</button>
+    </div>
+    <div class="fp-body" id="wo-list"></div>
+    <div style="padding:12px 14px 70px">
+      <button onclick="openNewWO()" style="width:100%;padding:13px;border-radius:12px;background:#378ADD;border:none;color:#fff;font-size:14px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;">+ New work order</button>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════
+       CREW TRACKING PANEL
+  ════════════════════════════════ -->
+  <div class="feature-panel" id="panel-crew">
+    <div class="fp-head">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3DD68C" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      <span class="fp-title">Crew tracking</span>
+      <button class="fp-close" onclick="switchTab('map',document.getElementById('bn-map'))">×</button>
+    </div>
+    <!-- mini map strip -->
+    <div style="height:160px;background:#13151c;position:relative;overflow:hidden;flex-shrink:0;border-bottom:1px solid rgba(255,255,255,.06);">
+      <svg width="100%" height="100%" viewBox="0 0 400 160" preserveAspectRatio="xMidYMid slice">
+        <rect width="400" height="160" fill="#1a1c26"/>
+        <path d="M0 85 Q100 80 200 82 Q300 84 400 80" stroke="#2a2c36" stroke-width="18" fill="none"/>
+        <path d="M0 85 Q100 80 200 82 Q300 84 400 80" stroke="#22243a" stroke-width="14" fill="none"/>
+        <path d="M110 0 Q115 80 120 160" stroke="#2a2c36" stroke-width="14" fill="none"/>
+        <path d="M280 0 Q284 80 288 160" stroke="#2a2c36" stroke-width="12" fill="none"/>
+        <!-- crew dots on map -->
+        <circle cx="80" cy="82" r="10" fill="#378ADD" stroke="#fff" stroke-width="2"/>
+        <text x="80" y="86" text-anchor="middle" font-size="8" fill="#fff" font-weight="700" font-family="sans-serif">MR</text>
+        <circle cx="180" cy="80" r="10" fill="#3DD68C" stroke="#fff" stroke-width="2"/>
+        <text x="180" y="84" text-anchor="middle" font-size="8" fill="#fff" font-weight="700" font-family="sans-serif">JT</text>
+        <circle cx="300" cy="83" r="10" fill="#EF9F27" stroke="#fff" stroke-width="2"/>
+        <text x="300" y="87" text-anchor="middle" font-size="8" fill="#fff" font-weight="700" font-family="sans-serif">AL</text>
+        <circle cx="340" cy="60" r="10" fill="#E24B4A" stroke="#fff" stroke-width="2"/>
+        <text x="340" y="64" text-anchor="middle" font-size="8" fill="#fff" font-weight="700" font-family="sans-serif">SK</text>
+        <!-- your dot -->
+        <circle cx="200" cy="82" r="8" fill="#4CAF50" stroke="#fff" stroke-width="2.5"/>
+        <circle cx="200" cy="82" r="16" fill="none" stroke="#4CAF50" stroke-width="1" opacity="0.3"/>
+      </svg>
+      <div style="position:absolute;top:8px;left:10px;font-size:10px;color:#666;font-family:'JetBrains Mono',monospace;">LIVE · Hunter Dr area</div>
+    </div>
+    <div class="fp-body" id="crew-list"></div>
+  </div>
+
+  <!-- ════════════════════════════════
+       PHOTOS PANEL
+  ════════════════════════════════ -->
+  <div class="feature-panel" id="panel-photos">
+    <div class="fp-head">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#a594fc" stroke-width="2" stroke-linecap="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+      <span class="fp-title">Field photos</span>
+      <button class="fp-close" onclick="switchTab('map',document.getElementById('bn-map'))">×</button>
+    </div>
+    <div class="fp-body">
+      <div class="photo-add-btn" onclick="addPhoto()">
+        <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/><line x1="12" y1="11" x2="12" y2="15"/><line x1="10" y1="13" x2="14" y2="13"/></svg>
+        <span>Capture photo for asset</span>
+      </div>
+      <div class="photo-grid" id="photo-grid"></div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════
+       DAMAGE REPORTS PANEL
+  ════════════════════════════════ -->
+  <div class="feature-panel" id="panel-damage">
+    <div class="fp-head">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#E24B4A" stroke-width="2" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      <span class="fp-title">Damage reports</span>
+      <button class="fp-close" onclick="switchTab('map',document.getElementById('bn-map'))">×</button>
+    </div>
+    <div style="padding:10px 14px 4px;flex-shrink:0;">
+      <button onclick="openDamageReport()" style="width:100%;padding:11px;border-radius:12px;background:rgba(226,75,74,.15);border:1px solid rgba(226,75,74,.3);color:#E24B4A;font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;">+ File damage report</button>
+    </div>
+    <div class="fp-body" id="damage-list"></div>
+  </div>
+
+  <!-- ════════════════════════════════
+       NOTIFICATIONS PANEL
+  ════════════════════════════════ -->
+  <div class="feature-panel" id="panel-notif">
+    <div class="fp-head">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#EF9F27" stroke-width="2" stroke-linecap="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      <span class="fp-title">Alerts &amp; notifications</span>
+      <button class="fp-close" onclick="switchTab('map',document.getElementById('bn-map'))">×</button>
+    </div>
+    <div style="display:flex;gap:6px;padding:10px 14px;flex-shrink:0;">
+      <button onclick="clearAllNotifs()" style="flex:1;padding:8px;border-radius:10px;background:rgba(255,255,255,.06);border:none;color:#888;font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;">Mark all read</button>
+    </div>
+    <div class="fp-body" id="notif-list"></div>
+  </div>
+
+  <!-- ════════════════════════════════
+       ROUTE PLANNING PANEL
+  ════════════════════════════════ -->
+  <div class="feature-panel" id="panel-route">
+    <div class="fp-head">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#378ADD" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      <span class="fp-title">Route planning</span>
+      <button class="fp-close" onclick="switchTab('map',document.getElementById('bn-map'))">×</button>
+    </div>
+    <div class="route-stats">
+      <div class="rs-box"><div class="rs-val">6</div><div class="rs-lbl">Stops</div></div>
+      <div class="rs-box"><div class="rs-val" id="rt-done-count">2</div><div class="rs-lbl">Completed</div></div>
+      <div class="rs-box"><div class="rs-val">1.4mi</div><div class="rs-lbl">Distance</div></div>
+    </div>
+    <div class="fp-body" id="route-list"></div>
+    <button class="route-nav-btn" onclick="advanceRoute()">Navigate to next stop →</button>
+  </div>
+
+  <!-- ════════════════════════════════
+       NEW WORK ORDER MODAL
+  ════════════════════════════════ -->
+  <div class="modal-overlay" id="modal-newwo">
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <div class="modal-title">New work order</div>
+      <div style="padding:0 18px 16px;">
+        <label class="nwf-label">Job title</label>
+        <input class="nwf-input" id="wo-new-title" placeholder="e.g. Inspect transformer TXF-0011"/>
+        <label class="nwf-label">Asset ID</label>
+        <input class="nwf-input" id="wo-new-asset" placeholder="e.g. TXF-0011 or UDP-0009"/>
+        <label class="nwf-label">Priority</label>
+        <select class="nwf-select" id="wo-new-priority">
+          <option value="normal">Normal</option>
+          <option value="high">High</option>
+          <option value="urgent">Urgent</option>
+        </select>
+        <label class="nwf-label">Assign to</label>
+        <select class="nwf-select" id="wo-new-crew">
+          <option>Marcus R.</option>
+          <option>James T.</option>
+          <option>Alicia L.</option>
+          <option>Sam K.</option>
+          <option>Unassigned</option>
+        </select>
+        <label class="nwf-label">Notes</label>
+        <textarea class="nwf-input" id="wo-new-notes" rows="3" placeholder="Describe the work required..." style="resize:none;height:80px;"></textarea>
+        <div style="display:flex;gap:8px;margin-top:4px;">
+          <button class="wo-btn wo-btn-sec" onclick="closeModal('modal-newwo')" style="flex:1;padding:12px;">Cancel</button>
+          <button class="wo-btn wo-btn-pri" onclick="saveNewWO()" style="flex:2;padding:12px;">Create order</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DAMAGE REPORT MODAL -->
+  <div class="modal-overlay" id="modal-damage">
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <div class="modal-title">File damage report</div>
+      <div style="padding:0 18px 16px;">
+        <label class="nwf-label">Asset affected</label>
+        <input class="nwf-input" id="dmg-asset" placeholder="e.g. BPC-157 or EJH-0042"/>
+        <label class="nwf-label">Severity</label>
+        <select class="nwf-select" id="dmg-sev">
+          <option value="low">Low — monitor only</option>
+          <option value="high">High — schedule repair</option>
+          <option value="critical">Critical — immediate action required</option>
+        </select>
+        <label class="nwf-label">Description</label>
+        <textarea class="nwf-input" id="dmg-desc" rows="3" placeholder="Describe the damage observed..." style="resize:none;height:80px;"></textarea>
+        <div style="display:flex;gap:8px;margin-top:4px;">
+          <button class="wo-btn wo-btn-sec" onclick="closeModal('modal-damage')" style="flex:1;padding:12px;">Cancel</button>
+          <button class="wo-btn" onclick="saveDamageReport()" style="flex:2;padding:12px;background:#E24B4A;border:none;color:#fff;font-weight:500;cursor:pointer;border-radius:10px;font-family:'DM Sans',sans-serif;">Submit report</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="main">
+
+    <!-- Map style dropdown -->
+    <div id="map-menu">
+      <div class="mm-title">Map style</div>
+      <div class="mm-grid">
+        <div class="mm-tile active" id="mt-vector" onclick="setMapStyle('vector',this)">
+          <div class="mm-preview"><svg width="100%" height="100%" viewBox="0 0 60 44"><rect width="60" height="44" fill="#ebe8e0"/><rect x="10" y="0" width="8" height="44" fill="#f4f1e8"/><rect x="36" y="0" width="8" height="44" fill="#f4f1e8"/><rect x="0" y="16" width="60" height="7" fill="#f4f1e8"/><rect x="0" y="32" width="60" height="6" fill="#f4f1e8"/><line x1="0" y1="22" x2="60" y2="20" stroke="#378ADD" stroke-width="1.5"/><line x1="0" y1="26" x2="60" y2="24" stroke="#639922" stroke-width="1" stroke-dasharray="3 2"/><line x1="14" y1="0" x2="14" y2="44" stroke="#E24B4A" stroke-width="1.2" stroke-dasharray="4 3"/></svg></div>
+          <div class="mm-label">Vector</div><div class="mm-check">✓</div>
+        </div>
+        <div class="mm-tile" id="mt-satellite" onclick="setMapStyle('satellite',this)">
+          <div class="mm-preview"><svg width="100%" height="100%" viewBox="0 0 60 44"><rect width="60" height="44" fill="#2a3a28"/><rect x="8" y="0" width="10" height="44" fill="#1e2e1c" opacity=".7"/><rect x="36" y="0" width="10" height="44" fill="#1e2e1c" opacity=".7"/><rect x="0" y="14" width="60" height="8" fill="#333" opacity=".6"/><rect x="0" y="30" width="60" height="8" fill="#333" opacity=".6"/><polygon points="5,5 25,5 25,28 5,28" fill="#3a4a38" opacity=".8"/><polygon points="32,8 56,8 56,42 32,42" fill="#3a4a38" opacity=".8"/><line x1="0" y1="20" x2="60" y2="18" stroke="#378ADD" stroke-width="1.5"/><line x1="13" y1="0" x2="13" y2="44" stroke="#E24B4A" stroke-width="1.2" stroke-dasharray="4 3"/></svg></div>
+          <div class="mm-label">Satellite</div><div class="mm-check">✓</div>
+        </div>
+        <div class="mm-tile" id="mt-hybrid" onclick="setMapStyle('hybrid',this)">
+          <div class="mm-preview"><svg width="100%" height="100%" viewBox="0 0 60 44"><rect width="60" height="44" fill="#2a3a28"/><rect x="8" y="0" width="10" height="44" fill="#4a5a3a" opacity=".8"/><rect x="36" y="0" width="10" height="44" fill="#4a5a3a" opacity=".8"/><rect x="0" y="14" width="60" height="8" fill="#555" opacity=".5"/><rect x="0" y="30" width="60" height="8" fill="#555" opacity=".5"/><text x="13" y="11" font-size="5" fill="#fff" font-family="sans-serif">Hunter Dr</text><text x="38" y="27" font-size="4.5" fill="#fff" font-family="sans-serif">4000</text><line x1="0" y1="20" x2="60" y2="18" stroke="#378ADD" stroke-width="1.5"/><line x1="13" y1="0" x2="13" y2="44" stroke="#E24B4A" stroke-width="1.2" stroke-dasharray="4 3"/></svg></div>
+          <div class="mm-label">Hybrid</div><div class="mm-check">✓</div>
+        </div>
+        <div class="mm-tile" id="mt-night" onclick="setMapStyle('night',this)">
+          <div class="mm-preview"><svg width="100%" height="100%" viewBox="0 0 60 44"><rect width="60" height="44" fill="#12161a"/><rect x="8" y="0" width="10" height="44" fill="#1c2228" opacity=".9"/><rect x="36" y="0" width="10" height="44" fill="#1c2228" opacity=".9"/><rect x="0" y="14" width="60" height="8" fill="#222" opacity=".8"/><rect x="0" y="30" width="60" height="8" fill="#222" opacity=".8"/><line x1="0" y1="20" x2="60" y2="18" stroke="#378ADD" stroke-width="1.5"/><line x1="13" y1="0" x2="13" y2="44" stroke="#E24B4A" stroke-width="1.2" stroke-dasharray="4 3"/><circle cx="50" cy="6" r="1.2" fill="#fff" opacity=".6"/><circle cx="4" cy="38" r=".8" fill="#fff" opacity=".5"/></svg></div>
+          <div class="mm-label">Night</div><div class="mm-check">✓</div>
+        </div>
+        <div class="mm-tile" id="mt-topo" onclick="setMapStyle('topo',this)">
+          <div class="mm-preview"><svg width="100%" height="100%" viewBox="0 0 60 44"><rect width="60" height="44" fill="#f0ede4"/><path d="M0,30 Q15,22 30,28 Q45,34 60,26" stroke="#c8b89a" stroke-width="1" fill="none"/><path d="M0,36 Q15,28 30,34 Q45,40 60,32" stroke="#c8b89a" stroke-width="1" fill="none"/><path d="M0,24 Q15,16 30,22 Q45,28 60,20" stroke="#c8b89a" stroke-width="1" fill="none"/><rect x="8" y="0" width="10" height="44" fill="#f4f1e8" opacity=".7"/><line x1="0" y1="20" x2="60" y2="18" stroke="#378ADD" stroke-width="1.5"/><line x1="13" y1="0" x2="13" y2="44" stroke="#E24B4A" stroke-width="1.2" stroke-dasharray="4 3"/></svg></div>
+          <div class="mm-label">Topo</div><div class="mm-check">✓</div>
+        </div>
+        <div class="mm-tile" id="mt-schematic" onclick="setMapStyle('schematic',this)">
+          <div class="mm-preview"><svg width="100%" height="100%" viewBox="0 0 60 44"><rect width="60" height="44" fill="#fff"/><line x1="14" y1="0" x2="14" y2="44" stroke="#ddd" stroke-width="1"/><line x1="42" y1="0" x2="42" y2="44" stroke="#ddd" stroke-width="1"/><line x1="0" y1="18" x2="60" y2="18" stroke="#ddd" stroke-width="1"/><line x1="0" y1="32" x2="60" y2="32" stroke="#ddd" stroke-width="1"/><line x1="0" y1="20" x2="60" y2="20" stroke="#378ADD" stroke-width="2"/><line x1="0" y1="22" x2="60" y2="22" stroke="#639922" stroke-width="1.5" stroke-dasharray="3 2"/><line x1="14" y1="0" x2="14" y2="44" stroke="#E24B4A" stroke-width="1.5" stroke-dasharray="4 3"/><line x1="42" y1="0" x2="42" y2="44" stroke="#BA7517" stroke-width="1.2" stroke-dasharray="2 4"/></svg></div>
+          <div class="mm-label">Schematic</div><div class="mm-check">✓</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tools dropdown -->
+    <div id="tools-menu">
+      <div class="tm-title">Tools</div>
+      <div class="tm-item" id="tm-measure" onclick="activateTool('measure')">
+        <div class="tm-icon" style="background:rgba(55,138,221,.15)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#378ADD" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12h20"/><path d="M6 8v8"/><path d="M10 10v4"/><path d="M14 10v4"/><path d="M18 8v8"/></svg></div>
+        <div class="tm-text"><div class="tm-name">Measure distance</div><div class="tm-sub">Tap two points on the map</div></div>
+        <div class="tm-badge" id="badge-measure"></div>
+      </div>
+      <div class="tm-item" id="tm-draw" onclick="activateTool('draw')">
+        <div class="tm-icon" style="background:rgba(0,224,0,.12)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#00e000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></div>
+        <div class="tm-text"><div class="tm-name">Draw markup</div><div class="tm-sub">Annotate the map</div></div>
+        <div class="tm-badge" id="badge-draw"></div>
+      </div>
+      <div class="tm-item" id="tm-legend" onclick="activateTool('legend')">
+        <div class="tm-icon" style="background:rgba(186,117,23,.13)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#BA7517" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg></div>
+        <div class="tm-text"><div class="tm-name">Utility legend</div><div class="tm-sub">Icon and color reference</div></div>
+        <div class="tm-badge" id="badge-legend"></div>
+      </div>
+      <div class="tm-item" id="tm-usearch" onclick="activateTool('usearch')">
+        <div class="tm-icon" style="background:rgba(226,75,74,.13)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#E24B4A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg></div>
+        <div class="tm-text"><div class="tm-name">Search utility</div><div class="tm-sub">Find asset by ID or type</div></div>
+        <div class="tm-badge" id="badge-usearch"></div>
+      </div>
+      <div class="tm-item" onclick="toggleToolsMenu();openPhotos()">
+        <div class="tm-icon" style="background:rgba(165,148,252,.13)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#a594fc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></div>
+        <div class="tm-text"><div class="tm-name">Field photos</div><div class="tm-sub">Attach photos to assets</div></div>
+      </div>
+      <div class="tm-item" onclick="toggleToolsMenu();openDamage()">
+        <div class="tm-icon" style="background:rgba(226,75,74,.13)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#E24B4A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+        <div class="tm-text"><div class="tm-name">Damage report</div><div class="tm-sub">Log damaged utilities</div></div>
+      </div>
+    </div>
+
+    <!-- ── Measure panel ── -->
+    <div id="measure-panel" class="tool-panel">
+      <div class="tp-head"><span class="tp-title">Measure distance</span><button class="tp-close" onclick="closeTool('measure')">×</button></div>
+      <div class="tp-body">
+        <div id="measure-instructions" class="tp-hint">Tap any two points on the map to measure the distance between them.</div>
+        <div id="measure-result" style="display:none">
+          <div class="measure-row"><span class="mr-label">Point A</span><span class="mr-val" id="mpt-a">—</span></div>
+          <div class="measure-row"><span class="mr-label">Point B</span><span class="mr-val" id="mpt-b">—</span></div>
+          <div class="measure-big" id="measure-dist">—</div>
+          <div class="measure-units">
+            <button class="mu-btn active" id="mu-ft" onclick="setMeasureUnit('ft',this)">ft</button>
+            <button class="mu-btn" id="mu-m" onclick="setMeasureUnit('m',this)">m</button>
+            <button class="mu-btn" id="mu-mi" onclick="setMeasureUnit('mi',this)">mi</button>
+          </div>
+        </div>
+        <button class="tp-action" onclick="clearMeasure()">Clear</button>
+      </div>
+    </div>
+
+    <!-- ── Draw panel ── -->
+    <div id="draw-panel" class="tool-panel">
+      <div class="tp-head"><span class="tp-title">Draw markup</span><button class="tp-close" onclick="closeTool('draw')">×</button></div>
+      <div class="tp-body">
+        <div class="draw-tools">
+          <button class="dt-btn active" id="dt-pen" onclick="setDrawTool('pen',this)" title="Freehand"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></button>
+          <button class="dt-btn" id="dt-line" onclick="setDrawTool('line',this)" title="Line"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="5" y1="19" x2="19" y2="5"/></svg></button>
+          <button class="dt-btn" id="dt-circle" onclick="setDrawTool('circle',this)" title="Circle"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="8"/></svg></button>
+          <button class="dt-btn" id="dt-text" onclick="setDrawTool('text',this)" title="Text note"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg></button>
+        </div>
+        <div class="draw-colors">
+          <div class="dc-dot active" style="background:#ff4444" onclick="setDrawColor('#ff4444',this)"></div>
+          <div class="dc-dot" style="background:#00e000" onclick="setDrawColor('#00e000',this)"></div>
+          <div class="dc-dot" style="background:#3B8BD4" onclick="setDrawColor('#3B8BD4',this)"></div>
+          <div class="dc-dot" style="background:#EF9F27" onclick="setDrawColor('#EF9F27',this)"></div>
+          <div class="dc-dot" style="background:#fff" onclick="setDrawColor('#fff',this)"></div>
+        </div>
+        <div class="tp-hint" id="draw-hint">Draw freehand on the map. Tap to place points.</div>
+        <div style="display:flex;gap:6px;margin-top:8px">
+          <button class="tp-action" style="flex:1" onclick="undoDrawing()">Undo</button>
+          <button class="tp-action" style="flex:1;background:rgba(226,75,74,.15);color:#E24B4A" onclick="clearDrawing()">Clear all</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Legend panel ── -->
+    <div id="legend-panel" class="tool-panel" style="width:290px">
+      <div class="tp-head"><span class="tp-title">Utility icon legend</span><button class="tp-close" onclick="closeTool('legend')">×</button></div>
+      <div class="tp-body" style="max-height:420px;overflow-y:auto">
+        <div class="section-h">Lines</div>
+        <div class="leg-row"><div class="leg-line" style="background:#E24B4A"></div><span class="leg-lbl">Electric — primary 13.2 kV (animated)</span></div>
+        <div class="leg-row"><div class="leg-line" style="background:#EF9F27"></div><span class="leg-lbl">Electric — secondary / service lateral</span></div>
+        <div class="leg-row"><div style="width:22px;height:0;border-top:3px dashed #00e000;flex-shrink:0"></div><span class="leg-lbl">Telecom / fiber (dashed green)</span></div>
+        <div class="leg-row"><div class="leg-line" style="background:#378ADD"></div><span class="leg-lbl">Water mains (solid blue)</span></div>
+        <div class="leg-row"><div style="width:22px;height:0;border-top:3px dashed #639922;flex-shrink:0"></div><span class="leg-lbl">Sewer lines (dashed green)</span></div>
+        <div class="leg-row"><div style="width:22px;height:0;border-top:2px dotted #BA7517;flex-shrink:0"></div><span class="leg-lbl">Gas distribution (dotted amber)</span></div>
+        <div class="section-h" style="margin-top:10px">Structures</div>
+        <div class="leg-row"><svg width="22" height="22" viewBox="-11 -11 22 22"><circle r="9" fill="#791F1F" stroke="#fff" stroke-width="1.2"/><text text-anchor="middle" dominant-baseline="central" font-size="6.5" font-weight="700" fill="#fff" font-family="sans-serif">TX</text></svg><span class="leg-lbl">TX — Transformer</span></div>
+        <div class="leg-row"><svg width="22" height="22" viewBox="-11 -11 22 22"><polygon points="0,-8 6.9,-4 6.9,4 0,8 -6.9,4 -6.9,-4" fill="#185FA5"/><text text-anchor="middle" dominant-baseline="central" font-size="5.5" font-weight="700" fill="#fff" font-family="sans-serif">DP</text></svg><span class="leg-lbl">DP — Distribution pedestal</span></div>
+        <div class="leg-row"><svg width="22" height="22" viewBox="-11 -11 22 22"><rect x="-7" y="-7" width="14" height="14" rx="1.5" fill="#00e000" stroke="#006600" stroke-width="1"/><text text-anchor="middle" dominant-baseline="central" font-size="5.5" font-weight="700" fill="#003300" font-family="sans-serif">EJ</text></svg><span class="leg-lbl">EJ — Electric junction handhole</span></div>
+        <div class="leg-row"><svg width="22" height="22" viewBox="-11 -11 22 22"><circle r="8" fill="#378ADD"/><line x1="-4.5" y1="0" x2="4.5" y2="0" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/><line x1="0" y1="-4.5" x2="0" y2="4.5" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg><span class="leg-lbl">WV — Water valve</span></div>
+        <div class="leg-row"><svg width="22" height="22" viewBox="-11 -11 22 22"><circle r="8" fill="#639922"/><circle r="4.5" fill="none" stroke="#fff" stroke-width="1.3"/><circle r="1.5" fill="#fff"/></svg><span class="leg-lbl">MH — Sewer manhole</span></div>
+        <div class="leg-row"><svg width="22" height="22" viewBox="-11 -11 22 22"><polygon points="0,-8 7,5.5 -7,5.5" fill="#993C1D"/></svg><span class="leg-lbl">FH — Fire hydrant</span></div>
+        <div class="leg-row"><svg width="22" height="22" viewBox="-11 -11 22 22"><polygon points="0,-8 8,0 0,8 -8,0" fill="#BA7517"/><text text-anchor="middle" dominant-baseline="central" font-size="5.5" font-weight="700" fill="#fff" font-family="sans-serif">GP</text></svg><span class="leg-lbl">GP — Gas meter pedestal</span></div>
+        <div class="section-h" style="margin-top:10px">Condition ring</div>
+        <div class="leg-row"><div style="width:14px;height:14px;border-radius:50%;border:2px solid #27A045;flex-shrink:0"></div><span class="leg-lbl">Good</span></div>
+        <div class="leg-row"><div style="width:14px;height:14px;border-radius:50%;border:2px solid #E67E00;flex-shrink:0"></div><span class="leg-lbl">Fair — monitor</span></div>
+        <div class="leg-row"><div style="width:14px;height:14px;border-radius:50%;border:2px solid #C0392B;flex-shrink:0"></div><span class="leg-lbl">Poor — action required</span></div>
+        <div class="leg-row"><div style="width:14px;height:14px;border-radius:50%;border:2px dashed #185FA5;flex-shrink:0"></div><span class="leg-lbl">Unknown condition</span></div>
+      </div>
+    </div>
+
+    <!-- ── Search utility panel ── -->
+    <div id="usearch-panel" class="tool-panel">
+      <div class="tp-head"><span class="tp-title">Search utility</span><button class="tp-close" onclick="closeTool('usearch')">×</button></div>
+      <div class="tp-body">
+        <div style="position:relative;margin-bottom:10px">
+          <input id="usearch-input" type="text" placeholder="Asset ID, type, owner…" oninput="doUtilitySearch(this.value)" style="width:100%;height:36px;background:#2a2a2e;border:1.5px solid #444;border-radius:10px;padding:0 10px 0 32px;font-size:13px;color:#fff;outline:none;font-family:'DM Sans',sans-serif;"/>
+          <svg style="position:absolute;left:9px;top:9px;pointer-events:none" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="22" y2="22"/></svg>
+        </div>
+        <div class="utype-filters">
+          <button class="utf-btn active" onclick="setUFilter('all',this)">All</button>
+          <button class="utf-btn" onclick="setUFilter('TX',this)">TX</button>
+          <button class="utf-btn" onclick="setUFilter('DP',this)">DP</button>
+          <button class="utf-btn" onclick="setUFilter('EJ',this)">EJ</button>
+          <button class="utf-btn" onclick="setUFilter('WV',this)">WV</button>
+          <button class="utf-btn" onclick="setUFilter('MH',this)">MH</button>
+          <button class="utf-btn" onclick="setUFilter('FH',this)">FH</button>
+          <button class="utf-btn" onclick="setUFilter('SL',this)">SL</button>
+        </div>
+        <div id="usearch-results"></div>
+      </div>
+    </div>
+
+    <!-- MAP -->
+    <div id="mapwrap" onclick="mapTap(event)">
+      <svg id="mapsvg" viewBox="0 0 800 500" preserveAspectRatio="xMidYMid slice">
+        <defs>
+          <marker id="arr-on" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M1 2L8 5L1 8" fill="none" stroke="#E24B4A" stroke-width="1.8" stroke-linecap="round"/></marker>
+          <marker id="arr-off" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M1 2L8 5L1 8" fill="none" stroke="#999" stroke-width="1.8" stroke-linecap="round"/></marker>
+          <marker id="arr-amb" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M1 2L8 5L1 8" fill="none" stroke="#EF9F27" stroke-width="1.8" stroke-linecap="round"/></marker>
+        </defs>
+
+        <!-- Basemap -->
+        <rect width="800" height="500" fill="#ebe8e0"/>
+        <!-- Parcels -->
+        <polygon points="0,0 280,0 280,240 0,280" fill="#e2ddd4" stroke="#ccc9c0" stroke-width=".6"/>
+        <polygon points="280,0 800,0 800,210 480,250 280,240" fill="#e2ddd4" stroke="#ccc9c0" stroke-width=".6"/>
+        <polygon points="0,280 280,240 480,250 560,360 400,460 0,480" fill="#e2ddd4" stroke="#ccc9c0" stroke-width=".6"/>
+        <polygon points="560,360 800,210 800,500 620,500 580,430" fill="#e2ddd4" stroke="#ccc9c0" stroke-width=".6"/>
+        <polygon points="0,480 400,460 580,430 620,500 0,500" fill="#e2ddd4" stroke="#ccc9c0" stroke-width=".6"/>
+        <!-- Roads -->
+        <path d="M140,60 Q320,220 530,390 Q570,430 610,500" stroke="#fff" stroke-width="22" fill="none" stroke-linecap="round"/>
+        <path d="M140,60 Q320,220 530,390 Q570,430 610,500" stroke="#f4f1e8" stroke-width="18" fill="none" stroke-linecap="round"/>
+        <path d="M0,268 Q160,256 390,260 Q540,263 800,254" stroke="#fff" stroke-width="20" fill="none" stroke-linecap="round"/>
+        <path d="M0,268 Q160,256 390,260 Q540,263 800,254" stroke="#f4f1e8" stroke-width="16" fill="none" stroke-linecap="round"/>
+        <!-- Property lines -->
+        <line x1="280" y1="0" x2="280" y2="240" stroke="#bbb8b0" stroke-width=".8"/>
+        <line x1="0" y1="280" x2="800" y2="210" stroke="#bbb8b0" stroke-width=".8"/>
+        <line x1="400" y1="460" x2="560" y2="360" stroke="#bbb8b0" stroke-width=".8"/>
+        <line x1="150" y1="0" x2="40" y2="280" stroke="#bbb8b0" stroke-width=".8"/>
+        <line x1="550" y1="0" x2="600" y2="210" stroke="#bbb8b0" stroke-width=".8"/>
+        <!-- Road labels -->
+        <text x="340" y="220" font-size="13" fill="#888" font-family="'DM Sans',sans-serif" transform="rotate(34,340,220)">Bullhead Rd</text>
+        <text x="60" y="246" font-size="13" fill="#888" font-family="'DM Sans',sans-serif">Hunter Dr</text>
+        <!-- Parcel numbers -->
+        <text x="40" y="120" font-size="15" fill="#777" font-family="'DM Sans',sans-serif">6306</text>
+        <text x="420" y="100" font-size="15" fill="#777" font-family="'DM Sans',sans-serif">6102</text>
+        <text x="40" y="390" font-size="15" fill="#777" font-family="'DM Sans',sans-serif">4100</text>
+        <text x="300" y="420" font-size="15" fill="#777" font-family="'DM Sans',sans-serif">4000</text>
+        <text x="620" y="160" font-size="15" fill="#777" font-family="'DM Sans',sans-serif">7307</text>
+        <text x="620" y="440" font-size="15" fill="#777" font-family="'DM Sans',sans-serif">3300</text>
+        <text x="120" y="462" font-size="15" fill="#777" font-family="'DM Sans',sans-serif">7200</text>
+        <text x="786" y="492" text-anchor="end" font-size="10" fill="#aaa" font-family="'DM Sans',sans-serif">© 2026 HERE</text>
+
+        <!-- ELECTRIC layer -->
+        <g id="layer-electric">
+          <line id="s-c01-w" x1="0" y1="248" x2="252" y2="244" stroke="#E24B4A" stroke-width="3" stroke-dasharray="10 5" class="flow" marker-end="url(#arr-on)"/>
+          <line id="s-c01-m" x1="308" y1="243" x2="540" y2="238" stroke="#E24B4A" stroke-width="3" stroke-dasharray="10 5" class="flow" marker-end="url(#arr-on)"/>
+          <line id="s-c01-e" x1="596" y1="237" x2="800" y2="233" stroke="#E24B4A" stroke-width="3" stroke-dasharray="10 5" class="flow" marker-end="url(#arr-on)"/>
+          <line id="s-c02-n" x1="280" y1="80" x2="280" y2="236" stroke="#E24B4A" stroke-width="3" stroke-dasharray="10 5" class="flow" marker-end="url(#arr-on)"/>
+          <line id="s-c02-s" x1="280" y1="280" x2="280" y2="460" stroke="#E24B4A" stroke-width="3" stroke-dasharray="10 5" class="flow" marker-end="url(#arr-on)"/>
+          <line id="s-c03-n" x1="568" y1="80" x2="568" y2="236" stroke="#E24B4A" stroke-width="3" stroke-dasharray="10 5" class="flow" marker-end="url(#arr-on)"/>
+          <line id="s-c03-s" x1="568" y1="280" x2="568" y2="460" stroke="#E24B4A" stroke-width="3" stroke-dasharray="10 5" class="flow" marker-end="url(#arr-on)"/>
+          <!-- Secondaries -->
+          <line id="s-tx1-dp1" x1="280" y1="140" x2="280" y2="168" stroke="#E24B4A" stroke-width="2" stroke-dasharray="5 3" marker-end="url(#arr-on)"/>
+          <line id="s-tx3-dp2" x1="568" y1="140" x2="568" y2="168" stroke="#E24B4A" stroke-width="2" stroke-dasharray="5 3" marker-end="url(#arr-on)"/>
+          <line id="s-tx2-dp3" x1="280" y1="340" x2="280" y2="368" stroke="#E24B4A" stroke-width="2" stroke-dasharray="5 3" marker-end="url(#arr-on)"/>
+          <line id="s-tx4-dp4" x1="568" y1="340" x2="568" y2="368" stroke="#E24B4A" stroke-width="2" stroke-dasharray="5 3" marker-end="url(#arr-on)"/>
+          <!-- Laterals -->
+          <line id="s-dp1-sl1" x1="252" y1="248" x2="120" y2="250" stroke="#EF9F27" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arr-amb)"/>
+          <line id="s-sl1-sm1" x1="110" y1="236" x2="110" y2="206" stroke="#EF9F27" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arr-amb)"/>
+          <line id="s-dp1-ej1" x1="252" y1="195" x2="156" y2="195" stroke="#EF9F27" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arr-amb)"/>
+          <line id="s-dp2-sl2" x1="596" y1="248" x2="700" y2="250" stroke="#EF9F27" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arr-amb)"/>
+          <line id="s-sl2-sm2" x1="706" y1="236" x2="706" y2="206" stroke="#EF9F27" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arr-amb)"/>
+          <line id="s-dp3-ej2" x1="252" y1="388" x2="156" y2="388" stroke="#EF9F27" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arr-amb)"/>
+          <line id="s-dp3-sl3" x1="252" y1="374" x2="120" y2="374" stroke="#EF9F27" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arr-amb)"/>
+          <line id="s-sl3-sm3" x1="110" y1="390" x2="110" y2="430" stroke="#EF9F27" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arr-amb)"/>
+          <line id="s-dp4-sl4" x1="596" y1="374" x2="700" y2="374" stroke="#EF9F27" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arr-amb)"/>
+          <line id="s-dp4-ej3" x1="596" y1="388" x2="700" y2="388" stroke="#EF9F27" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arr-amb)"/>
+          <line id="s-ej3-sm4" x1="706" y1="400" x2="706" y2="430" stroke="#EF9F27" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arr-amb)"/>
+          <!-- Circuit labels -->
+          <g id="clabels">
+            <rect x="60" y="226" width="38" height="15" rx="3" fill="#E24B4A"/>
+            <text x="79" y="236" text-anchor="middle" dominant-baseline="central" font-size="8.5" font-weight="600" fill="#fff" font-family="'JetBrains Mono',monospace">C-01</text>
+            <rect x="286" y="148" width="38" height="15" rx="3" fill="#E24B4A"/>
+            <text x="305" y="158" text-anchor="middle" dominant-baseline="central" font-size="8.5" font-weight="600" fill="#fff" font-family="'JetBrains Mono',monospace">C-02</text>
+            <rect x="574" y="148" width="38" height="15" rx="3" fill="#E24B4A"/>
+            <text x="593" y="158" text-anchor="middle" dominant-baseline="central" font-size="8.5" font-weight="600" fill="#fff" font-family="'JetBrains Mono',monospace">C-03</text>
+          </g>
+        </g>
+
+        <!-- TELECOM layer -->
+        <g id="layer-telecom">
+          <line x1="0" y1="260" x2="252" y2="256" stroke="#00e000" stroke-width="2.2" stroke-dasharray="8 4" class="march"/>
+          <line x1="308" y1="255" x2="540" y2="250" stroke="#00e000" stroke-width="2.2" stroke-dasharray="8 4" class="march"/>
+          <line x1="596" y1="249" x2="800" y2="245" stroke="#00e000" stroke-width="2.2" stroke-dasharray="8 4" class="march"/>
+          <line x1="108" y1="250" x2="96" y2="140" stroke="#00e000" stroke-width="2.2" stroke-dasharray="6 4" class="march"/>
+          <line x1="340" y1="252" x2="460" y2="168" stroke="#00e000" stroke-width="2.2" stroke-dasharray="6 4" class="march"/>
+          <line x1="270" y1="254" x2="280" y2="380" stroke="#00e000" stroke-width="2.2" stroke-dasharray="6 4" class="march"/>
+          <line x1="400" y1="252" x2="440" y2="400" stroke="#00e000" stroke-width="2.2" stroke-dasharray="6 4" class="march"/>
+        </g>
+
+        <!-- WATER layer -->
+        <g id="layer-water">
+          <line x1="268" y1="0" x2="268" y2="500" stroke="#378ADD" stroke-width="3.5"/>
+          <line x1="0" y1="272" x2="800" y2="264" stroke="#378ADD" stroke-width="3.5"/>
+        </g>
+
+        <!-- SEWER layer -->
+        <g id="layer-sewer">
+          <line x1="294" y1="0" x2="294" y2="500" stroke="#639922" stroke-width="2.8" stroke-dasharray="9 4"/>
+          <line x1="0" y1="278" x2="800" y2="270" stroke="#639922" stroke-width="2.8" stroke-dasharray="9 4"/>
+        </g>
+
+        <!-- GAS layer -->
+        <g id="layer-gas">
+          <line x1="0" y1="284" x2="800" y2="276" stroke="#BA7517" stroke-width="2" stroke-dasharray="2 6"/>
+          <line x1="568" y1="0" x2="568" y2="236" stroke="#BA7517" stroke-width="2" stroke-dasharray="2 6"/>
+          <line x1="568" y1="280" x2="568" y2="500" stroke="#BA7517" stroke-width="2" stroke-dasharray="2 6"/>
+        </g>
+
+        <!-- STRUCTURES layer -->
+        <g id="layer-structures">
+          <!-- Transformers (dark red circle TX) -->
+          <g class="asset" id="node-tx1" data-id="tx1" onclick="tapAsset('tx1',event)" transform="translate(280,128)" style="cursor:pointer"><circle r="14" fill="#791F1F" stroke="#fff" stroke-width="1.5"/><text x="0" y=".5" text-anchor="middle" dominant-baseline="central" font-size="9" font-weight="600" fill="#fff" font-family="'JetBrains Mono',monospace">TX</text></g>
+          <g class="asset" id="node-tx2" data-id="tx2" onclick="tapAsset('tx2',event)" transform="translate(280,328)" style="cursor:pointer"><circle r="14" fill="#791F1F" stroke="#fff" stroke-width="1.5"/><text x="0" y=".5" text-anchor="middle" dominant-baseline="central" font-size="9" font-weight="600" fill="#fff" font-family="'JetBrains Mono',monospace">TX</text></g>
+          <g class="asset" id="node-tx3" data-id="tx3" onclick="tapAsset('tx3',event)" transform="translate(568,128)" style="cursor:pointer"><circle r="14" fill="#791F1F" stroke="#fff" stroke-width="1.5"/><text x="0" y=".5" text-anchor="middle" dominant-baseline="central" font-size="9" font-weight="600" fill="#fff" font-family="'JetBrains Mono',monospace">TX</text></g>
+          <g class="asset" id="node-tx4" data-id="tx4" onclick="tapAsset('tx4',event)" transform="translate(568,328)" style="cursor:pointer"><circle r="14" fill="#791F1F" stroke="#fff" stroke-width="1.5"/><text x="0" y=".5" text-anchor="middle" dominant-baseline="central" font-size="9" font-weight="600" fill="#fff" font-family="'JetBrains Mono',monospace">TX</text></g>
+          <!-- Distribution pedestals (hexagon, blue) -->
+          <g class="asset" id="node-dp1" data-id="dp1" onclick="tapAsset('dp1',event)" transform="translate(280,195)" style="cursor:pointer"><circle r="14" fill="none" stroke="#3B6D11" stroke-width="1.5"/><polygon points="0,-10 8.7,-5 8.7,5 0,10 -8.7,5 -8.7,-5" fill="#185FA5"/><text x="0" y=".5" text-anchor="middle" dominant-baseline="central" font-size="6.5" font-weight="600" fill="#fff" font-family="'JetBrains Mono',monospace">DP</text></g>
+          <g class="asset" id="node-dp2" data-id="dp2" onclick="tapAsset('dp2',event)" transform="translate(568,195)" style="cursor:pointer"><circle r="14" fill="none" stroke="#3B6D11" stroke-width="1.5"/><polygon points="0,-10 8.7,-5 8.7,5 0,10 -8.7,5 -8.7,-5" fill="#185FA5"/><text x="0" y=".5" text-anchor="middle" dominant-baseline="central" font-size="6.5" font-weight="600" fill="#fff" font-family="'JetBrains Mono',monospace">DP</text></g>
+          <g class="asset" id="node-dp3" data-id="dp3" onclick="tapAsset('dp3',event)" transform="translate(280,388)" style="cursor:pointer"><circle r="14" fill="none" stroke="#A32D2D" stroke-width="1.5"/><polygon points="0,-10 8.7,-5 8.7,5 0,10 -8.7,5 -8.7,-5" fill="#185FA5"/><text x="0" y=".5" text-anchor="middle" dominant-baseline="central" font-size="6.5" font-weight="600" fill="#fff" font-family="'JetBrains Mono',monospace">DP</text></g>
+          <g class="asset" id="node-dp4" data-id="dp4" onclick="tapAsset('dp4',event)" transform="translate(568,388)" style="cursor:pointer"><circle r="14" fill="none" stroke="#3B6D11" stroke-width="1.5"/><polygon points="0,-10 8.7,-5 8.7,5 0,10 -8.7,5 -8.7,-5" fill="#185FA5"/><text x="0" y=".5" text-anchor="middle" dominant-baseline="central" font-size="6.5" font-weight="600" fill="#fff" font-family="'JetBrains Mono',monospace">DP</text></g>
+          <!-- EJ handholes (green square) -->
+          <g class="asset" id="node-ej1" data-id="ej1" onclick="tapAsset('ej1',event)" transform="translate(142,195)" style="cursor:pointer"><circle r="13" fill="none" stroke="#3B6D11" stroke-width="1.5"/><rect x="-9" y="-9" width="18" height="18" rx="2" fill="#00e000" stroke="#006600" stroke-width="1"/><text x="0" y=".5" text-anchor="middle" dominant-baseline="central" font-size="6.5" font-weight="700" fill="#003300" font-family="'JetBrains Mono',monospace">EJ</text></g>
+          <g class="asset" id="node-ej2" data-id="ej2" onclick="tapAsset('ej2',event)" transform="translate(142,388)" style="cursor:pointer"><circle r="13" fill="none" stroke="#3B6D11" stroke-width="1.5"/><rect x="-9" y="-9" width="18" height="18" rx="2" fill="#00e000" stroke="#006600" stroke-width="1"/><text x="0" y=".5" text-anchor="middle" dominant-baseline="central" font-size="6.5" font-weight="700" fill="#003300" font-family="'JetBrains Mono',monospace">EJ</text></g>
+          <g class="asset" id="node-ej3" data-id="ej3" onclick="tapAsset('ej3',event)" transform="translate(706,388)" style="cursor:pointer"><circle r="13" fill="none" stroke="#3B6D11" stroke-width="1.5"/><rect x="-9" y="-9" width="18" height="18" rx="2" fill="#00e000" stroke="#006600" stroke-width="1"/><text x="0" y=".5" text-anchor="middle" dominant-baseline="central" font-size="6.5" font-weight="700" fill="#003300" font-family="'JetBrains Mono',monospace">EJ</text></g>
+          <!-- TH telecom handholes (green squares, no ring) -->
+          <rect class="asset" id="node-th1" data-id="th1" onclick="tapAsset('th1',event)" x="88" y="243" width="15" height="15" fill="#00e000" stroke="#006600" stroke-width="1" rx="1" style="cursor:pointer"/>
+          <rect class="asset" id="node-th2" data-id="th2" onclick="tapAsset('th2',event)" x="88" y="132" width="15" height="15" fill="#00e000" stroke="#006600" stroke-width="1" rx="1" style="cursor:pointer"/>
+          <rect class="asset" id="node-th3" data-id="th3" onclick="tapAsset('th3',event)" x="452" y="160" width="15" height="15" fill="#00e000" stroke="#006600" stroke-width="1" rx="1" style="cursor:pointer"/>
+          <rect class="asset" id="node-th4" data-id="th4" onclick="tapAsset('th4',event)" x="263" y="372" width="15" height="15" fill="#00e000" stroke="#006600" stroke-width="1" rx="1" style="cursor:pointer"/>
+          <rect class="asset" id="node-th5" data-id="th5" onclick="tapAsset('th5',event)" x="432" y="392" width="15" height="15" fill="#00e000" stroke="#006600" stroke-width="1" rx="1" style="cursor:pointer"/>
+          <!-- Street lights (sunburst amber) -->
+          <g class="asset" id="node-sl1" data-id="sl1" onclick="tapAsset('sl1',event)" transform="translate(110,250)" style="cursor:pointer"><circle r="12" fill="none" stroke="#3B6D11" stroke-width="1.5"/><circle r="6.5" fill="#854F0B"/><line x1="0" y1="-10.5" x2="0" y2="-8" stroke="#EF9F27" stroke-width="2"/><line x1="0" y1="8" x2="0" y2="10.5" stroke="#EF9F27" stroke-width="2"/><line x1="-10.5" y1="0" x2="-8" y2="0" stroke="#EF9F27" stroke-width="2"/><line x1="8" y1="0" x2="10.5" y2="0" stroke="#EF9F27" stroke-width="2"/><line x1="-7.4" y1="-7.4" x2="-5.6" y2="-5.6" stroke="#EF9F27" stroke-width="1.5"/><line x1="5.6" y1="-5.6" x2="7.4" y2="-7.4" stroke="#EF9F27" stroke-width="1.5"/><line x1="-7.4" y1="7.4" x2="-5.6" y2="5.6" stroke="#EF9F27" stroke-width="1.5"/><line x1="5.6" y1="5.6" x2="7.4" y2="7.4" stroke="#EF9F27" stroke-width="1.5"/></g>
+          <g class="asset" id="node-sl2" data-id="sl2" onclick="tapAsset('sl2',event)" transform="translate(706,250)" style="cursor:pointer"><circle r="12" fill="none" stroke="#3B6D11" stroke-width="1.5"/><circle r="6.5" fill="#854F0B"/><line x1="0" y1="-10.5" x2="0" y2="-8" stroke="#EF9F27" stroke-width="2"/><line x1="0" y1="8" x2="0" y2="10.5" stroke="#EF9F27" stroke-width="2"/><line x1="-10.5" y1="0" x2="-8" y2="0" stroke="#EF9F27" stroke-width="2"/><line x1="8" y1="0" x2="10.5" y2="0" stroke="#EF9F27" stroke-width="2"/><line x1="-7.4" y1="-7.4" x2="-5.6" y2="-5.6" stroke="#EF9F27" stroke-width="1.5"/><line x1="5.6" y1="-5.6" x2="7.4" y2="-7.4" stroke="#EF9F27" stroke-width="1.5"/><line x1="-7.4" y1="7.4" x2="-5.6" y2="5.6" stroke="#EF9F27" stroke-width="1.5"/><line x1="5.6" y1="5.6" x2="7.4" y2="7.4" stroke="#EF9F27" stroke-width="1.5"/></g>
+          <g class="asset" id="node-sl3" data-id="sl3" onclick="tapAsset('sl3',event)" transform="translate(110,374)" style="cursor:pointer"><circle r="12" fill="none" stroke="#BA7517" stroke-width="1.5"/><circle r="6.5" fill="#854F0B"/><line x1="0" y1="-10.5" x2="0" y2="-8" stroke="#EF9F27" stroke-width="2"/><line x1="0" y1="8" x2="0" y2="10.5" stroke="#EF9F27" stroke-width="2"/><line x1="-10.5" y1="0" x2="-8" y2="0" stroke="#EF9F27" stroke-width="2"/><line x1="8" y1="0" x2="10.5" y2="0" stroke="#EF9F27" stroke-width="2"/><line x1="-7.4" y1="-7.4" x2="-5.6" y2="-5.6" stroke="#EF9F27" stroke-width="1.5"/><line x1="5.6" y1="-5.6" x2="7.4" y2="-7.4" stroke="#EF9F27" stroke-width="1.5"/><line x1="-7.4" y1="7.4" x2="-5.6" y2="5.6" stroke="#EF9F27" stroke-width="1.5"/><line x1="5.6" y1="5.6" x2="7.4" y2="7.4" stroke="#EF9F27" stroke-width="1.5"/></g>
+          <g class="asset" id="node-sl4" data-id="sl4" onclick="tapAsset('sl4',event)" transform="translate(706,374)" style="cursor:pointer"><circle r="12" fill="none" stroke="#3B6D11" stroke-width="1.5"/><circle r="6.5" fill="#854F0B"/><line x1="0" y1="-10.5" x2="0" y2="-8" stroke="#EF9F27" stroke-width="2"/><line x1="0" y1="8" x2="0" y2="10.5" stroke="#EF9F27" stroke-width="2"/><line x1="-10.5" y1="0" x2="-8" y2="0" stroke="#EF9F27" stroke-width="2"/><line x1="8" y1="0" x2="10.5" y2="0" stroke="#EF9F27" stroke-width="2"/><line x1="-7.4" y1="-7.4" x2="-5.6" y2="-5.6" stroke="#EF9F27" stroke-width="1.5"/><line x1="5.6" y1="-5.6" x2="7.4" y2="-7.4" stroke="#EF9F27" stroke-width="1.5"/><line x1="-7.4" y1="7.4" x2="-5.6" y2="5.6" stroke="#EF9F27" stroke-width="1.5"/><line x1="5.6" y1="5.6" x2="7.4" y2="7.4" stroke="#EF9F27" stroke-width="1.5"/></g>
+          <!-- Service meters -->
+          <g class="asset" id="node-sm1" data-id="sm1" onclick="tapAsset('sm1',event)" transform="translate(110,194)" style="cursor:pointer"><rect x="-9" y="-9" width="18" height="18" rx="3" fill="#FAEEDA" stroke="#BA7517" stroke-width="1.5"/><text x="0" y=".5" text-anchor="middle" dominant-baseline="central" font-size="8.5" font-weight="600" fill="#854F0B" font-family="'JetBrains Mono',monospace">M</text></g>
+          <g class="asset" id="node-sm2" data-id="sm2" onclick="tapAsset('sm2',event)" transform="translate(706,194)" style="cursor:pointer"><rect x="-9" y="-9" width="18" height="18" rx="3" fill="#FAEEDA" stroke="#BA7517" stroke-width="1.5"/><text x="0" y=".5" text-anchor="middle" dominant-baseline="central" font-size="8.5" font-weight="600" fill="#854F0B" font-family="'JetBrains Mono',monospace">M</text></g>
+          <g class="asset" id="node-sm3" data-id="sm3" onclick="tapAsset('sm3',event)" transform="translate(110,440)" style="cursor:pointer"><rect x="-9" y="-9" width="18" height="18" rx="3" fill="#FAEEDA" stroke="#BA7517" stroke-width="1.5"/><text x="0" y=".5" text-anchor="middle" dominant-baseline="central" font-size="8.5" font-weight="600" fill="#854F0B" font-family="'JetBrains Mono',monospace">M</text></g>
+          <g class="asset" id="node-sm4" data-id="sm4" onclick="tapAsset('sm4',event)" transform="translate(706,440)" style="cursor:pointer"><rect x="-9" y="-9" width="18" height="18" rx="3" fill="#FAEEDA" stroke="#BA7517" stroke-width="1.5"/><text x="0" y=".5" text-anchor="middle" dominant-baseline="central" font-size="8.5" font-weight="600" fill="#854F0B" font-family="'JetBrains Mono',monospace">M</text></g>
+          <!-- Water valves -->
+          <g class="asset" id="node-wv1" data-id="wv1" onclick="tapAsset('wv1',event)" transform="translate(268,258)" style="cursor:pointer"><circle r="12" fill="none" stroke="#3B6D11" stroke-width="1.5"/><circle r="8.5" fill="#378ADD"/><line x1="-5" y1="0" x2="5" y2="0" stroke="#fff" stroke-width="2" stroke-linecap="round"/><line x1="0" y1="-5" x2="0" y2="5" stroke="#fff" stroke-width="2" stroke-linecap="round"/></g>
+          <g class="asset" id="node-wv2" data-id="wv2" onclick="tapAsset('wv2',event)" transform="translate(268,430)" style="cursor:pointer"><circle r="12" fill="none" stroke="#BA7517" stroke-width="1.5"/><circle r="8.5" fill="#378ADD"/><line x1="-5" y1="0" x2="5" y2="0" stroke="#fff" stroke-width="2" stroke-linecap="round"/><line x1="0" y1="-5" x2="0" y2="5" stroke="#fff" stroke-width="2" stroke-linecap="round"/></g>
+          <!-- Manholes -->
+          <g class="asset" id="node-mh1" data-id="mh1" onclick="tapAsset('mh1',event)" transform="translate(294,258)" style="cursor:pointer"><circle r="12" fill="none" stroke="#3B6D11" stroke-width="1.5"/><circle r="8.5" fill="#639922"/><circle r="5" fill="none" stroke="#fff" stroke-width="1.4"/><circle r="1.8" fill="#fff"/></g>
+          <g class="asset" id="node-mh2" data-id="mh2" onclick="tapAsset('mh2',event)" transform="translate(294,430)" style="cursor:pointer"><circle r="12" fill="none" stroke="#BA7517" stroke-width="1.5"/><circle r="8.5" fill="#639922"/><circle r="5" fill="none" stroke="#fff" stroke-width="1.4"/><circle r="1.8" fill="#fff"/></g>
+          <g class="asset" id="node-mh3" data-id="mh3" onclick="tapAsset('mh3',event)" transform="translate(546,258)" style="cursor:pointer"><circle r="12" fill="none" stroke="#3B6D11" stroke-width="1.5"/><circle r="8.5" fill="#639922"/><circle r="5" fill="none" stroke="#fff" stroke-width="1.4"/><circle r="1.8" fill="#fff"/></g>
+          <!-- Fire hydrants -->
+          <g class="asset" id="node-fh1" data-id="fh1" onclick="tapAsset('fh1',event)" transform="translate(50,258)" style="cursor:pointer"><circle r="12" fill="none" stroke="#3B6D11" stroke-width="1.5"/><polygon points="0,-9 8,6.5 -8,6.5" fill="#993C1D"/><line x1="0" y1="6.5" x2="0" y2="10" stroke="#993C1D" stroke-width="2.5" stroke-linecap="round"/></g>
+          <g class="asset" id="node-fh2" data-id="fh2" onclick="tapAsset('fh2',event)" transform="translate(430,258)" style="cursor:pointer"><circle r="12" fill="none" stroke="#3B6D11" stroke-width="1.5"/><polygon points="0,-9 8,6.5 -8,6.5" fill="#993C1D"/><line x1="0" y1="6.5" x2="0" y2="10" stroke="#993C1D" stroke-width="2.5" stroke-linecap="round"/></g>
+          <!-- Gas pedestals -->
+          <g class="asset" id="node-gp1" data-id="gp1" onclick="tapAsset('gp1',event)" transform="translate(568,60)" style="cursor:pointer"><circle r="13" fill="none" stroke="#3B6D11" stroke-width="1.5"/><polygon points="0,-9 9,0 0,9 -9,0" fill="#BA7517"/><text x="0" y=".5" text-anchor="middle" dominant-baseline="central" font-size="6.5" font-weight="600" fill="#fff" font-family="'JetBrains Mono',monospace">GP</text></g>
+          <g class="asset" id="node-gp2" data-id="gp2" onclick="tapAsset('gp2',event)" transform="translate(568,440)" style="cursor:pointer"><circle r="13" fill="none" stroke="#BA7517" stroke-width="1.5"/><polygon points="0,-9 9,0 0,9 -9,0" fill="#BA7517"/><text x="0" y=".5" text-anchor="middle" dominant-baseline="central" font-size="6.5" font-weight="600" fill="#fff" font-family="'JetBrains Mono',monospace">GP</text></g>
+        </g>
+
+        <!-- GPS group -->
+        <g id="gps-group">
+          <g id="breadcrumbs"></g>
+          <circle id="gps-acc" cx="390" cy="260" r="22" fill="#4CAF50" fill-opacity=".1" stroke="#4CAF50" stroke-opacity=".25" stroke-width="1.2"/>
+          <circle id="gps-dot" cx="390" cy="260" r="8" fill="#4CAF50" stroke="#fff" stroke-width="2.5"/>
+          <polygon id="gps-cone" points="390,236 400,260 380,260" fill="#4CAF50" fill-opacity=".55"/>
+          <polygon id="sv-cone" points="390,260 360,220 420,220" fill="#3B8BD4" fill-opacity="0" stroke="#3B8BD4" stroke-width="2" stroke-opacity="0"/>
+        </g>
+
+        <!-- Fault marker -->
+        <g id="fault-marker" visibility="hidden">
+          <circle id="fault-ring" cx="0" cy="0" r="18" fill="#FCEBEB" fill-opacity=".92" stroke="#E24B4A" stroke-width="2.5" class="fb"/>
+          <line id="fl1" x1="-7" y1="-7" x2="7" y2="7" stroke="#A32D2D" stroke-width="2.5" stroke-linecap="round"/>
+          <line id="fl2" x1="7" y1="-7" x2="-7" y2="7" stroke="#A32D2D" stroke-width="2.5" stroke-linecap="round"/>
+        </g>
+        <circle id="sel" cx="0" cy="0" r="18" fill="none" stroke="#3B8BD4" stroke-width="2" stroke-dasharray="5 3" visibility="hidden"/>
+
+        <!-- Measure tool elements -->
+        <line id="measure-line" x1="0" y1="0" x2="0" y2="0" stroke="#4CAF50" stroke-width="2" stroke-dasharray="6 4" visibility="hidden"/>
+        <circle id="measure-dot-a" cx="0" cy="0" r="5" fill="#4CAF50" stroke="#fff" stroke-width="1.5" visibility="hidden"/>
+        <circle id="measure-dot-b" cx="0" cy="0" r="5" fill="#4CAF50" stroke="#fff" stroke-width="1.5" visibility="hidden"/>
+        <text id="measure-label" x="0" y="0" text-anchor="middle" font-size="11" font-weight="600" fill="#4CAF50" font-family="'JetBrains Mono',monospace" paint-order="stroke" stroke="#000" stroke-width="3" visibility="hidden"></text>
+
+        <!-- Draw layer -->
+        <g id="draw-layer"></g>
+
+        <!-- Search result pin -->
+        <g id="search-pin" visibility="hidden">
+          <line id="search-pin-stem" x1="0" y1="0" x2="0" y2="16" stroke="#3B8BD4" stroke-width="2" stroke-linecap="round"/>
+          <circle cx="0" cy="-12" r="10" fill="#3B8BD4" stroke="#fff" stroke-width="2"/>
+          <circle cx="0" cy="-12" r="4" fill="#fff"/>
+          <text id="search-pin-label" x="0" y="-28" text-anchor="middle" font-size="10" font-weight="600" fill="#185FA5" font-family="'DM Sans',sans-serif" paint-order="stroke" stroke="#fff" stroke-width="3"></text>
+        </g>
+      </svg>
+
+      <!-- Search overlay -->
+      <div id="search-overlay">
+        <div id="search-row">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#aaa" stroke-width="2.2" stroke-linecap="round" style="flex-shrink:0"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="22" y2="22"/></svg>
+          <input id="search-input" type="text" placeholder="Search any address..." autocomplete="off" onkeydown="if(event.key==='Enter')doSearch()" oninput="onSearchInput(this.value)"/>
+          <button id="search-cancel" onclick="toggleSearch()">Cancel</button>
+        </div>
+        <div id="search-results"></div>
+      </div>
+
+      <!-- GPS chip -->
+      <!-- Layer FAB -->
+      <button id="layer-fab" onclick="toggleLayers()"><svg viewBox="0 0 24 24"><polygon points="12 2 22 8.5 12 15 2 8.5"/><polyline points="2 15.5 12 22 22 15.5"/><polyline points="2 12 12 18.5 22 12"/></svg></button>
+
+      <!-- Street View FAB -->
+      <button id="sv-fab" onclick="toggleSV()" title="Street view">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/><circle cx="19" cy="5" r="2.2" fill="#3B8BD4"/><line x1="19" y1="7.2" x2="19" y2="13" stroke="#ddd" stroke-width="2"/><line x1="16.8" y1="11" x2="21.2" y2="11" stroke="#ddd" stroke-width="2"/></svg>
+      </button>
+
+      <!-- Fault banner -->
+      <div id="faultbar"><span id="fault-txt">Fault active</span><button onclick="clearFault()">Clear fault ×</button></div>
+
+      <!-- Bottom sheet -->
+      <div id="sheet">
+        <div class="sh-handle"></div>
+        <div class="sh-head"><div><div class="sh-title" id="sh-title">Asset</div><div class="sh-sub" id="sh-sub"></div></div><button class="sh-close" onclick="closeSheet()">×</button></div>
+        <div class="sh-rows" id="sh-rows"></div>
+        <div class="sh-actions" id="sh-actions"></div>
+      </div>
+    </div>
+
+    <!-- STREET VIEW -->
+    <div id="svpanel">
+      <canvas id="svcanvas"></canvas>
+      <div id="sv-overlays"></div>
+      <div id="sv-topbar">
+        <span id="sv-heading">→ E · 90°</span>
+        <span id="sv-addr">Hunter Dr</span>
+        <button id="sv-close" onclick="toggleSV()">×</button>
+      </div>
+      <div id="sv-controls">
+        <button class="sv-btn" onclick="moveBack()" title="Step back">←</button>
+        <span id="sv-pos-label">Stop 1 / 6</span>
+        <button class="sv-btn" onclick="moveFwd()" title="Step forward">→</button>
+      </div>
+    </div>
+
+    <!-- Utility layer switcher -->
+    <div id="lpanel" onclick="lBg(event)">
+      <div id="linner">
+        <div class="lp-handle"></div>
+        <div class="lp-title">Utility layers</div>
+        <div class="lp-subtitle">Tap to show or hide each utility</div>
+
+        <div class="lp-section-label">Underground utilities</div>
+        <div class="lp-grid">
+
+          <!-- Electric -->
+          <div class="util-tile on" id="tile-electric" onclick="toggleTile('electric',this)">
+            <div class="ut-badge"></div>
+            <div class="ut-icon" style="background:rgba(226,75,74,.18)">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#E24B4A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            </div>
+            <div class="ut-label">Electric</div>
+            <div class="ut-sub">13.2 kV primary</div>
+          </div>
+
+          <!-- Telecom -->
+          <div class="util-tile on" id="tile-telecom" onclick="toggleTile('telecom',this)">
+            <div class="ut-badge"></div>
+            <div class="ut-icon" style="background:rgba(0,224,0,.14)">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#00e000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
+            </div>
+            <div class="ut-label">Telecom</div>
+            <div class="ut-sub">Fiber / Charter</div>
+          </div>
+
+          <!-- Water -->
+          <div class="util-tile on" id="tile-water" onclick="toggleTile('water',this)">
+            <div class="ut-badge"></div>
+            <div class="ut-icon" style="background:rgba(55,138,221,.18)">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#378ADD" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C6.5 11 2 15.5 2 18a10 10 0 0 0 20 0c0-2.5-4.5-7-10-16z"/></svg>
+            </div>
+            <div class="ut-label">Water</div>
+            <div class="ut-sub">City mains</div>
+          </div>
+
+          <!-- Sewer -->
+          <div class="util-tile on" id="tile-sewer" onclick="toggleTile('sewer',this)">
+            <div class="ut-badge"></div>
+            <div class="ut-icon" style="background:rgba(99,153,34,.18)">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#639922" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22V12"/><path d="M12 12C12 7 7 4 7 4s-1 5 2 8"/><path d="M12 12c0-5 5-8 5-8s1 5-2 8"/><circle cx="12" cy="22" r="2"/></svg>
+            </div>
+            <div class="ut-label">Sewer</div>
+            <div class="ut-sub">Sanitary lines</div>
+          </div>
+
+          <!-- Gas -->
+          <div class="util-tile on" id="tile-gas" onclick="toggleTile('gas',this)">
+            <div class="ut-badge"></div>
+            <div class="ut-icon" style="background:rgba(186,117,23,.18)">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#BA7517" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 0 1 10 10c0 5.52-4.48 10-10 10"/><path d="M12 2a10 10 0 0 0-10 10c0 5.52 4.48 10 10 10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
+            </div>
+            <div class="ut-label">Gas</div>
+            <div class="ut-sub">Piedmont NG</div>
+          </div>
+
+          <!-- Structures -->
+          <div class="util-tile on" id="tile-structures" onclick="toggleTile('structures',this)">
+            <div class="ut-badge"></div>
+            <div class="ut-icon" style="background:rgba(0,224,0,.12)">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#00e000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+            </div>
+            <div class="ut-label">Structures</div>
+            <div class="ut-sub">Handholes &amp; assets</div>
+          </div>
+
+        </div>
+
+        <div class="lp-divider"></div>
+
+        <!-- Quick actions row -->
+        <div style="display:flex;gap:8px;margin-bottom:4px;">
+          <button onclick="setAllTiles(true)" style="flex:1;padding:10px;border-radius:12px;border:none;background:#2a2a2e;color:#4CAF50;font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">Show all</button>
+          <button onclick="setAllTiles(false)" style="flex:1;padding:10px;border-radius:12px;border:none;background:#2a2a2e;color:#888;font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">Hide all</button>
+        </div>
+
+        <button class="lp-close" onclick="toggleLayers()">Done</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const route=[
+  {x:60, y:260,addr:'Hunter Dr W — 4100 block',heading:90,headTxt:'E'},
+  {x:160,y:258,addr:'Hunter Dr @ 4100',heading:90,headTxt:'E'},
+  {x:280,y:256,addr:'Hunter Dr @ Intersection (C-02)',heading:90,headTxt:'E'},
+  {x:390,y:258,addr:'Hunter Dr center',heading:90,headTxt:'E'},
+  {x:520,y:256,addr:'Hunter Dr @ 4000',heading:90,headTxt:'E'},
+  {x:650,y:254,addr:'Hunter Dr E — 7307 block',heading:90,headTxt:'E'},
+];
+
+const utilsByPos=[
+  {left:[{label:'FH',color:'#993C1D',depth:'surface'},{label:'Water',color:'#378ADD',depth:'42"'},{label:'Sewer',color:'#639922',depth:'56"'}],right:[{label:'Gas',color:'#BA7517',depth:'30"'},{label:'Telecom',color:'#00e000',depth:'24"'}],road:[]},
+  {left:[{label:'Water',color:'#378ADD',depth:'42"'},{label:'Sewer',color:'#639922',depth:'58"'}],right:[{label:'Elec C-02',color:'#E24B4A',depth:'18"'},{label:'Telecom',color:'#00e000',depth:'24"'},{label:'Gas',color:'#BA7517',depth:'36"'}],road:[]},
+  {left:[{label:'Water',color:'#378ADD',depth:'42"'},{label:'Sewer',color:'#639922',depth:'54"'},{label:'Elec C-02',color:'#E24B4A',depth:'18"'}],right:[{label:'Telecom',color:'#00e000',depth:'24"'},{label:'Gas',color:'#BA7517',depth:'30"'}],road:[{label:'Elec C-01',color:'#E24B4A',depth:'18"'}]},
+  {left:[{label:'Sewer',color:'#639922',depth:'54"'},{label:'Water',color:'#378ADD',depth:'42"'}],right:[{label:'Elec C-01',color:'#E24B4A',depth:'18"'},{label:'Telecom',color:'#00e000',depth:'24"'},{label:'Gas',color:'#BA7517',depth:'36"'}],road:[]},
+  {left:[{label:'Water',color:'#378ADD',depth:'42"'},{label:'Sewer',color:'#639922',depth:'60"'}],right:[{label:'Elec C-01',color:'#E24B4A',depth:'18"'},{label:'Elec C-03',color:'#E24B4A',depth:'26"'},{label:'Telecom',color:'#00e000',depth:'30"'}],road:[{label:'Gas',color:'#BA7517',depth:'36"'}]},
+  {left:[{label:'Sewer',color:'#639922',depth:'54"'}],right:[{label:'Elec C-01',color:'#E24B4A',depth:'18"'},{label:'Telecom',color:'#00e000',depth:'24"'},{label:'Gas',color:'#BA7517',depth:'30"'},{label:'Water',color:'#378ADD',depth:'42"'}],road:[]},
+];
+
+const structsByPos=[
+  [{id:'fh1',label:'FH',xf:.07,ag:true,color:'#993C1D'},{id:'th2',label:'TH',xf:.12,ag:false,color:'#00e000'}],
+  [{id:'wv1',label:'WV',xf:.38,ag:false,color:'#378ADD'},{id:'mh1',label:'MH',xf:.43,ag:false,color:'#639922'},{id:'ej1',label:'EJ',xf:.48,ag:false,color:'#00e000'}],
+  [{id:'tx1',label:'TX',xf:.36,ag:true,color:'#791F1F'},{id:'dp1',label:'DP',xf:.36,ag:true,color:'#185FA5'},{id:'th1',label:'TH',xf:.14,ag:false,color:'#00e000'}],
+  [{id:'sl1',label:'SL',xf:.13,ag:true,color:'#854F0B'},{id:'sm1',label:'M',xf:.13,ag:true,color:'#BA7517'},{id:'fh2',label:'FH',xf:.54,ag:true,color:'#993C1D'}],
+  [{id:'dp2',label:'DP',xf:.73,ag:true,color:'#185FA5'},{id:'th3',label:'TH',xf:.57,ag:false,color:'#00e000'},{id:'tx3',label:'TX',xf:.73,ag:true,color:'#791F1F'}],
+  [{id:'sl2',label:'SL',xf:.88,ag:true,color:'#854F0B'},{id:'gp1',label:'GP',xf:.73,ag:true,color:'#BA7517'},{id:'sm2',label:'M',xf:.88,ag:true,color:'#BA7517'}],
+];
+
+const compassArr=['↑','↗','→','↘','↓','↙','←','↖'];
+function hIcon(d){return compassArr[Math.round(d/45)%8];}
+
+let pos=0,svOpen=false,currentAsset=null,faultAsset=null;
+
+function updateGPS(){
+  const p=route[pos];
+  ['cx','cy'].forEach((a,i)=>{
+    document.getElementById('gps-dot').setAttribute(a,i?p.y:p.x);
+    document.getElementById('gps-acc').setAttribute(a,i?p.y:p.x);
+  });
+  // heading cone
+  const rad=p.heading*Math.PI/180,d=24,w=9;
+  const cone=document.getElementById('gps-cone');
+  const tx=p.x+d*Math.cos(rad-Math.PI/2),ty=p.y+d*Math.sin(rad-Math.PI/2);
+  cone.setAttribute('points',`${tx},${ty} ${p.x+w*Math.cos(rad)},${p.y+w*Math.sin(rad)} ${p.x-w*Math.cos(rad)},${p.y-w*Math.sin(rad)}`);
+  // SV cone
+  if(svOpen){
+    const sv=document.getElementById('sv-cone');const fov=38;
+    const fl=p.x+42*Math.cos(rad-Math.PI/2-fov*Math.PI/180),fy_l=p.y+42*Math.sin(rad-Math.PI/2-fov*Math.PI/180);
+    const fr=p.x+42*Math.cos(rad-Math.PI/2+fov*Math.PI/180),fy_r=p.y+42*Math.sin(rad-Math.PI/2+fov*Math.PI/180);
+    sv.setAttribute('points',`${p.x},${p.y} ${fl},${fy_l} ${fr},${fy_r}`);
+    sv.setAttribute('fill-opacity','0.14');sv.setAttribute('stroke-opacity','0.55');
+    renderSV();
+  }
+  // breadcrumb
+  if(pos>0){
+    const prev=route[pos-1];const bc=document.getElementById('breadcrumbs');
+    const ln=document.createElementNS('http://www.w3.org/2000/svg','line');
+    ln.setAttribute('x1',prev.x);ln.setAttribute('y1',prev.y);ln.setAttribute('x2',p.x);ln.setAttribute('y2',p.y);
+    ln.setAttribute('stroke','#4CAF50');ln.setAttribute('stroke-width','2.2');ln.setAttribute('stroke-dasharray','4 3');ln.setAttribute('opacity','.65');
+    bc.appendChild(ln);
+  }
+  const lat=(35.732+pos*0.0008).toFixed(4);
+  document.getElementById('sv-pos-label').textContent=`Stop ${pos+1} / ${route.length}`;
+  document.getElementById('sv-addr').textContent=p.addr;
+  document.getElementById('sv-heading').textContent=hIcon(p.heading)+' '+p.headTxt+' · '+p.heading+'°';
+  if(locTabOpen)updateLocationTab();
+}
+
+function renderSV(){
+  const canvas=document.getElementById('svcanvas');
+  const wrap=document.getElementById('svpanel');
+  canvas.width=wrap.offsetWidth||800;canvas.height=wrap.offsetHeight||280;
+  const W=canvas.width,H=canvas.height,ctx=canvas.getContext('2d');
+
+  // Sky
+  const sky=ctx.createLinearGradient(0,0,0,H*.52);
+  sky.addColorStop(0,'#5ba3d9');sky.addColorStop(1,'#b8daf0');
+  ctx.fillStyle=sky;ctx.fillRect(0,0,W,H*.52);
+  // Clouds
+  [[.2,.12],[.6,.08],[.8,.15]].forEach(([xf,yf])=>{
+    ctx.fillStyle='rgba(255,255,255,.55)';ctx.beginPath();ctx.ellipse(xf*W,yf*H,W*.07,H*.04,0,0,Math.PI*2);ctx.fill();
+  });
+
+  // Ground / road
+  const grd=ctx.createLinearGradient(0,H*.52,0,H);
+  grd.addColorStop(0,'#4a4a4a');grd.addColorStop(1,'#333');
+  ctx.fillStyle=grd;ctx.fillRect(0,H*.52,W,H*.48);
+
+  // Road markings
+  ctx.strokeStyle='rgba(255,255,255,.45)';ctx.lineWidth=2.5;ctx.setLineDash([24,18]);
+  ctx.beginPath();ctx.moveTo(W/2,H*.52);ctx.lineTo(W/2,H);ctx.stroke();ctx.setLineDash([]);
+
+  // Sidewalks
+  ctx.fillStyle='#a09888';ctx.fillRect(0,H*.44,W,H*.09);
+  ctx.fillStyle='#8c8070';ctx.fillRect(0,H*.52,W,H*.03);
+
+  // Curb line
+  ctx.fillStyle='#7a7060';ctx.fillRect(0,H*.505,W,3);
+
+  // Trees + poles
+  [[.06,'pole'],[.94,'pole'],[.18,'tree'],[.82,'tree'],[.38,'tree'],[.62,'tree']].forEach(([xf,type])=>{
+    const px=xf*W,py=H*.44;
+    if(type==='tree'){ctx.fillStyle='#3a5e35';ctx.beginPath();ctx.arc(px,py-20,18,0,Math.PI*2);ctx.fill();ctx.fillStyle='#2d2d2d';ctx.fillRect(px-3,py-4,6,26);}
+    else{ctx.fillStyle='#444';ctx.fillRect(px-2.5,py-72,5,72);ctx.fillStyle='#555';ctx.fillRect(px-22,py-72,44,3.5);}
+  });
+
+  // Underground section label
+  ctx.fillStyle='rgba(255,255,255,.22)';ctx.font=`bold 11px 'JetBrains Mono',monospace`;ctx.textAlign='left';
+  ctx.fillText('UNDERGROUND',10,H*.58);
+
+  // Clear overlays
+  const ov=document.getElementById('sv-overlays');ov.innerHTML='';
+  const utils=utilsByPos[pos]||{left:[],right:[],road:[]};
+  const horizon=H*.52,underground=H-horizon;
+
+  function drawSide(arr,xCenter,sideLabel){
+    const spacing=Math.min(44,underground/(arr.length+1));
+    arr.forEach((u,i)=>{
+      const uy=horizon+(i+1)*spacing;
+      // conduit
+      ctx.beginPath();ctx.arc(xCenter,uy,7,0,Math.PI*2);ctx.fillStyle=u.color;ctx.fill();
+      ctx.strokeStyle='rgba(255,255,255,.35)';ctx.lineWidth=1.5;ctx.stroke();
+      // inner shine
+      ctx.beginPath();ctx.arc(xCenter-2,uy-2,3,0,Math.PI*2);ctx.fillStyle='rgba(255,255,255,.2)';ctx.fill();
+      // dashed leader up to label
+      ctx.strokeStyle=u.color;ctx.lineWidth=1;ctx.setLineDash([3,3]);
+      ctx.beginPath();ctx.moveTo(xCenter,uy-7);ctx.lineTo(xCenter,horizon+6);ctx.stroke();ctx.setLineDash([]);
+      // label pill
+      const pill=document.createElement('div');pill.className='sv-util-label';
+      pill.style.cssText=`left:${xCenter-30}px;top:${uy-15}px;`;
+      pill.innerHTML=`<span class="sv-label-pill" style="background:${u.color}">${u.label}</span><span class="sv-depth">${u.depth}</span>`;
+      ov.appendChild(pill);
+    });
+    if(arr.length){
+      ctx.fillStyle='rgba(255,255,255,.4)';ctx.font=`bold 9px 'JetBrains Mono',monospace`;ctx.textAlign='center';
+      ctx.fillText(sideLabel,xCenter,horizon+10);
+    }
+  }
+
+  drawSide(utils.left,W*.18,'◀ SOUTH');
+  drawSide(utils.right,W*.82,'NORTH ▶');
+
+  // Road center utilities
+  utils.road.forEach((u,i)=>{
+    const uy=horizon+(i+1)*36,ux=W/2+(i%2?14:-14);
+    ctx.beginPath();ctx.arc(ux,uy,6,0,Math.PI*2);ctx.fillStyle=u.color;ctx.fill();
+    ctx.strokeStyle='rgba(255,255,255,.3)';ctx.lineWidth=1.2;ctx.stroke();
+    const pill=document.createElement('div');pill.className='sv-util-label';
+    pill.style.cssText=`left:${ux-26}px;top:${uy-13}px;`;
+    pill.innerHTML=`<span class="sv-label-pill" style="background:${u.color}">${u.label}</span><span class="sv-depth">${u.depth}</span>`;
+    ov.appendChild(pill);
+  });
+
+  // Structures
+  (structsByPos[pos]||[]).forEach(s=>{
+    const sx=s.xf*W;
+    if(s.ag){
+      const el=document.createElement('div');el.className='sv-struct';
+      el.style.cssText=`left:${sx-9}px;top:${Math.round(H*.34)}px;border-radius:${['sl','gp','tx'].some(t=>s.id.startsWith(t))?'50%':'3px'};background:${s.color};color:${s.color==='#00e000'?'#003300':'#fff'};`;
+      el.textContent=s.label;ov.appendChild(el);
+      ctx.strokeStyle=s.color;ctx.lineWidth=1.5;ctx.setLineDash([3,3]);
+      ctx.beginPath();ctx.moveTo(sx,H*.44);ctx.lineTo(sx,H*.34+18);ctx.stroke();ctx.setLineDash([]);
+    } else {
+      const uy=horizon+22;
+      const el=document.createElement('div');el.className='sv-struct';
+      el.style.cssText=`left:${sx-9}px;top:${uy-9}px;background:${s.color};color:${s.color==='#00e000'?'#003300':'#fff'};`;
+      el.textContent=s.label;ov.appendChild(el);
+    }
+  });
+
+  // Side banners
+  [['◀ SOUTH SIDE','left:4px'],['NORTH SIDE ▶','right:4px']].forEach(([txt,pos_])=>{
+    const el=document.createElement('div');
+    el.style.cssText=`position:absolute;${pos_};top:${Math.round(H*.54)}px;font-size:9px;color:rgba(255,255,255,.45);font-family:'JetBrains Mono',monospace;writing-mode:vertical-rl;letter-spacing:1.5px;pointer-events:none;`;
+    el.textContent=txt;ov.appendChild(el);
+  });
+}
+
+function moveFwd(){if(pos<route.length-1){pos++;updateGPS();}}
+function moveBack(){if(pos>0){pos--;updateGPS();}}
+
+function toggleSV(){
+  svOpen=!svOpen;
+  document.getElementById('mapwrap').classList.toggle('sv-open',svOpen);
+  document.getElementById('svpanel').classList.toggle('open',svOpen);
+  document.getElementById('sv-fab').classList.toggle('active',svOpen);
+  const cone=document.getElementById('sv-cone');
+  cone.setAttribute('fill-opacity',svOpen?'0.14':'0');cone.setAttribute('stroke-opacity',svOpen?'0.55':'0');
+  if(svOpen)setTimeout(renderSV,320);
+}
+
+const assets={
+  tx1:{name:'Pad-mount transformer',type:'TX',cond:'good',rows:[['ID','TXF-0011'],['kVA','167 kVA'],['Primary','13.2 kV'],['Secondary','120/240 V'],['Owner','Duke Energy'],['Installed','2008']],downstream:['dp1','sl1'],segs:['s-tx1-dp1','s-dp1-sl1','s-sl1-sm1','s-dp1-ej1']},
+  tx2:{name:'Pad-mount transformer',type:'TX',cond:'fair',rows:[['ID','TXF-0024'],['kVA','250 kVA'],['Primary','13.2 kV'],['Secondary','120/240 V'],['Owner','Duke Energy'],['Installed','2005']],downstream:['dp3','sl3'],segs:['s-tx2-dp3','s-dp3-sl3','s-sl3-sm3','s-dp3-ej2']},
+  tx3:{name:'Pad-mount transformer',type:'TX',cond:'good',rows:[['ID','TXF-0037'],['kVA','167 kVA'],['Primary','13.2 kV'],['Secondary','120/240 V'],['Owner','Duke Energy'],['Installed','2012']],downstream:['dp2','sl2'],segs:['s-tx3-dp2','s-dp2-sl2','s-sl2-sm2']},
+  tx4:{name:'Pad-mount transformer',type:'TX',cond:'good',rows:[['ID','TXF-0049'],['kVA','333 kVA'],['Primary','13.2 kV'],['Secondary','480 V'],['Owner','Duke Energy'],['Installed','2020']],downstream:['dp4'],segs:['s-tx4-dp4','s-dp4-sl4','s-dp4-ej3','s-ej3-sm4']},
+  dp1:{name:'Distribution pedestal',type:'DP',cond:'good',rows:[['ID','UDP-0009'],['Fed by','TXF-0011'],['Circuits','12 elec, 4 fiber'],['Voltage','120/240 V'],['Owner','City of Apex'],['Installed','2003']],downstream:['ej1','sl1'],segs:['s-dp1-ej1','s-dp1-sl1','s-sl1-sm1']},
+  dp2:{name:'Distribution pedestal',type:'DP',cond:'good',rows:[['ID','UDP-0022'],['Fed by','TXF-0037'],['Circuits','8 elec, 8 fiber'],['Voltage','120/240 V'],['Owner','City of Apex'],['Installed','2011']],downstream:['sl2'],segs:['s-dp2-sl2','s-sl2-sm2']},
+  dp3:{name:'Distribution pedestal',type:'DP',cond:'poor',rows:[['ID','UDP-0038'],['Fed by','TXF-0024'],['Circuits','4 electric'],['Voltage','120 V'],['Owner','City of Apex'],['Installed','2007']],downstream:['ej2','sl3'],segs:['s-dp3-ej2','s-dp3-sl3','s-sl3-sm3']},
+  dp4:{name:'Distribution pedestal',type:'DP',cond:'good',rows:[['ID','UDP-0047'],['Fed by','TXF-0049'],['Circuits','16 elec, 12 fiber'],['Voltage','480 V'],['Owner','City of Apex'],['Installed','2020']],downstream:['ej3','sl4'],segs:['s-dp4-sl4','s-dp4-ej3','s-ej3-sm4']},
+  ej1:{name:'Electric junction handhole',type:'EJ',cond:'good',rows:[['ID','EJH-0042'],['Fed by','UDP-0009'],['Size','24" × 36"'],['Conductors','4 × 500 kcmil'],['Voltage','120/240 V'],['Installed','2006']],downstream:[],segs:[]},
+  ej2:{name:'Electric junction handhole',type:'EJ',cond:'fair',rows:[['ID','EJH-0098'],['Fed by','UDP-0038'],['Size','24" × 36"'],['Conductors','2 × 350 kcmil'],['Voltage','120 V'],['Installed','1999']],downstream:[],segs:[]},
+  ej3:{name:'Electric junction handhole',type:'EJ',cond:'good',rows:[['ID','EJH-0117'],['Fed by','UDP-0047'],['Size','18" × 30"'],['Conductors','2 × 4/0 AWG'],['Voltage','480 V'],['Installed','2018']],downstream:[],segs:[]},
+  th1:{name:'Telecom fiber handhole',type:'TH',cond:'good',rows:[['ID','TFH-0031'],['Cables','48-strand SM fiber'],['Depth','24 in'],['Provider','Charter'],['Installed','2014']],downstream:[],segs:[]},
+  th2:{name:'Telecom fiber handhole',type:'TH',cond:'good',rows:[['ID','TFH-0055'],['Cables','12-strand SM fiber'],['Depth','18 in'],['Provider','Charter'],['Installed','2010']],downstream:[],segs:[]},
+  th3:{name:'Telecom fiber handhole',type:'TH',cond:'unknown',rows:[['ID','TFH-0062'],['Cables','24-strand SM fiber'],['Depth','24 in'],['Provider','Charter'],['Installed','2016']],downstream:[],segs:[]},
+  th4:{name:'Telecom fiber handhole',type:'TH',cond:'good',rows:[['ID','TFH-0078'],['Cables','48-strand SM fiber'],['Depth','24 in'],['Provider','Charter'],['Installed','2018']],downstream:[],segs:[]},
+  th5:{name:'Telecom fiber handhole',type:'TH',cond:'fair',rows:[['ID','TFH-0091'],['Cables','24-strand SM fiber'],['Depth','18 in'],['Provider','Charter'],['Installed','2013']],downstream:[],segs:[]},
+  sl1:{name:'Street light base',type:'SL',cond:'good',rows:[['ID','SLB-0011'],['Fed by','UDP-0009'],['Pole','Concrete 30 ft'],['Lamp','LED 150W'],['Voltage','120 V'],['Installed','2019']],downstream:['sm1'],segs:['s-sl1-sm1']},
+  sl2:{name:'Street light base',type:'SL',cond:'good',rows:[['ID','SLB-0024'],['Fed by','UDP-0022'],['Pole','Steel 25 ft'],['Lamp','LED 100W'],['Voltage','120 V'],['Installed','2015']],downstream:['sm2'],segs:['s-sl2-sm2']},
+  sl3:{name:'Street light base',type:'SL',cond:'fair',rows:[['ID','SLB-0038'],['Fed by','UDP-0038'],['Pole','Wood 25 ft'],['Lamp','HPS 100W'],['Voltage','120 V'],['Installed','2004']],downstream:['sm3'],segs:['s-sl3-sm3']},
+  sl4:{name:'Street light base',type:'SL',cond:'good',rows:[['ID','SLB-0041'],['Fed by','UDP-0047'],['Pole','Concrete 30 ft'],['Lamp','LED 150W'],['Voltage','120 V'],['Installed','2021']],downstream:[],segs:[]},
+  sm1:{name:'Service meter',type:'M',cond:'good',rows:[['ID','MTR-001'],['Account','Office building'],['Service','200A 120/240V'],['kWh/mo','4,200'],['Owner','Private'],['Installed','2008']],downstream:[],segs:[]},
+  sm2:{name:'Service meter',type:'M',cond:'good',rows:[['ID','MTR-002'],['Account','Residential'],['Service','100A 120/240V'],['kWh/mo','820'],['Owner','Private'],['Installed','2012']],downstream:[],segs:[]},
+  sm3:{name:'Service meter',type:'M',cond:'fair',rows:[['ID','MTR-003'],['Account','Warehouse'],['Service','400A 120/240V'],['kWh/mo','12,400'],['Owner','Private'],['Installed','2007']],downstream:[],segs:[]},
+  sm4:{name:'Service meter',type:'M',cond:'good',rows:[['ID','MTR-004'],['Account','Apartments'],['Service','800A 480V 3-ph'],['kWh/mo','31,000'],['Owner','Private'],['Installed','2020']],downstream:[],segs:[]},
+  wv1:{name:'Water valve / shutoff',type:'WV',cond:'good',rows:[['ID','WVS-0014'],['Type','Gate valve'],['Diameter','8 in'],['Pressure','Zone 2'],['Status','Normally open'],['Installed','2005']],downstream:[],segs:[]},
+  wv2:{name:'Water valve / shutoff',type:'WV',cond:'fair',rows:[['ID','WVS-0058'],['Type','Gate valve'],['Diameter','6 in'],['Pressure','Zone 2'],['Status','Normally open'],['Installed','1998']],downstream:[],segs:[]},
+  mh1:{name:'Sewer manhole',type:'MH',cond:'good',rows:[['ID','SMH-0021'],['Diameter','48 in'],['Depth','8.5 ft'],['Type','Junction'],['Flow','South'],['Material','Precast concrete'],['Installed','2002']],downstream:[],segs:[]},
+  mh2:{name:'Sewer manhole',type:'MH',cond:'fair',rows:[['ID','SMH-0047'],['Diameter','48 in'],['Depth','9.2 ft'],['Type','Drop manhole'],['Flow','East'],['Material','Brick — aging'],['Installed','1978']],downstream:[],segs:[]},
+  mh3:{name:'Sewer manhole',type:'MH',cond:'good',rows:[['ID','SMH-0063'],['Diameter','60 in'],['Depth','11 ft'],['Type','Junction'],['Flow','South'],['Material','Precast concrete'],['Installed','2016']],downstream:[],segs:[]},
+  fh1:{name:'Fire hydrant tap',type:'FH',cond:'good',rows:[['ID','FHT-0007'],['Type','Wet barrel'],['Flow','1,250 GPM'],['Pressure','65 PSI'],['Main','8 in'],['Installed','2007']],downstream:[],segs:[]},
+  fh2:{name:'Fire hydrant tap',type:'FH',cond:'good',rows:[['ID','FHT-0019'],['Type','Dry barrel'],['Flow','1,500 GPM'],['Pressure','70 PSI'],['Main','8 in'],['Installed','2014']],downstream:[],segs:[]},
+  gp1:{name:'Gas meter pedestal',type:'GP',cond:'good',rows:[['ID','GMP-0018'],['Height','18 in above grade'],['Pressure','Medium 60 PSI'],['Meter','Diaphragm'],['Account','Commercial'],['Installed','2001']],downstream:[],segs:[]},
+  gp2:{name:'Gas meter pedestal',type:'GP',cond:'fair',rows:[['ID','GMP-0034'],['Height','18 in above grade'],['Pressure','Low 0.25 PSI'],['Meter','Diaphragm'],['Account','Residential'],['Installed','2008']],downstream:[],segs:[]},
+};
+
+const condCls={good:'cg',fair:'cf',poor:'cp',unknown:'cu'};
+const condLabel={good:'Good',fair:'Fair',poor:'Poor — action required',unknown:'Unknown'};
+
+function getAllDS(id,v=[]){if(v.includes(id))return v;v.push(id);(assets[id]?.downstream||[]).forEach(d=>getAllDS(d,v));return v;}
+function getAllSegs(id,v=[]){if(v.includes(id))return;v.push(id);const a=assets[id];if(!a)return;a.segs.forEach(s=>{if(!v.includes(s))v.push(s);});a.downstream.forEach(d=>getAllSegs(d,v));return v;}
+
+function tapAsset(id,evt){
+  evt.stopPropagation();currentAsset=id;
+  const a=assets[id];if(!a)return;
+  document.getElementById('sh-title').textContent=a.name;
+  document.getElementById('sh-sub').textContent=a.rows[0]?.[1]||'';
+  const cRow=`<div class="sh-row"><span class="sh-k">Condition</span><span class="sh-v"><span class="cond ${condCls[a.cond]}">${condLabel[a.cond]}</span></span></div>`;
+  const ds=getAllDS(id).filter(d=>d!==id);
+  const dsHtml=ds.length?`<div class="imp-section"><div class="imp-lbl">Feeds downstream</div>${ds.map(d=>`<div class="imp-item"><div class="imp-dot" style="background:${({TX:'#791F1F',DP:'#185FA5',EJ:'#00e000',TH:'#00e000',SL:'#854F0B',M:'#BA7517',WV:'#378ADD',MH:'#639922',FH:'#993C1D',GP:'#BA7517'})[assets[d]?.type]||'#888'}"></div>${assets[d]?.name} — ${assets[d]?.rows[0]?.[1]||''}</div>`).join('')}</div>`:'';
+  document.getElementById('sh-rows').innerHTML=a.rows.map(([k,v])=>`<div class="sh-row"><span class="sh-k">${k}</span><span class="sh-v">${v}</span></div>`).join('')+cRow+dsHtml;
+  const faultable=['TX','DP','EJ','SL'].includes(a.type);
+  document.getElementById('sh-actions').innerHTML=
+    (faultable&&faultAsset!==id?`<button class="sh-btn red" onclick="triggerFault('${id}')">Simulate fault</button>`:'')
+    +(faultAsset?`<button class="sh-btn blu" onclick="clearFault()">Clear fault</button>`:'')
+    +`<button class="sh-btn pri" onclick="closeSheet()">Close</button>`;
+  const el=document.getElementById('node-'+id);
+  if(el){const t=el.getAttribute('transform');if(t){const m=t.match(/translate\(([^,]+),([^)]+)\)/);if(m){const s=document.getElementById('sel');s.setAttribute('cx',m[1]);s.setAttribute('cy',m[2]);s.setAttribute('visibility','visible');}}}
+  document.getElementById('sheet').classList.add('open');
+}
+
+function triggerFault(id){
+  faultAsset=id;const a=assets[id];
+  const affected=getAllDS(id).filter(d=>d!==id);const segs=[];getAllSegs(id,segs);
+  document.querySelectorAll('.asset').forEach(el=>{const aid=el.dataset?.id||el.id?.replace('node-','');el.style.opacity=(affected.includes(aid)||aid===id)?'0.25':'1';});
+  segs.filter(s=>s.startsWith('s-')).forEach(sid=>{const el=document.getElementById(sid);if(!el)return;el.setAttribute('stroke','#999');el.setAttribute('marker-end','url(#arr-off)');el.classList.remove('flow');el.setAttribute('stroke-dasharray','4 4');});
+  const el=document.getElementById('node-'+id);if(el){const t=el.getAttribute('transform');const fm=document.getElementById('fault-marker');if(t){const m=t.match(/translate\(([^,]+),([^)]+)\)/);if(m){fm.setAttribute('transform',`translate(${m[1]},${m[2]})`);fm.setAttribute('visibility','visible');}}}
+  document.getElementById('faultbar').style.display='flex';
+  document.getElementById('fault-txt').textContent=`Fault: ${a.rows[0]?.[1]||id} — ${affected.length} asset${affected.length!==1?'s':''} offline`;
+  tapAsset(id,{stopPropagation:()=>{}});
+}
+
+function clearFault(){
+  faultAsset=null;document.querySelectorAll('.asset').forEach(el=>el.style.opacity='1');
+  const primaries=['s-c01-w','s-c01-m','s-c01-e','s-c02-n','s-c02-s','s-c03-n','s-c03-s'];
+  const secondaries=['s-tx1-dp1','s-tx3-dp2','s-tx2-dp3','s-tx4-dp4'];
+  const laterals=['s-dp1-sl1','s-sl1-sm1','s-dp1-ej1','s-dp2-sl2','s-sl2-sm2','s-dp3-ej2','s-dp3-sl3','s-sl3-sm3','s-dp4-sl4','s-dp4-ej3','s-ej3-sm4'];
+  primaries.forEach(s=>{const el=document.getElementById(s);if(!el)return;el.setAttribute('stroke','#E24B4A');el.setAttribute('marker-end','url(#arr-on)');el.classList.add('flow');el.setAttribute('stroke-dasharray','10 5');});
+  secondaries.forEach(s=>{const el=document.getElementById(s);if(!el)return;el.setAttribute('stroke','#E24B4A');el.setAttribute('marker-end','url(#arr-on)');el.setAttribute('stroke-dasharray','5 3');});
+  laterals.forEach(s=>{const el=document.getElementById(s);if(!el)return;el.setAttribute('stroke','#EF9F27');el.setAttribute('marker-end','url(#arr-amb)');el.setAttribute('stroke-dasharray','4 3');});
+  document.getElementById('fault-marker').setAttribute('visibility','hidden');
+  document.getElementById('faultbar').style.display='none';
+  if(currentAsset)tapAsset(currentAsset,{stopPropagation:()=>{}});
+}
+
+function closeSheet(){document.getElementById('sheet').classList.remove('open');document.getElementById('sel').setAttribute('visibility','hidden');currentAsset=null;}
+function mapTap(e){if(activeTool==="measure"||activeTool==="draw")return;if(["mapwrap","mapsvg"].includes(e.target.id))closeSheet();}
+
+const layerMap={electric:'layer-electric',telecom:'layer-telecom',water:'layer-water',sewer:'layer-sewer',gas:'layer-gas',structures:'layer-structures'};
+const layerState={electric:true,telecom:true,water:true,sewer:true,gas:true,structures:true};
+
+function toggleTile(id,tile){
+  layerState[id]=!layerState[id];
+  const on=layerState[id];
+  tile.classList.toggle('on',on);
+  tile.classList.toggle('off',!on);
+  const el=document.getElementById(layerMap[id]);
+  if(el)el.style.visibility=on?'visible':'hidden';
+}
+
+function setAllTiles(on){
+  Object.keys(layerMap).forEach(id=>{
+    layerState[id]=on;
+    const tile=document.getElementById('tile-'+id);
+    if(tile){tile.classList.toggle('on',on);tile.classList.toggle('off',!on);}
+    const el=document.getElementById(layerMap[id]);
+    if(el)el.style.visibility=on?'visible':'hidden';
+  });
+}
+
+function toggleLayer(id,btn){const on=!btn.classList.contains('on');btn.classList.toggle('on',on);const el=document.getElementById(layerMap[id]);if(el)el.style.visibility=on?'visible':'hidden';}
+let lpOpen=false;
+function toggleLayers(){lpOpen=!lpOpen;document.getElementById('lpanel').classList.toggle('open',lpOpen);}
+
+// ── Map style menu ──
+let menuOpen=false;
+const mapStyles={
+  vector:{
+    bg:'#ebe8e0',parcel:'#e2ddd4',parcelStroke:'#ccc9c0',
+    road1:'#ffffff',road2:'#f4f1e8',propLine:'#bbb8b0',
+    roadLabel:'#888',parcelNum:'#777',
+    filter:'none'
+  },
+  satellite:{
+    bg:'#2a3a28',parcel:'#3a4a38',parcelStroke:'#2a3a28',
+    road1:'#4a4a42',road2:'#3d3d36',propLine:'#2a3a28',
+    roadLabel:'rgba(255,255,255,.7)',parcelNum:'rgba(255,255,255,.5)',
+    filter:'none'
+  },
+  hybrid:{
+    bg:'#263324',parcel:'#324230',parcelStroke:'#263324',
+    road1:'#555550',road2:'#484844',propLine:'rgba(255,255,255,.15)',
+    roadLabel:'rgba(255,255,255,.9)',parcelNum:'rgba(255,255,255,.75)',
+    filter:'none'
+  },
+  night:{
+    bg:'#12161a',parcel:'#1a2028',parcelStroke:'#0e1216',
+    road1:'#252c35',road2:'#1e252d',propLine:'rgba(255,255,255,.08)',
+    roadLabel:'rgba(255,255,255,.5)',parcelNum:'rgba(255,255,255,.35)',
+    filter:'none'
+  },
+  topo:{
+    bg:'#f0ede4',parcel:'#e8e0d0',parcelStroke:'#cfc4b0',
+    road1:'#ffffff',road2:'#f0ece0',propLine:'#b8a898',
+    roadLabel:'#664',parcelNum:'#665544',
+    filter:'none'
+  },
+  schematic:{
+    bg:'#ffffff',parcel:'#f8f8f8',parcelStroke:'#e0e0e0',
+    road1:'#f0f0f0',road2:'#e8e8e8',propLine:'#ddd',
+    roadLabel:'#999',parcelNum:'#aaa',
+    filter:'none'
+  },
+};
+
+let currentStyle='vector';
+
+function toggleMapMenu(){
+  menuOpen=!menuOpen;
+  document.getElementById('map-menu').classList.toggle('open',menuOpen);
+  document.getElementById('mapstyle-btn').style.background=menuOpen?'rgba(255,255,255,.12)':'';
+  if(menuOpen){toolsMenuOpen=false;document.getElementById('tools-menu').classList.remove('open');document.getElementById('tools-btn').style.background='';}
+}
+
+function setMapStyle(styleId,tile){
+  currentStyle=styleId;
+  const s=mapStyles[styleId];
+  if(!s)return;
+
+  // Update SVG basemap rect fills
+  const svg=document.getElementById('mapsvg');
+
+  // Background rect
+  svg.querySelector('rect:first-child').setAttribute('fill',s.bg);
+
+  // Parcel polygons (first 5 polygon elements)
+  svg.querySelectorAll('polygon').forEach((el,i)=>{
+    if(i<5){el.setAttribute('fill',s.parcel);el.setAttribute('stroke',s.parcelStroke);}
+  });
+
+  // Road paths (first 6 paths = 3 roads × 2 each)
+  const paths=svg.querySelectorAll('path');
+  [0,2,4].forEach(i=>{if(paths[i])paths[i].setAttribute('stroke',s.road1);});
+  [1,3,5].forEach(i=>{if(paths[i])paths[i].setAttribute('stroke',s.road2);});
+
+  // Property lines
+  svg.querySelectorAll('line').forEach(el=>{
+    if(el.getAttribute('stroke')==='#bbb8b0'||el.getAttribute('stroke')===mapStyles[currentStyle]?.propLine||
+       ['#bbb8b0','#b8a898','rgba(255,255,255,.08)','rgba(255,255,255,.15)','rgba(255,255,255,.08)','#2a3a28','#263324','#e0e0e0','#ddd'].includes(el.getAttribute('stroke'))){
+      el.setAttribute('stroke',s.propLine);
+    }
+  });
+
+  // Text labels
+  svg.querySelectorAll('text').forEach(el=>{
+    const txt=el.textContent;
+    // Road labels
+    if(['Bullhead Rd','Hunter Dr'].includes(txt))el.setAttribute('fill',s.roadLabel);
+    // Parcel numbers (numeric)
+    else if(/^\d+$/.test(txt.trim()))el.setAttribute('fill',s.parcelNum);
+  });
+
+  // Mapwrap bg
+  document.getElementById('mapwrap').style.background=s.bg;
+
+  // Update active tile
+  document.querySelectorAll('.mm-tile').forEach(t=>t.classList.remove('active'));
+  tile.classList.add('active');
+  menuOpen=false;
+  document.getElementById('map-menu').classList.remove('open');
+}
+
+// Close menu when clicking outside
+document.addEventListener('click',e=>{
+  if(menuOpen&&!document.getElementById('map-menu').contains(e.target)&&e.target.id!=='mapstyle-btn'&&!e.target.closest('#mapstyle-btn')){
+    menuOpen=false;document.getElementById('map-menu').classList.remove('open');
+  }
+});
+function lBg(e){if(e.target.id==='lpanel')toggleLayers();}
+let srchOpen=false;
+let searchTimer=null;
+function onSearchInput(val){
+  clearTimeout(searchTimer);
+  if(!val.trim()){document.getElementById('search-results').innerHTML='';return;}
+  document.getElementById('search-results').innerHTML=`<div style="padding:12px 16px;color:#888;font-size:13px">Searching...</div>`;
+  searchTimer=setTimeout(doSearch,420);
+}
+function toggleSearch(){
+  srchOpen=!srchOpen;
+  const overlay=document.getElementById('search-overlay');
+  overlay.classList.toggle('open',srchOpen);
+  if(srchOpen){
+    document.getElementById('search-input').focus();
+    document.getElementById('search-input').value='';
+    document.getElementById('search-results').innerHTML='';
+  }
+}
+
+async function doSearch(){
+  const q=document.getElementById('search-input').value.trim();
+  if(!q)return;
+  const res=document.getElementById('search-results');
+  res.innerHTML=`<div style="padding:14px 16px;color:#888;font-size:13px">Searching...</div>`;
+  try{
+    const r=await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&limit=6&addressdetails=1`,{headers:{'Accept-Language':'en'}});
+    const data=await r.json();
+    if(!data.length){res.innerHTML=`<div style="padding:14px 16px;color:#888;font-size:13px">No results found for "${q}"</div>`;return;}
+    res.innerHTML=data.map((item,i)=>{
+      const parts=item.display_name.split(', ');
+      const main=parts.slice(0,2).join(', ');
+      const sub=parts.slice(2,5).join(', ');
+      return `<div class="sr-item" onclick="selectResult(${item.lat},${item.lon},'${main.replace(/'/g,"\\'")}')">
+        <div class="sr-main">${main}</div>
+        <div class="sr-sub">${sub}</div>
+      </div>`;
+    }).join('');
+  }catch(e){
+    res.innerHTML=`<div style="padding:14px 16px;color:#888;font-size:13px">Search unavailable — check connection</div>`;
+  }
+}
+
+function selectResult(lat,lon,label){
+  const pin=document.getElementById('search-pin');
+  // Map our SVG (800x500) roughly to real-world coords around Apex NC area
+  // Center: 35.732°N, 78.856°W → SVG 400,260
+  const svgX=Math.max(30,Math.min(770, 400+(lon+78.856)*2600));
+  const svgY=Math.max(30,Math.min(470, 260-(lat-35.732)*2600));
+  pin.setAttribute('transform',`translate(${svgX},${svgY})`);
+  pin.setAttribute('visibility','visible');
+  // Update label
+  const lbl=document.getElementById('search-pin-label');
+  if(lbl)lbl.textContent=label.length>22?label.slice(0,20)+'…':label;
+  // Update location tab if open
+  if(locTabOpen){
+    document.getElementById('lc-lat').textContent=parseFloat(lat).toFixed(4)+'° N';
+    document.getElementById('lc-lon').textContent=parseFloat(lon).toFixed(4)+'° W';
+  }
+  // Close search
+  toggleSearch();
+}
+// ══════════════════════════════
+// TOOLS SYSTEM
+// ══════════════════════════════
+let toolsMenuOpen=false;
+let activeTool=null;
+
+function toggleToolsMenu(){
+  toolsMenuOpen=!toolsMenuOpen;
+  document.getElementById('tools-menu').classList.toggle('open',toolsMenuOpen);
+  document.getElementById('tools-btn').style.background=toolsMenuOpen?'rgba(255,255,255,.12)':'';
+  if(toolsMenuOpen){menuOpen=false;document.getElementById('map-menu').classList.remove('open');document.getElementById('mapstyle-btn').style.background='';}
+}
+
+function activateTool(tool){
+  toolsMenuOpen=false;
+  document.getElementById('tools-menu').classList.remove('open');
+  // Close other tool panels
+  ['measure','draw','legend','usearch'].forEach(t=>{
+    document.getElementById(t+'-panel')?.classList.remove('open');
+    document.getElementById('tm-'+t)?.classList.remove('active-tool');
+  });
+  if(activeTool===tool){
+    activeTool=null;
+    if(tool==='measure')clearMeasure();
+    if(tool==='draw')exitDrawMode();
+    return;
+  }
+  activeTool=tool;
+  document.getElementById(tool+'-panel')?.classList.add('open');
+  document.getElementById('tm-'+tool).classList.add('active-tool');
+  if(tool==='measure')enterMeasureMode();
+  else if(tool==='draw')enterDrawMode();
+  else if(tool==='usearch'){doUtilitySearch('');document.getElementById('usearch-input').focus();}
+}
+
+function closeTool(tool){
+  activeTool=null;
+  document.getElementById(tool+'-panel')?.classList.remove('open');
+  document.getElementById('tm-'+tool)?.classList.remove('active-tool');
+  if(tool==='measure')clearMeasure();
+  if(tool==='draw')exitDrawMode();
+}
+
+// ── MEASURE ──
+let measurePts=[];
+let measureUnit='ft';
+
+function enterMeasureMode(){
+  measurePts=[];
+  document.getElementById('mapwrap').style.cursor='crosshair';
+  document.getElementById('mapwrap').addEventListener('click',onMeasureClick);
+  document.getElementById('measure-result').style.display='none';
+  document.getElementById('measure-instructions').style.display='block';
+}
+
+function onMeasureClick(e){
+  if(e.target.closest('.tool-panel')||e.target.closest('#tools-menu'))return;
+  const svg=document.getElementById('mapsvg');
+  const rect=svg.getBoundingClientRect();
+  const vb=svg.viewBox.baseVal;
+  const sx=(e.clientX-rect.left)/rect.width*vb.width;
+  const sy=(e.clientY-rect.top)/rect.height*vb.height;
+  measurePts.push({x:sx,y:sy});
+  if(measurePts.length===1){
+    const da=document.getElementById('measure-dot-a');
+    da.setAttribute('cx',sx);da.setAttribute('cy',sy);da.setAttribute('visibility','visible');
+    document.getElementById('mpt-a').textContent=`${sx.toFixed(0)}, ${sy.toFixed(0)}`;
+  }
+  if(measurePts.length>=2){
+    measurePts=[measurePts[0],{x:sx,y:sy}];
+    const [a,b]=measurePts;
+    const db=document.getElementById('measure-dot-b');
+    db.setAttribute('cx',b.x);db.setAttribute('cy',b.y);db.setAttribute('visibility','visible');
+    const ml=document.getElementById('measure-line');
+    ml.setAttribute('x1',a.x);ml.setAttribute('y1',a.y);ml.setAttribute('x2',b.x);ml.setAttribute('y2',b.y);ml.setAttribute('visibility','visible');
+    // SVG units → real distance (each SVG unit ≈ 0.25ft at street level for this prototype)
+    const px=Math.sqrt((b.x-a.x)**2+(b.y-a.y)**2);
+    const ft=px*0.9;
+    const lbl=document.getElementById('measure-label');
+    lbl.setAttribute('x',(a.x+b.x)/2);lbl.setAttribute('y',(a.y+b.y)/2-10);lbl.setAttribute('visibility','visible');
+    showMeasureResult(ft);
+    document.getElementById('mpt-b').textContent=`${b.x.toFixed(0)}, ${b.y.toFixed(0)}`;
+  }
+}
+
+function showMeasureResult(ft){
+  document.getElementById('measure-instructions').style.display='none';
+  document.getElementById('measure-result').style.display='block';
+  _measuredFt=ft;
+  updateMeasureDisplay();
+}
+
+let _measuredFt=0;
+function setMeasureUnit(u,btn){
+  measureUnit=u;
+  document.querySelectorAll('.mu-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  updateMeasureDisplay();
+}
+function updateMeasureDisplay(){
+  let val,label;
+  if(measureUnit==='ft'){val=_measuredFt.toFixed(1);label=val+' ft';}
+  else if(measureUnit==='m'){val=(_measuredFt*0.3048).toFixed(1);label=val+' m';}
+  else{val=(_measuredFt/5280).toFixed(3);label=val+' mi';}
+  document.getElementById('measure-dist').textContent=label;
+  const lbl=document.getElementById('measure-label');
+  lbl.textContent=measureUnit==='ft'?Math.round(_measuredFt)+'ft':measureUnit==='m'?Math.round(_measuredFt*0.3048)+'m':(_measuredFt/5280).toFixed(2)+'mi';
+}
+
+function clearMeasure(){
+  measurePts=[];_measuredFt=0;
+  ['measure-dot-a','measure-dot-b','measure-line','measure-label'].forEach(id=>{
+    document.getElementById(id)?.setAttribute('visibility','hidden');
+  });
+  document.getElementById('measure-result').style.display='none';
+  document.getElementById('measure-instructions').style.display='block';
+  document.getElementById('measure-dist').textContent='—';
+}
+
+// ── DRAW ──
+let drawTool='pen';
+let drawColor='#ff4444';
+let isDrawing=false;
+let currentPath=null;
+let drawHistory=[];
+let drawStartPt=null;
+
+function enterDrawMode(){
+  document.getElementById('mapwrap').style.cursor='crosshair';
+  const mw=document.getElementById('mapwrap');
+  mw.addEventListener('mousedown',onDrawStart);
+  mw.addEventListener('mousemove',onDrawMove);
+  mw.addEventListener('mouseup',onDrawEnd);
+  mw.addEventListener('touchstart',onDrawStart,{passive:true});
+  mw.addEventListener('touchmove',onDrawMove,{passive:true});
+  mw.addEventListener('touchend',onDrawEnd);
+  document.getElementById('draw-hint').textContent=drawTool==='pen'?'Draw freehand on the map':drawTool==='line'?'Click and drag to draw a line':drawTool==='circle'?'Click and drag to draw a circle':'Click on the map to add a note';
+}
+
+function exitDrawMode(){
+  const mw=document.getElementById('mapwrap');
+  mw.removeEventListener('mousedown',onDrawStart);
+  mw.removeEventListener('mousemove',onDrawMove);
+  mw.removeEventListener('mouseup',onDrawEnd);
+  mw.removeEventListener('touchstart',onDrawStart);
+  mw.removeEventListener('touchmove',onDrawMove);
+  mw.removeEventListener('touchend',onDrawEnd);
+  document.getElementById('mapwrap').style.cursor='crosshair';
+  isDrawing=false;currentPath=null;
+}
+
+function getSVGPt(e){
+  const svg=document.getElementById('mapsvg');
+  const rect=svg.getBoundingClientRect();
+  const vb=svg.viewBox.baseVal;
+  const cx=e.touches?e.touches[0].clientX:e.clientX;
+  const cy=e.touches?e.touches[0].clientY:e.clientY;
+  return{x:(cx-rect.left)/rect.width*vb.width,y:(cy-rect.top)/rect.height*vb.height};
+}
+
+function onDrawStart(e){
+  if(activeTool!=='draw')return;
+  if(e.target.closest('.tool-panel')||e.target.closest('#tools-menu'))return;
+  isDrawing=true;
+  const pt=getSVGPt(e);
+  drawStartPt=pt;
+  const ns='http://www.w3.org/2000/svg';
+  if(drawTool==='pen'){
+    currentPath=document.createElementNS(ns,'path');
+    currentPath.setAttribute('fill','none');
+    currentPath.setAttribute('stroke',drawColor);
+    currentPath.setAttribute('stroke-width','2.5');
+    currentPath.setAttribute('stroke-linecap','round');
+    currentPath.setAttribute('stroke-linejoin','round');
+    currentPath.setAttribute('d',`M${pt.x},${pt.y}`);
+    document.getElementById('draw-layer').appendChild(currentPath);
+  } else if(drawTool==='line'){
+    currentPath=document.createElementNS(ns,'line');
+    currentPath.setAttribute('x1',pt.x);currentPath.setAttribute('y1',pt.y);
+    currentPath.setAttribute('x2',pt.x);currentPath.setAttribute('y2',pt.y);
+    currentPath.setAttribute('stroke',drawColor);currentPath.setAttribute('stroke-width','2.5');
+    currentPath.setAttribute('stroke-linecap','round');
+    document.getElementById('draw-layer').appendChild(currentPath);
+  } else if(drawTool==='circle'){
+    currentPath=document.createElementNS(ns,'circle');
+    currentPath.setAttribute('cx',pt.x);currentPath.setAttribute('cy',pt.y);
+    currentPath.setAttribute('r','0');currentPath.setAttribute('fill','none');
+    currentPath.setAttribute('stroke',drawColor);currentPath.setAttribute('stroke-width','2.5');
+    document.getElementById('draw-layer').appendChild(currentPath);
+  } else if(drawTool==='text'){
+    const txt=prompt('Enter note text:');
+    if(txt){
+      const t=document.createElementNS(ns,'text');
+      t.setAttribute('x',pt.x);t.setAttribute('y',pt.y);
+      t.setAttribute('fill',drawColor);t.setAttribute('font-size','13');
+      t.setAttribute('font-weight','600');t.setAttribute('font-family',"'DM Sans',sans-serif");
+      t.setAttribute('paint-order','stroke');t.setAttribute('stroke','rgba(0,0,0,.6)');t.setAttribute('stroke-width','3');
+      t.textContent=txt;
+      document.getElementById('draw-layer').appendChild(t);
+      drawHistory.push(t);
+    }
+    isDrawing=false;
+  }
+}
+
+function onDrawMove(e){
+  if(!isDrawing||!currentPath)return;
+  const pt=getSVGPt(e);
+  if(drawTool==='pen'){
+    currentPath.setAttribute('d',currentPath.getAttribute('d')+` L${pt.x},${pt.y}`);
+  } else if(drawTool==='line'){
+    currentPath.setAttribute('x2',pt.x);currentPath.setAttribute('y2',pt.y);
+  } else if(drawTool==='circle'){
+    const dx=pt.x-drawStartPt.x,dy=pt.y-drawStartPt.y;
+    currentPath.setAttribute('r',Math.sqrt(dx*dx+dy*dy).toFixed(1));
+  }
+}
+
+function onDrawEnd(){
+  if(currentPath)drawHistory.push(currentPath);
+  isDrawing=false;currentPath=null;
+}
+
+function setDrawTool(tool,btn){
+  drawTool=tool;
+  document.querySelectorAll('.dt-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  const hints={pen:'Draw freehand on the map',line:'Click and drag to draw a line',circle:'Click and drag to draw a circle',text:'Click the map to add a text note'};
+  document.getElementById('draw-hint').textContent=hints[tool];
+}
+
+function setDrawColor(color,dot){
+  drawColor=color;
+  document.querySelectorAll('.dc-dot').forEach(d=>d.classList.remove('active'));
+  dot.classList.add('active');
+}
+
+function undoDrawing(){
+  const last=drawHistory.pop();
+  if(last)last.remove();
+}
+
+function clearDrawing(){
+  document.getElementById('draw-layer').innerHTML='';
+  drawHistory=[];
+}
+
+// ── UTILITY SEARCH ──
+let utilFilter='all';
+
+function setUFilter(f,btn){
+  utilFilter=f;
+  document.querySelectorAll('.utf-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  doUtilitySearch(document.getElementById('usearch-input').value);
+}
+
+const typeColors={TX:'#791F1F',DP:'#185FA5',EJ:'#00e000',TH:'#00e000',SL:'#854F0B',M:'#BA7517',WV:'#378ADD',MH:'#639922',FH:'#993C1D',GP:'#BA7517'};
+const condBg={good:'rgba(39,160,69,.15)',fair:'rgba(230,126,0,.15)',poor:'rgba(192,57,43,.15)',unknown:'rgba(24,95,165,.15)'};
+const condTxt={good:'#27A045',fair:'#E67E00',poor:'#C0392B',unknown:'#185FA5'};
+
+function doUtilitySearch(q){
+  const res=document.getElementById('usearch-results');
+  const query=(q||'').toLowerCase().trim();
+  const matches=Object.entries(assets).filter(([id,a])=>{
+    const typeMatch=utilFilter==='all'||a.type===utilFilter;
+    if(!typeMatch)return false;
+    if(!query)return true;
+    const searchable=[id,a.name,a.type,...a.rows.map(r=>r[1])].join(' ').toLowerCase();
+    return searchable.includes(query);
+  });
+  if(!matches.length){res.innerHTML=`<div style="padding:10px 0;font-size:12px;color:#555;text-align:center">No results</div>`;return;}
+  res.innerHTML=matches.slice(0,12).map(([id,a])=>`
+    <div class="ur-item" onclick="highlightAsset('${id}')">
+      <div class="ur-dot" style="background:${typeColors[a.type]||'#888'}"></div>
+      <div style="flex:1">
+        <div class="ur-name">${a.name}</div>
+        <div class="ur-id">${a.rows[0]?.[1]||id}</div>
+      </div>
+      <span class="ur-cond" style="background:${condBg[a.cond]};color:${condTxt[a.cond]}">${a.cond}</span>
+    </div>`).join('');
+}
+
+function highlightAsset(id){
+  const el=document.getElementById('node-'+id);
+  if(!el)return;
+  const t=el.getAttribute('transform');
+  if(t){
+    const m=t.match(/translate\(([^,]+),([^)]+)\)/);
+    if(m){
+      const s=document.getElementById('sel');
+      s.setAttribute('cx',m[1]);s.setAttribute('cy',m[2]);s.setAttribute('visibility','visible');
+      // flash
+      let count=0;const flash=setInterval(()=>{
+        s.setAttribute('visibility',count%2?'visible':'hidden');
+        if(++count>6){clearInterval(flash);s.setAttribute('visibility','visible');}
+      },200);
+    }
+  }
+  // also open detail sheet
+  tapAsset(id,{stopPropagation:()=>{}});
+}
+
+// Close tools menu on outside click
+document.addEventListener('click',e=>{
+  if(toolsMenuOpen&&!document.getElementById('tools-menu').contains(e.target)&&!e.target.closest('#tools-btn')){
+    toolsMenuOpen=false;document.getElementById('tools-menu').classList.remove('open');
+  }
+});
+
+function centerGPS(){
+  updateGPS();
+  // flash the recenter button
+  const btn=document.getElementById('loc-recenter');
+  btn.style.background='rgba(76,175,80,.4)';
+  setTimeout(()=>btn.style.background='',400);
+}
+
+let locTabOpen=false;
+function toggleLocationTab(){
+  locTabOpen=!locTabOpen;
+  document.getElementById('loc-tab').classList.toggle('open',locTabOpen);
+  document.getElementById('loc-btn').classList.toggle('active',locTabOpen);
+  if(locTabOpen)updateLocationTab();
+}
+
+function updateLocationTab(){
+  const p=route[pos];
+  const lat=(35.732+pos*0.0008).toFixed(4);
+  const lon=(78.856-pos*0.0004).toFixed(4);
+  document.getElementById('lc-lat').textContent=lat+'° N';
+  document.getElementById('lc-lon').textContent=lon+'° W';
+  document.getElementById('lc-compass').textContent=hIcon(p.heading);
+  document.getElementById('lc-heading').innerHTML=`<span id="lc-compass">${hIcon(p.heading)}</span> ${p.headTxt} ${p.heading}°`;
+  document.getElementById('lc-speed').textContent=(pos===0?'0.0':'2.4')+' mph';
+  document.getElementById('lc-alt').textContent=(312+pos*3)+' ft';
+  document.getElementById('lc-street').textContent=p.addr.split(' — ')[0].split('@')[0].trim().split('(')[0].trim();
+  document.getElementById('lc-stop').textContent=pos+1;
+  document.getElementById('lc-total').textContent=route.length;
+  document.getElementById('loc-bar-fill').style.width=((pos+1)/route.length*100)+'%';
+}
+
+async function takeScreenshot(){
+  const btn=document.getElementById('screenshot-btn');
+  btn.classList.add('capturing');
+
+  // Flash effect
+  let flash=document.getElementById('shutter-flash');
+  if(!flash){flash=document.createElement('div');flash.id='shutter-flash';document.body.appendChild(flash);}
+  flash.classList.remove('flash');
+  void flash.offsetWidth;
+  flash.classList.add('flash');
+
+  // Try html2canvas if available, otherwise fall back to browser screenshot hint
+  try{
+    if(typeof html2canvas!=='undefined'){
+      const canvas=await html2canvas(document.getElementById('app'),{
+        backgroundColor:'#000',
+        scale:window.devicePixelRatio||2,
+        useCORS:true,
+        allowTaint:true,
+        logging:false
+      });
+      const link=document.createElement('a');
+      const ts=new Date().toISOString().slice(0,19).replace(/[T:]/g,'-');
+      link.download=`vltrview-${ts}.png`;
+      link.href=canvas.toDataURL('image/png');
+      link.click();
+      showToast('Screenshot saved');
+    } else {
+      // Load html2canvas dynamically
+      const script=document.createElement('script');
+      script.src='https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+      script.onload=async()=>{
+        const canvas=await html2canvas(document.getElementById('app'),{
+          backgroundColor:'#000',
+          scale:window.devicePixelRatio||2,
+          useCORS:true,
+          allowTaint:true,
+          logging:false
+        });
+        const link=document.createElement('a');
+        const ts=new Date().toISOString().slice(0,19).replace(/[T:]/g,'-');
+        link.download=`vltrview-${ts}.png`;
+        link.href=canvas.toDataURL('image/png');
+        link.click();
+        showToast('Screenshot saved');
+      };
+      script.onerror=()=>showToast('Use Ctrl+Shift+S / Cmd+Shift+4 to screenshot');
+      document.head.appendChild(script);
+    }
+  }catch(e){
+    showToast('Use Ctrl+Shift+S to screenshot');
+  }
+
+  setTimeout(()=>btn.classList.remove('capturing'),500);
+}
+
+function showToast(msg){
+  let toast=document.getElementById('screenshot-toast');
+  if(!toast){
+    toast=document.createElement('div');
+    toast.id='screenshot-toast';
+    document.getElementById('mapwrap').appendChild(toast);
+  }
+  toast.textContent=msg;
+  toast.classList.add('show');
+  clearTimeout(toast._t);
+  toast._t=setTimeout(()=>toast.classList.remove('show'),2400);
+}
+
+
+// ══════════════════════════════════════
+// BOTTOM NAV + TAB SWITCHING
+// ══════════════════════════════════════
+const allPanels=['orders','crew','route','notif','photos','damage'];
+function switchTab(tab,btn){
+  document.querySelectorAll('.bnav-btn').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  allPanels.forEach(p=>document.getElementById('panel-'+p)?.classList.remove('open'));
+  document.getElementById('main').style.display='flex';
+  if(tab==='map'){document.getElementById('main').style.display='flex';}
+  else{
+    const panel=document.getElementById('panel-'+tab);
+    if(panel){panel.classList.add('open');document.getElementById('main').style.display='none';}
+  }
+}
+
+// ══════════════════════════════════════
+// OFFLINE MODE
+// ══════════════════════════════════════
+let isOffline=false;
+function checkOffline(){
+  isOffline=!navigator.onLine;
+  document.getElementById('offline-bar').classList.toggle('show',isOffline);
+}
+window.addEventListener('online',checkOffline);
+window.addEventListener('offline',checkOffline);
+setTimeout(checkOffline,1000);
+
+// ══════════════════════════════════════
+// WORK ORDERS DATA + RENDERING
+// ══════════════════════════════════════
+let workOrders=[
+  {id:'WO-2847',title:'Inspect transformer TXF-0011',asset:'TXF-0011',status:'urgent',priority:'urgent',crew:'Marcus R.',time:'Due today 5:00 PM',notes:'Annual inspection overdue by 3 days. Check oil level and bushing condition.'},
+  {id:'WO-2841',title:'Replace handhole cover EJH-0098',asset:'EJH-0098',status:'progress',priority:'high',crew:'James T.',time:'In progress · Started 9:14 AM',notes:'Cover cracked, water intrusion risk. Full replacement required.'},
+  {id:'WO-2835',title:'Sewer manhole SMH-0047 assessment',asset:'SMH-0047',status:'open',priority:'normal',crew:'Alicia L.',time:'Scheduled tomorrow 8:00 AM',notes:'Brick aging noted at last inspection. Structural assessment needed.'},
+  {id:'WO-2829',title:'Street light SLB-0038 — HPS bulb replacement',asset:'SLB-0038',status:'open',priority:'normal',crew:'Unassigned',time:'Scheduled this week',notes:'HPS 100W lamp at end of rated life cycle.'},
+  {id:'WO-2820',title:'Water valve WVS-0058 — condition check',asset:'WVS-0058',status:'done',priority:'normal',crew:'Sam K.',time:'Completed Apr 19',notes:'Gate valve fair condition. Greased and exercised. Next inspection in 6 months.'},
+  {id:'WO-2815',title:'Install ground strap UDP-0038',asset:'UDP-0038',status:'done',priority:'high',crew:'Marcus R.',time:'Completed Apr 18',notes:'Missing ground strap replaced. Tested continuity — pass.'},
+];
+let woFilter='all';
+
+function filterWO(f,btn){
+  woFilter=f;
+  document.querySelectorAll('.wof').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  renderWO();
+}
+
+function renderWO(){
+  const filtered=workOrders.filter(w=>woFilter==='all'||w.status===woFilter);
+  const statusLabel={open:'Open',progress:'In progress',done:'Completed',urgent:'Urgent'};
+  const statusClass={open:'st-open',progress:'st-progress',done:'st-done',urgent:'st-urgent'};
+  document.getElementById('wo-list').innerHTML=filtered.map(w=>`
+    <div class="wo-card">
+      <div class="wo-header">
+        <span class="wo-id">${w.id}</span>
+        <span class="wo-status ${statusClass[w.status]}">${statusLabel[w.status]}</span>
+      </div>
+      <div class="wo-title">${w.title}</div>
+      <div class="wo-meta">${w.time} · ${w.crew}</div>
+      <span class="wo-asset-tag">${w.asset}</span>
+      <div class="wo-actions">
+        ${w.status!=='done'?`<button class="wo-btn wo-btn-pri" onclick="markWODone('${w.id}')">Mark done</button>`:''}
+        <button class="wo-btn wo-btn-sec" onclick="viewWO('${w.id}')">Details</button>
+      </div>
+    </div>`).join('')||'<div style="text-align:center;padding:2rem;color:#555;font-size:13px">No orders in this filter</div>';
+}
+
+function markWODone(id){
+  const wo=workOrders.find(w=>w.id===id);
+  if(wo){wo.status='done';wo.time='Completed just now';renderWO();addNotif('Work order complete',`${wo.id} — ${wo.title}`,'success');}
+}
+
+function viewWO(id){
+  const wo=workOrders.find(w=>w.id===id);
+  if(wo){showToast(`${wo.id}: ${wo.notes.slice(0,60)}…`);}
+}
+
+function openNewWO(){document.getElementById('modal-newwo').classList.add('open');}
+
+function saveNewWO(){
+  const title=document.getElementById('wo-new-title').value.trim();
+  const asset=document.getElementById('wo-new-asset').value.trim()||'Unspecified';
+  const priority=document.getElementById('wo-new-priority').value;
+  const crew=document.getElementById('wo-new-crew').value;
+  const notes=document.getElementById('wo-new-notes').value.trim();
+  if(!title){showToast('Please enter a job title');return;}
+  const newId='WO-'+(2848+workOrders.length);
+  workOrders.unshift({id:newId,title,asset,status:priority==='urgent'?'urgent':'open',priority,crew,time:'Just created',notes:notes||'No notes'});
+  closeModal('modal-newwo');
+  renderWO();
+  addNotif('New work order created',`${newId} — ${title}`,'info');
+  document.getElementById('wo-new-title').value='';
+  document.getElementById('wo-new-asset').value='';
+  document.getElementById('wo-new-notes').value='';
+}
+
+// ══════════════════════════════════════
+// CREW TRACKING
+// ══════════════════════════════════════
+const crewMembers=[
+  {initials:'MR',name:'Marcus R.',color:'#378ADD',status:'online',statusLabel:'On route',task:'Inspecting TXF-0011 · C-02 circuit',loc:'Hunter Dr @ 4100',dist:'0.2 mi away'},
+  {initials:'JT',name:'James T.',color:'#3DD68C',status:'online',statusLabel:'Active',task:'EJH-0098 handhole replacement',loc:'Bullhead Rd intersection',dist:'0.4 mi away'},
+  {initials:'AL',name:'Alicia L.',color:'#EF9F27',status:'busy',statusLabel:'In meeting',task:'Reviewing SMH-0047 assessment docs',loc:'Office — not on site',dist:'2.1 mi away'},
+  {initials:'SK',name:'Sam K.',color:'#E24B4A',status:'offline',statusLabel:'Off shift',task:'Last: WVS-0058 completed Apr 19',loc:'Offline',dist:'—'},
+];
+
+function renderCrew(){
+  const dotClass={online:'crew-dot-online',busy:'crew-dot-busy',offline:'crew-dot-offline'};
+  document.getElementById('crew-list').innerHTML='<div class="crew-list">'+crewMembers.map(c=>`
+    <div class="crew-card">
+      <div class="crew-avatar" style="background:${c.color}">
+        ${c.initials}
+        <div class="crew-online-dot ${dotClass[c.status]}"></div>
+      </div>
+      <div class="crew-info">
+        <div class="crew-name">${c.name} <span style="font-size:10px;padding:1px 7px;border-radius:20px;background:${c.status==='online'?'rgba(61,214,140,.15)':c.status==='busy'?'rgba(239,159,39,.15)':'rgba(255,255,255,.06)'};color:${c.status==='online'?'#3DD68C':c.status==='busy'?'#EF9F27':'#555'}">${c.statusLabel}</span></div>
+        <div class="crew-task">${c.task}</div>
+        <div class="crew-loc">${c.loc}</div>
+      </div>
+      <div class="crew-dist">${c.dist}</div>
+    </div>`).join('')+'</div>';
+}
+
+// ══════════════════════════════════════
+// PHOTOS
+// ══════════════════════════════════════
+let photos=[
+  {asset:'TXF-0011',note:'Oil level low — marked on dipstick. Bushing left shows surface cracking.',time:'Today 9:42 AM',color:'#791F1F'},
+  {asset:'EJH-0098',note:'Cover cracked on east face. Full replacement needed before next rain.',time:'Today 8:15 AM',color:'#00e000'},
+  {asset:'SMH-0047',note:'Brick mortar degrading at 4 o\'clock position, approx 6" section.',time:'Apr 19 3:22 PM',color:'#639922'},
+  {asset:'UDP-0038',note:'Ground strap replaced. New strap secured, tested good continuity.',time:'Apr 18 11:05 AM',color:'#185FA5'},
+];
+
+function renderPhotos(){
+  document.getElementById('photo-grid').innerHTML=photos.map(p=>`
+    <div class="photo-card">
+      <div class="photo-thumb" style="background:${p.color}18;border-bottom:1px solid ${p.color}30;">
+        <svg viewBox="0 0 24 24" style="stroke:${p.color}"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+      </div>
+      <div class="photo-meta">
+        <div class="photo-asset">${p.asset}</div>
+        <div class="photo-note">${p.note}</div>
+        <div class="photo-time">${p.time}</div>
+      </div>
+    </div>`).join('');
+}
+
+function addPhoto(){
+  const asset=prompt('Asset ID (e.g. TXF-0011):');
+  if(!asset)return;
+  const note=prompt('Notes for this photo:');
+  photos.unshift({asset:asset.toUpperCase(),note:note||'Photo captured in field.',time:'Just now',color:'#7F77DD'});
+  renderPhotos();
+  addNotif('Photo attached',`New photo linked to ${asset.toUpperCase()}`,'info');
+  showToast('Photo added to '+asset.toUpperCase());
+}
+
+// ══════════════════════════════════════
+// DAMAGE REPORTS
+// ══════════════════════════════════════
+let damageReports=[
+  {id:'DMG-019',asset:'TXF-0011',sev:'high',title:'Transformer — surface bushing cracking',desc:'Left bushing shows hairline cracks on surface glaze. Not yet through-cracking but recommend scheduled replacement within 30 days.',reporter:'Marcus R.',time:'Today 9:45 AM',status:'Open'},
+  {id:'DMG-018',asset:'EJH-0098',sev:'high',title:'Handhole cover — structural crack',desc:'24"×36" cover cracked on east face. Water intrusion into conductors observed. Immediate cover replacement required.',reporter:'James T.',time:'Today 8:18 AM',status:'In review'},
+  {id:'DMG-017',asset:'SMH-0047',sev:'low',title:'Manhole — mortar degradation',desc:'Brick mortar degrading at 4 o\'clock, 6" section. No structural failure. Tuck-pointing repair recommended in next maintenance cycle.',reporter:'Sam K.',time:'Apr 19 3:25 PM',status:'Scheduled'},
+  {id:'DMG-016',asset:'WVS-0058',sev:'low',title:'Water valve — exterior surface rust',desc:'Surface rust on valve handwheel and upper stem. Functional — gate opens/closes normally. Wire brush and paint recommended.',reporter:'Alicia L.',time:'Apr 17 2:10 PM',status:'Resolved'},
+];
+
+function renderDamage(){
+  const sevClass={critical:'sev-critical',high:'sev-high',low:'sev-low'};
+  const sevLabel={critical:'Critical',high:'High',low:'Low'};
+  document.getElementById('damage-list').innerHTML=damageReports.map(d=>`
+    <div class="dmg-card">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+        <span class="dmg-sev ${sevClass[d.sev]}">${sevLabel[d.sev]}</span>
+        <span style="font-size:11px;color:#555;font-family:'JetBrains Mono',monospace">${d.id}</span>
+      </div>
+      <div class="dmg-title">${d.title}</div>
+      <div class="dmg-desc">${d.desc}</div>
+      <div class="dmg-detail-row"><span class="dmg-key">Asset</span><span class="dmg-val">${d.asset}</span></div>
+      <div class="dmg-detail-row"><span class="dmg-key">Reported by</span><span class="dmg-val">${d.reporter}</span></div>
+      <div class="dmg-detail-row"><span class="dmg-key">Time</span><span class="dmg-val">${d.time}</span></div>
+      <div class="dmg-detail-row"><span class="dmg-key">Status</span><span class="dmg-val" style="color:${d.status==='Resolved'?'#3DD68C':d.status==='In review'?'#EF9F27':'#E24B4A'}">${d.status}</span></div>
+    </div>`).join('');
+}
+
+function openDamageReport(){document.getElementById('modal-damage').classList.add('open');}
+
+function saveDamageReport(){
+  const asset=document.getElementById('dmg-asset').value.trim()||'Unknown';
+  const sev=document.getElementById('dmg-sev').value;
+  const desc=document.getElementById('dmg-desc').value.trim();
+  if(!desc){showToast('Please describe the damage');return;}
+  const sevTitles={low:'Minor damage observed',high:'Significant damage — repair needed',critical:'Critical damage — immediate action'};
+  const newId='DMG-'+(20+damageReports.length);
+  damageReports.unshift({id:newId,asset:asset.toUpperCase(),sev,title:sevTitles[sev],desc,reporter:'You (JD)',time:'Just now',status:'Open'});
+  closeModal('modal-damage');
+  renderDamage();
+  addNotif('Damage report filed',`${newId} — ${asset.toUpperCase()} · ${sev} severity`,'danger');
+  document.getElementById('dmg-asset').value='';
+  document.getElementById('dmg-desc').value='';
+  showToast('Damage report submitted');
+}
+
+// ══════════════════════════════════════
+// NOTIFICATIONS
+// ══════════════════════════════════════
+let notifications=[
+  {title:'Inspection overdue',desc:'TXF-0011 annual inspection is 3 days past due. Work order WO-2847 created.',time:'2 hours ago',type:'warning',unread:true},
+  {title:'DP-3 condition alert',desc:'Distribution pedestal UDP-0038 rated POOR condition. Schedule replacement within 90 days.',time:'5 hours ago',type:'danger',unread:true},
+  {title:'Work order completed',desc:'WO-2820 — Water valve WVS-0058 inspection completed by Sam K.',time:'Yesterday 4:32 PM',type:'success',unread:true},
+  {title:'New damage report',desc:'DMG-018 filed by James T. — EJH-0098 handhole cover cracked.',time:'Today 8:20 AM',type:'danger',unread:true},
+  {title:'Maintenance reminder',desc:'SMH-0047 last inspected 14 months ago. Recommend reinspection.',time:'Yesterday 7:00 AM',type:'warning',unread:false},
+  {title:'Route complete',desc:'All 6 stops on Hunter Dr route completed. Good work.',time:'Apr 19 5:45 PM',type:'success',unread:false},
+  {title:'Battery low — beacon',desc:'Asset beacon at EJH-0042 reporting low battery. Replace within 30 days.',time:'Apr 18 9:12 AM',type:'warning',unread:false},
+];
+
+const notifColors={warning:'rgba(239,159,39,.15)',danger:'rgba(226,75,74,.15)',success:'rgba(61,214,140,.15)',info:'rgba(55,138,221,.15)'};
+const notifStrokes={warning:'#EF9F27',danger:'#E24B4A',success:'#3DD68C',info:'#378ADD'};
+const notifIcons={
+  warning:'<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>',
+  danger:'<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>',
+  success:'<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>',
+  info:'<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="8"/><polyline points="11 12 12 12 12 16"/>',
+};
+
+function renderNotifs(){
+  document.getElementById('notif-list').innerHTML=notifications.map((n,i)=>`
+    <div class="notif-card${n.unread?' unread':''}" onclick="markNotifRead(${i})">
+      <div class="notif-icon" style="background:${notifColors[n.type]}">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="${notifStrokes[n.type]}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${notifIcons[n.type]}</svg>
+      </div>
+      <div class="notif-body">
+        <div class="notif-title">${n.title}</div>
+        <div class="notif-desc">${n.desc}</div>
+        <div class="notif-time">${n.time}</div>
+      </div>
+      ${n.unread?'<div class="notif-dot"></div>':''}
+    </div>`).join('');
+  const unreadCount=notifications.filter(n=>n.unread).length;
+  const badge=document.querySelector('#bn-notif .bnav-badge');
+  if(badge)badge.textContent=unreadCount||'';
+  if(badge)badge.style.display=unreadCount?'flex':'none';
+}
+
+function markNotifRead(i){notifications[i].unread=false;renderNotifs();}
+
+function clearAllNotifs(){notifications.forEach(n=>n.unread=false);renderNotifs();}
+
+function addNotif(title,desc,type){
+  notifications.unshift({title,desc,time:'Just now',type:type||'info',unread:true});
+  renderNotifs();
+}
+
+// ══════════════════════════════════════
+// ROUTE PLANNING
+// ══════════════════════════════════════
+let routeStops=[
+  {num:1,name:'TXF-0011 — Transformer',addr:'Hunter Dr @ C-02 (280, 128)',dist:'Start',status:'done'},
+  {num:2,name:'DP-1 — Distribution pedestal',addr:'Hunter Dr @ 195',dist:'0.1 mi',status:'done'},
+  {num:3,name:'EJH-0042 — Junction handhole',addr:'142 Hunter Dr',dist:'0.15 mi',status:'current'},
+  {num:4,name:'WVS-0014 — Water valve',addr:'268 Hunter Dr',dist:'0.2 mi',status:'upcoming'},
+  {num:5,name:'SMH-0021 — Sewer manhole',addr:'294 Hunter Dr',dist:'0.2 mi',status:'upcoming'},
+  {num:6,name:'FHT-0019 — Fire hydrant tap',addr:'430 Hunter Dr',dist:'0.3 mi',status:'upcoming'},
+];
+
+function renderRoute(){
+  document.getElementById('route-list').innerHTML='<div style="padding:0 14px 10px">'+routeStops.map((s,i)=>`
+    ${i>0?'<div class="stop-connector"></div>':''}
+    <div class="route-stop">
+      <div class="stop-num ${s.status}">${s.status==='done'?'✓':s.num}</div>
+      <div class="stop-info">
+        <div class="stop-name" style="color:${s.status==='done'?'#555':s.status==='current'?'#EF9F27':'#f0f0f0'}">${s.name}</div>
+        <div class="stop-addr">${s.addr}</div>
+      </div>
+      <div class="stop-dist" style="color:${s.status==='current'?'#EF9F27':'#378ADD'}">${s.dist}</div>
+    </div>`).join('')+'</div>';
+  const done=routeStops.filter(s=>s.status==='done').length;
+  document.getElementById('rt-done-count').textContent=done;
+}
+
+function advanceRoute(){
+  const cur=routeStops.findIndex(s=>s.status==='current');
+  if(cur>=0){
+    routeStops[cur].status='done';
+    if(cur+1<routeStops.length){routeStops[cur+1].status='current';showToast('Navigating to '+routeStops[cur+1].name);}
+    else{showToast('Route complete! All stops done.');}
+    renderRoute();
+  }
+}
+
+// ══════════════════════════════════════
+// MODAL HELPERS
+// ══════════════════════════════════════
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+document.querySelectorAll('.modal-overlay').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');}));
+
+// ══════════════════════════════════════
+// PHOTOS BUTTON in tools menu
+// ══════════════════════════════════════
+function openPhotos(){switchTab('photos',null);document.querySelectorAll('.bnav-btn').forEach(b=>b.classList.remove('active'));}
+function openDamage(){switchTab('damage',null);document.querySelectorAll('.bnav-btn').forEach(b=>b.classList.remove('active'));}
+
+// ══════════════════════════════════════
+// INIT ALL FEATURES
+// ══════════════════════════════════════
+renderWO();
+renderCrew();
+renderPhotos();
+renderDamage();
+renderNotifs();
+renderRoute();
+window.addEventListener('resize',()=>{if(svOpen)renderSV();});
+updateGPS();
+</script>
+</body>
+</html>
