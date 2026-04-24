@@ -273,6 +273,194 @@ html,body{height:100%;width:100%;background:var(--bg-base);font-family:'DM Sans'
 @keyframes fade-in{from{opacity:0}to{opacity:1}}
 @keyframes slide-up{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
 @keyframes spin{to{transform:rotate(360deg)}}
+
+/* ══ ONBOARDING ══ */
+
+/* Welcome Screen */
+#ob-welcome{
+  position:fixed;inset:0;z-index:8000;
+  background:linear-gradient(160deg,#07070F 0%,#0D0D1A 60%,#070712 100%);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:32px 28px;
+}
+.ob-logo{
+  width:88px;height:88px;border-radius:24px;
+  background:linear-gradient(135deg,#0A84FF,#004FC4);
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 0 80px rgba(10,132,255,.45);
+  margin-bottom:28px;
+}
+.ob-appname{font-size:32px;font-weight:800;color:#F2F2F7;letter-spacing:2px;font-family:'DM Sans',sans-serif;margin-bottom:6px;}
+.ob-tagline{font-size:12px;color:#0A84FF;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;font-family:'JetBrains Mono',monospace;margin-bottom:40px;}
+.ob-badges{display:flex;gap:10px;margin-bottom:40px;flex-wrap:wrap;justify-content:center;}
+.ob-badge{
+  display:flex;align-items:center;gap:7px;
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);
+  border-radius:20px;padding:8px 14px;
+  font-size:12px;font-weight:500;color:#AEAEB2;
+}
+.ob-badge-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.ob-start-btn{
+  width:100%;max-width:320px;padding:18px;
+  background:linear-gradient(135deg,#0A84FF,#0060CC);
+  border:none;border-radius:18px;
+  font-size:17px;font-weight:700;color:#fff;
+  font-family:'DM Sans',sans-serif;cursor:pointer;
+  box-shadow:0 8px 32px rgba(10,132,255,.45);
+  letter-spacing:.3px;margin-bottom:16px;
+  transition:transform .15s,box-shadow .15s;
+}
+.ob-start-btn:active{transform:scale(.97);box-shadow:0 4px 16px rgba(10,132,255,.35);}
+.ob-skip{font-size:13px;color:#636366;background:none;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;padding:8px;}
+
+/* Tour slides */
+#ob-tour{
+  position:fixed;inset:0;z-index:8000;
+  background:rgba(0,0,0,.88);backdrop-filter:blur(8px);
+  display:none;flex-direction:column;
+}
+#ob-tour.active{display:flex;}
+.ob-tour-top{flex:1;display:flex;align-items:center;justify-content:center;padding:24px;}
+.ob-slide{
+  display:none;flex-direction:column;align-items:center;
+  text-align:center;max-width:320px;width:100%;
+  animation:slide-up .35s ease-out both;
+}
+.ob-slide.active{display:flex;}
+.ob-slide-icon{
+  width:100px;height:100px;border-radius:28px;
+  display:flex;align-items:center;justify-content:center;
+  margin-bottom:28px;box-shadow:0 8px 40px rgba(0,0,0,.4);
+}
+.ob-slide-num{
+  font-size:11px;font-weight:700;color:#636366;
+  font-family:'JetBrains Mono',monospace;letter-spacing:1px;
+  text-transform:uppercase;margin-bottom:16px;
+}
+.ob-slide-title{font-size:26px;font-weight:800;color:#F2F2F7;font-family:'DM Sans',sans-serif;margin-bottom:12px;line-height:1.2;}
+.ob-slide-body{font-size:15px;color:#AEAEB2;line-height:1.6;font-weight:400;}
+.ob-slide-detail{
+  margin-top:24px;background:rgba(255,255,255,.05);
+  border-radius:16px;padding:16px;width:100%;
+  border:1px solid rgba(255,255,255,.08);text-align:left;
+}
+.ob-detail-row{display:flex;align-items:center;gap:12px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.05);}
+.ob-detail-row:last-child{border-bottom:none;}
+.ob-detail-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.ob-detail-text{font-size:13px;color:#AEAEB2;font-weight:500;}
+
+/* Tour bottom bar */
+.ob-tour-bottom{
+  padding:20px 24px 36px;
+  background:rgba(10,10,20,.95);
+  border-top:1px solid rgba(255,255,255,.07);
+}
+.ob-progress{display:flex;gap:6px;justify-content:center;margin-bottom:20px;}
+.ob-dot{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.2);transition:all .3s;}
+.ob-dot.active{width:22px;border-radius:4px;background:#0A84FF;}
+.ob-tour-btns{display:flex;gap:10px;}
+.ob-btn-back{
+  flex:1;padding:15px;border-radius:14px;
+  background:rgba(255,255,255,.08);border:none;
+  color:#AEAEB2;font-size:15px;font-weight:600;cursor:pointer;
+  font-family:'DM Sans',sans-serif;
+}
+.ob-btn-next{
+  flex:2;padding:15px;border-radius:14px;
+  background:#0A84FF;border:none;
+  color:#fff;font-size:15px;font-weight:700;cursor:pointer;
+  font-family:'DM Sans',sans-serif;
+  box-shadow:0 4px 16px rgba(10,132,255,.35);
+  transition:transform .12s;
+}
+.ob-btn-next:active{transform:scale(.97);}
+
+/* Hotspot overlay */
+#ob-hotspot{
+  position:fixed;inset:0;z-index:7000;
+  pointer-events:none;display:none;
+}
+#ob-hotspot.active{display:block;}
+.ob-hs-ring{
+  position:absolute;
+  border:3px solid #0A84FF;border-radius:50%;
+  box-shadow:0 0 0 6px rgba(10,132,255,.2),0 0 30px rgba(10,132,255,.4);
+  animation:hs-pulse 1.8s ease-in-out infinite;
+  pointer-events:none;
+}
+.ob-hs-tooltip{
+  position:absolute;background:var(--bg-elevated);
+  border:1px solid rgba(10,132,255,.3);border-radius:16px;
+  padding:14px 16px;max-width:240px;
+  box-shadow:0 8px 32px rgba(0,0,0,.6);
+  pointer-events:all;
+}
+.ob-hs-title{font-size:14px;font-weight:700;color:#F2F2F7;margin-bottom:5px;}
+.ob-hs-body{font-size:12px;color:#AEAEB2;line-height:1.5;margin-bottom:12px;}
+.ob-hs-btn{
+  width:100%;padding:10px;border-radius:10px;
+  background:#0A84FF;border:none;color:#fff;
+  font-size:13px;font-weight:600;cursor:pointer;
+  font-family:'DM Sans',sans-serif;
+}
+.ob-hs-skip{
+  width:100%;padding:6px;border-radius:10px;
+  background:none;border:none;color:#636366;
+  font-size:12px;cursor:pointer;margin-top:4px;
+  font-family:'DM Sans',sans-serif;
+}
+@keyframes hs-pulse{
+  0%,100%{box-shadow:0 0 0 4px rgba(10,132,255,.3),0 0 20px rgba(10,132,255,.3);}
+  50%{box-shadow:0 0 0 10px rgba(10,132,255,.1),0 0 40px rgba(10,132,255,.5);}
+}
+
+/* ══ LAYER TOGGLE LIST ══ */
+#layer-list-panel{
+  position:fixed;inset:0;background:rgba(0,0,0,.65);
+  z-index:1500;display:none;align-items:flex-end;
+}
+#layer-list-panel.open{display:flex;}
+#layer-list-inner{
+  background:var(--bg-elevated);width:100%;
+  border-radius:24px 24px 0 0;padding:0 0 32px;
+  border-top:1px solid rgba(10,132,255,.15);
+  box-shadow:0 -8px 40px rgba(0,0,0,.5);
+  max-height:85vh;overflow-y:auto;
+}
+.ll-handle{width:38px;height:4px;background:#333;border-radius:2px;margin:14px auto 0;}
+.ll-head{display:flex;align-items:center;justify-content:space-between;padding:16px 20px 12px;}
+.ll-title{font-size:18px;font-weight:700;color:var(--t1);}
+.ll-done{background:none;border:none;color:var(--brand);font-size:15px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;}
+.ll-section{font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.1em;padding:4px 20px 8px;}
+.ll-row{
+  display:flex;align-items:center;gap:14px;
+  padding:14px 20px;border-bottom:1px solid var(--border-subtle);
+  cursor:pointer;transition:background .12s;
+}
+.ll-row:last-child{border-bottom:none;}
+.ll-row:active{background:rgba(255,255,255,.04);}
+.ll-color{width:16px;height:16px;border-radius:50%;flex-shrink:0;box-shadow:0 1px 4px rgba(0,0,0,.3);}
+.ll-info{flex:1;}
+.ll-name{font-size:15px;font-weight:600;color:var(--t1);}
+.ll-sub{font-size:12px;color:var(--t3);margin-top:2px;}
+.ll-badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:6px;font-family:'JetBrains Mono',monospace;flex-shrink:0;}
+.ll-badge-live{background:rgba(48,209,88,.15);color:#30D158;}
+.ll-badge-demo{background:rgba(255,255,255,.06);color:var(--t3);}
+/* iOS-style toggle */
+.ll-toggle{
+  width:50px;height:30px;border-radius:15px;
+  background:#3a3a3a;position:relative;
+  flex-shrink:0;transition:background .2s;border:none;cursor:pointer;
+}
+.ll-toggle.on{background:#30D158;}
+.ll-toggle::after{
+  content:'';position:absolute;top:3px;left:3px;
+  width:24px;height:24px;border-radius:50%;background:#fff;
+  box-shadow:0 2px 6px rgba(0,0,0,.3);
+  transition:transform .2s cubic-bezier(.34,1.4,.64,1);
+}
+.ll-toggle.on::after{transform:translateX(20px);}
+
 @keyframes gps-pulse{0%{transform:scale(1);opacity:.7}100%{transform:scale(3);opacity:0}}
 </style>
 </head>
@@ -306,7 +494,7 @@ html,body{height:100%;width:100%;background:var(--bg-base);font-family:'DM Sans'
     </div>
     <button class="ti" onclick="toggleSearch()" title="Search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="22" y2="22"/></svg></button>
     <button class="ti" onclick="openCityPanel()" title="Jump to city"><svg viewBox="0 0 24 24"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg></button>
-    <button class="ti" onclick="toggleLayerPanel()" title="Layers"><svg viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg></button>
+    <button class="ti" onclick="openLayerList()" title="Layers"><svg viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg></button>
     <button class="ti" onclick="toggleMapStyle()" title="Map style"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></button>
   </div>
 
@@ -363,7 +551,7 @@ html,body{height:100%;width:100%;background:var(--bg-base);font-family:'DM Sans'
     <button class="map-fab" id="fab-gps" onclick="handleGPSFab()" title="My location">
       <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="8"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/></svg>
     </button>
-    <button class="map-fab" id="fab-layers" onclick="toggleLayerPanel()" title="Layers">
+    <button class="map-fab" id="fab-layers" onclick="openLayerList()" title="Layers">
       <svg viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
     </button>
 
@@ -1709,34 +1897,262 @@ window.addEventListener('offline',checkOffline);
 // ══════════════════════════════════════
 // SPLASH + INIT
 // ══════════════════════════════════════
-window.addEventListener('DOMContentLoaded', function() {
-  const steps=[
-    [20,'Loading Leaflet map...'],
-    [40,'Plotting Raleigh infrastructure...'],
-    [58,'Adding Charlotte, Atlanta data...'],
-    [72,'Loading Chicago, Houston, Phoenix...'],
-    [88,'Finalizing nationwide coverage...'],
-    [100,'Ready — 6 cities loaded'],
-  ];
-  let i=0;
-  const bar=document.getElementById('splash-bar');
-  const status=document.getElementById('splash-status');
-  const splash=document.getElementById('splash');
 
-  function nextStep(){
-    if(i>=steps.length){
-      setTimeout(()=>{
-        splash.style.opacity='0';splash.style.transform='scale(1.03)';
-        setTimeout(()=>splash.style.display='none',520);
-      },400);
+// ══════════════════════════════════════════════
+// ONBOARDING SYSTEM
+// ══════════════════════════════════════════════
+const OB_KEY = 'vltrview_onboarded_v1';
+let obTourSlide = 1;
+let obHotspotIdx = 0;
+
+// Hotspot definitions — element id, ring size, tooltip position, title, body
+const HOTSPOTS = [
+  {
+    elId: 'fab-layers',
+    title: 'Utility layers',
+    body: 'Tap here to show or hide any utility layer. All 5 are on by default — toggle off what you don't need.',
+    tipPos: 'left',
+  },
+  {
+    elId: 'fab-gps',
+    title: 'Your location',
+    body: 'Tap to activate live GPS and center the map on your exact position. The dot turns green when live.',
+    tipPos: 'left',
+  },
+  {
+    elId: 'bn-orders',
+    title: 'Work orders',
+    body: 'Create and manage dig tickets here. Assign to crew members, set priority, and mark complete.',
+    tipPos: 'top',
+  },
+  {
+    elId: 'bn-crew',
+    title: 'Crew tracking',
+    body: 'See where every field tech is in real time. Online crew show a green dot.',
+    tipPos: 'top',
+  },
+  {
+    elId: 'bn-notif',
+    title: 'Alerts',
+    body: 'Get notified about overdue inspections, new damage reports, and completed work orders.',
+    tipPos: 'top',
+  },
+];
+
+function isOnboarded() {
+  try { return localStorage.getItem(OB_KEY) === 'done'; } catch { return false; }
+}
+function markOnboarded() {
+  try { localStorage.setItem(OB_KEY, 'done'); } catch {}
+}
+
+function initOnboarding() {
+  if (isOnboarded()) {
+    // Returning user — skip straight to splash then map
+    document.getElementById('ob-welcome').style.display = 'none';
+    return;
+  }
+  // New user — show welcome screen (splash already handled separately)
+  // Hide splash first, show welcome
+  const splash = document.getElementById('splash');
+  if (splash) splash.style.display = 'none';
+  document.getElementById('ob-welcome').style.display = 'flex';
+}
+
+function startTour() {
+  document.getElementById('ob-welcome').style.display = 'none';
+  document.getElementById('ob-tour').classList.add('active');
+  showTourSlide(1);
+}
+
+function showTourSlide(n) {
+  obTourSlide = n;
+  // Hide all slides
+  document.querySelectorAll('.ob-slide').forEach(s => s.classList.remove('active'));
+  // Show target
+  const slide = document.getElementById('ob-slide-' + n);
+  if (slide) slide.classList.add('active');
+  // Progress dots
+  document.querySelectorAll('.ob-dot').forEach((d, i) => {
+    d.classList.toggle('active', i + 1 === n);
+  });
+  // Back button
+  document.getElementById('ob-back').style.display = n > 1 ? 'flex' : 'none';
+  // Next button label
+  document.getElementById('ob-next').textContent = n === 3 ? 'Continue →' : 'Next →';
+}
+
+function tourNext() {
+  if (obTourSlide < 3) {
+    showTourSlide(obTourSlide + 1);
+  } else {
+    // Tour done — start hotspots
+    document.getElementById('ob-tour').classList.remove('active');
+    startHotspots();
+  }
+}
+
+function tourBack() {
+  if (obTourSlide > 1) showTourSlide(obTourSlide - 1);
+}
+
+// ── HOTSPOT SYSTEM ──
+function startHotspots() {
+  obHotspotIdx = 0;
+  showHotspot(0);
+}
+
+function showHotspot(idx) {
+  if (idx >= HOTSPOTS.length) { finishOnboarding(); return; }
+  const hs = HOTSPOTS[idx];
+  const el = document.getElementById(hs.elId);
+  if (!el) { showHotspot(idx + 1); return; }
+
+  const overlay = document.getElementById('ob-hotspot');
+  const ring = document.getElementById('hs-ring');
+  const tooltip = document.getElementById('hs-tooltip');
+
+  overlay.classList.add('active');
+  overlay.style.pointerEvents = 'none';
+  tooltip.style.pointerEvents = 'all';
+
+  const rect = el.getBoundingClientRect();
+  const cx = rect.left + rect.width / 2;
+  const cy = rect.top + rect.height / 2;
+  const r = Math.max(rect.width, rect.height) / 2 + 10;
+
+  // Position ring
+  ring.style.width  = (r * 2) + 'px';
+  ring.style.height = (r * 2) + 'px';
+  ring.style.left   = (cx - r) + 'px';
+  ring.style.top    = (cy - r) + 'px';
+
+  // Position tooltip
+  const tipW = 240, tipH = 160;
+  let tipLeft = cx - tipW / 2;
+  let tipTop;
+
+  if (hs.tipPos === 'top') {
+    tipTop = cy - r - tipH - 16;
+    if (tipTop < 80) tipTop = cy + r + 16;
+  } else {
+    tipTop = cy - tipH / 2;
+    tipLeft = cx - r - tipW - 16;
+    if (tipLeft < 10) tipLeft = cx + r + 16;
+  }
+
+  tipLeft = Math.max(10, Math.min(window.innerWidth - tipW - 10, tipLeft));
+  tipTop  = Math.max(80, Math.min(window.innerHeight - tipH - 20, tipTop));
+
+  tooltip.style.left  = tipLeft + 'px';
+  tooltip.style.top   = tipTop + 'px';
+  tooltip.style.width = tipW + 'px';
+
+  document.getElementById('hs-title').textContent = hs.title;
+  document.getElementById('hs-body').textContent  = hs.body;
+}
+
+function nextHotspot() {
+  obHotspotIdx++;
+  if (obHotspotIdx >= HOTSPOTS.length) {
+    finishOnboarding();
+  } else {
+    showHotspot(obHotspotIdx);
+  }
+}
+
+function finishOnboarding() {
+  document.getElementById('ob-hotspot').classList.remove('active');
+  document.getElementById('ob-welcome').style.display = 'none';
+  document.getElementById('ob-tour').classList.remove('active');
+  markOnboarded();
+  showToast('Welcome to VLTRVIEW 👋');
+}
+
+function skipOnboarding() {
+  document.getElementById('ob-welcome').style.display = 'none';
+  markOnboarded();
+  // Show splash → map flow normally
+  runSplash();
+}
+
+// ── LAYER TOGGLE LIST ──
+function openLayerList() {
+  document.getElementById('layer-list-panel').classList.add('open');
+  // Close old layer panel if open
+  if(lpanelOpen) toggleLayerPanel();
+}
+function closeLayerList() {
+  document.getElementById('layer-list-panel').classList.remove('open');
+}
+
+function toggleLayerRow(id) {
+  // Use existing toggleLayer logic
+  toggleLayer(id);
+  // Update toggle button visual
+  const tog = document.getElementById('lltog-' + id);
+  if (tog) tog.classList.toggle('on', layerState[id]);
+}
+
+// Update layer list toggles whenever state changes externally
+function syncLayerToggles() {
+  Object.keys(layerState).forEach(id => {
+    const tog = document.getElementById('lltog-' + id);
+    if (tog) tog.classList.toggle('on', layerState[id]);
+  });
+}
+
+// ══════════════════════════════════════════════
+// SPLASH SEQUENCE (extracted so skipOnboarding can call it)
+// ══════════════════════════════════════════════
+function runSplash() {
+  const splash = document.getElementById('splash');
+  if (!splash || splash.style.display === 'none') return;
+
+  const steps = [
+    [20,'Loading map...'],
+    [45,'Plotting city infrastructure...'],
+    [70,'Loading utility data...'],
+    [90,'Finalizing...'],
+    [100,'Ready'],
+  ];
+  let i = 0;
+  const bar = document.getElementById('splash-bar');
+  const status = document.getElementById('splash-status');
+
+  function nextStep() {
+    if (i >= steps.length) {
+      setTimeout(() => {
+        splash.style.opacity = '0';
+        splash.style.transform = 'scale(1.03)';
+        setTimeout(() => {
+          splash.style.display = 'none';
+          // Start hotspot tour after map visible
+          if (!isOnboarded()) {
+            setTimeout(() => startHotspots(), 800);
+          }
+        }, 520);
+      }, 300);
       return;
     }
-    const [pct,msg]=steps[i++];
-    if(bar)bar.style.width=pct+'%';
-    if(status)status.textContent=msg;
-    setTimeout(nextStep,i===steps.length?500:340);
+    const [pct, msg] = steps[i++];
+    if (bar) bar.style.width = pct + '%';
+    if (status) status.textContent = msg;
+    setTimeout(nextStep, i === steps.length ? 400 : 320);
   }
-  setTimeout(nextStep,400);
+  setTimeout(nextStep, 300);
+}
+
+window.addEventListener('DOMContentLoaded', function() {
+  // ── Check onboarding state ──
+  if (!isOnboarded()) {
+    // New user — show welcome screen, skip splash
+    document.getElementById('splash').style.display = 'none';
+    document.getElementById('ob-welcome').style.display = 'flex';
+  } else {
+    // Returning user — run splash normally
+    runSplash();
+  }
 
   // Init map
   try { initMap(); } catch(e) { console.error('Map init error:',e); }
@@ -1776,6 +2192,249 @@ window.addEventListener('DOMContentLoaded', function() {
   },3000);
 });
 </script>
+
+<!-- ══════════════════════════════════════
+     ONBOARDING — WELCOME SCREEN
+══════════════════════════════════════ -->
+<div id="ob-welcome">
+  <div class="ob-logo">
+    <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="12" r="3.5" fill="#fff"/>
+      <circle cx="12" cy="12" r="7" stroke="#fff" stroke-width="1.5" fill="none" stroke-opacity=".6"/>
+      <line x1="12" y1="2" x2="12" y2="5.5" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+      <line x1="12" y1="18.5" x2="12" y2="22" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+      <line x1="2" y1="12" x2="5.5" y2="12" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+      <line x1="18.5" y1="12" x2="22" y2="12" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+    </svg>
+  </div>
+  <div class="ob-appname">VLTRVIEW</div>
+  <div class="ob-tagline">Utility Locator Platform</div>
+
+  <div class="ob-badges">
+    <div class="ob-badge">
+      <div class="ob-badge-dot" style="background:#FF0000;"></div>
+      Electric
+    </div>
+    <div class="ob-badge">
+      <div class="ob-badge-dot" style="background:#FF6600;"></div>
+      Telecom
+    </div>
+    <div class="ob-badge">
+      <div class="ob-badge-dot" style="background:#FFD700;"></div>
+      Gas
+    </div>
+    <div class="ob-badge">
+      <div class="ob-badge-dot" style="background:#0000CC;"></div>
+      Water
+    </div>
+    <div class="ob-badge">
+      <div class="ob-badge-dot" style="background:#00AA00;"></div>
+      Sewer
+    </div>
+  </div>
+
+  <button class="ob-start-btn" onclick="startTour()">Get started →</button>
+  <button class="ob-skip" onclick="skipOnboarding()">Skip — take me to the map</button>
+
+  <div style="position:absolute;bottom:28px;font-size:11px;color:#2a2a3a;font-family:'JetBrains Mono',monospace;">
+    v1.0.0-beta · © 2026 VLTRVIEW
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     ONBOARDING — FEATURE TOUR (3 slides)
+══════════════════════════════════════ -->
+<div id="ob-tour">
+  <div class="ob-tour-top">
+
+    <!-- Slide 1: Live Map -->
+    <div class="ob-slide active" id="ob-slide-1">
+      <div class="ob-slide-num">01 of 03</div>
+      <div class="ob-slide-icon" style="background:linear-gradient(135deg,rgba(10,132,255,.2),rgba(0,96,204,.3));border:1px solid rgba(10,132,255,.3);">
+        <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="#0A84FF" stroke-width="1.5" stroke-linecap="round">
+          <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/>
+          <line x1="8" y1="2" x2="8" y2="18"/>
+          <line x1="16" y1="6" x2="16" y2="22"/>
+        </svg>
+      </div>
+      <div class="ob-slide-title">Real underground utility map</div>
+      <div class="ob-slide-body">See exactly what's buried beneath your feet — electric, gas, water, sewer, and telecom lines displayed using federal HIFLD data and APWA standard colors.</div>
+      <div class="ob-slide-detail">
+        <div class="ob-detail-row"><div class="ob-detail-dot" style="background:#FF0000;"></div><span class="ob-detail-text">Red — Electric power lines</span></div>
+        <div class="ob-detail-row"><div class="ob-detail-dot" style="background:#FF6600;"></div><span class="ob-detail-text">Orange — Telecom &amp; fiber</span></div>
+        <div class="ob-detail-row"><div class="ob-detail-dot" style="background:#FFD700;"></div><span class="ob-detail-text">Yellow — Gas distribution</span></div>
+        <div class="ob-detail-row"><div class="ob-detail-dot" style="background:#0000CC;"></div><span class="ob-detail-text">Dark blue — Water mains</span></div>
+        <div class="ob-detail-row"><div class="ob-detail-dot" style="background:#00AA00;"></div><span class="ob-detail-text">Green — Sewer lines</span></div>
+      </div>
+    </div>
+
+    <!-- Slide 2: Field Tools -->
+    <div class="ob-slide" id="ob-slide-2">
+      <div class="ob-slide-num">02 of 03</div>
+      <div class="ob-slide-icon" style="background:linear-gradient(135deg,rgba(255,159,10,.2),rgba(255,100,0,.2));border:1px solid rgba(255,159,10,.3);">
+        <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="#FF9F0A" stroke-width="1.5" stroke-linecap="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+          <line x1="16" y1="13" x2="8" y2="13"/>
+          <line x1="16" y1="17" x2="8" y2="17"/>
+        </svg>
+      </div>
+      <div class="ob-slide-title">Field tools built for your crew</div>
+      <div class="ob-slide-body">Everything a field technician needs — all in one place. Create work orders, track your crew in real time, log damage reports, and attach field photos to any asset.</div>
+      <div class="ob-slide-detail">
+        <div class="ob-detail-row">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0A84FF" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          <span class="ob-detail-text">Work orders — create &amp; assign dig tickets</span>
+        </div>
+        <div class="ob-detail-row">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#30D158" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+          <span class="ob-detail-text">Crew tracking — see who's where</span>
+        </div>
+        <div class="ob-detail-row">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FF453A" stroke-width="2" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>
+          <span class="ob-detail-text">Damage reports — log issues instantly</span>
+        </div>
+        <div class="ob-detail-row">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#a594fc" stroke-width="2" stroke-linecap="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+          <span class="ob-detail-text">Field photos — attach to any asset</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 3: GPS + Nationwide -->
+    <div class="ob-slide" id="ob-slide-3">
+      <div class="ob-slide-num">03 of 03</div>
+      <div class="ob-slide-icon" style="background:linear-gradient(135deg,rgba(48,209,88,.2),rgba(10,132,255,.2));border:1px solid rgba(48,209,88,.3);">
+        <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="#30D158" stroke-width="1.5" stroke-linecap="round">
+          <circle cx="12" cy="12" r="4" fill="#30D158" stroke="none"/>
+          <circle cx="12" cy="12" r="9"/>
+          <line x1="12" y1="2" x2="12" y2="5"/>
+          <line x1="12" y1="19" x2="12" y2="22"/>
+          <line x1="2" y1="12" x2="5" y2="12"/>
+          <line x1="19" y1="12" x2="22" y2="12"/>
+        </svg>
+      </div>
+      <div class="ob-slide-title">Live GPS — nationwide coverage</div>
+      <div class="ob-slide-body">VLTRVIEW works anywhere in the USA. Tap the GPS button to center the map on your exact location. Demo data is loaded for 6 major cities — more coming soon.</div>
+      <div class="ob-slide-detail">
+        <div class="ob-detail-row">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#30D158" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+          <span class="ob-detail-text">Raleigh, Charlotte, Atlanta</span>
+        </div>
+        <div class="ob-detail-row">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#30D158" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+          <span class="ob-detail-text">Chicago, Houston, Phoenix</span>
+        </div>
+        <div class="ob-detail-row">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0A84FF" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="4" fill="#0A84FF" stroke="none"/><circle cx="12" cy="12" r="9"/></svg>
+          <span class="ob-detail-text">Tap GPS button to use your location</span>
+        </div>
+        <div class="ob-detail-row">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FF9F0A" stroke-width="2" stroke-linecap="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/></svg>
+          <span class="ob-detail-text">Jump between cities from the map icon</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Progress + Buttons -->
+  <div class="ob-tour-bottom">
+    <div class="ob-progress">
+      <div class="ob-dot active" id="ob-prog-1"></div>
+      <div class="ob-dot" id="ob-prog-2"></div>
+      <div class="ob-dot" id="ob-prog-3"></div>
+    </div>
+    <div class="ob-tour-btns">
+      <button class="ob-btn-back" id="ob-back" onclick="tourBack()" style="display:none;">← Back</button>
+      <button class="ob-btn-next" id="ob-next" onclick="tourNext()">Next →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     ONBOARDING — HOTSPOT OVERLAY
+══════════════════════════════════════ -->
+<div id="ob-hotspot">
+  <div class="ob-hs-ring" id="hs-ring"></div>
+  <div class="ob-hs-tooltip" id="hs-tooltip">
+    <div class="ob-hs-title" id="hs-title"></div>
+    <div class="ob-hs-body" id="hs-body"></div>
+    <button class="ob-hs-btn" onclick="nextHotspot()">Got it →</button>
+    <button class="ob-hs-skip" onclick="finishOnboarding()">Skip all</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     LAYER TOGGLE LIST PANEL
+══════════════════════════════════════ -->
+<div id="layer-list-panel" onclick="if(event.target===this)closeLayerList()">
+  <div id="layer-list-inner">
+    <div class="ll-handle"></div>
+    <div class="ll-head">
+      <div class="ll-title">Utility layers</div>
+      <button class="ll-done" onclick="closeLayerList()">Done</button>
+    </div>
+
+    <div class="ll-section">Real federal data</div>
+    <div class="ll-row" onclick="toggleLayerRow('hifld_lines')" id="llrow-hifld_lines">
+      <div class="ll-color" style="background:#FF0000;"></div>
+      <div class="ll-info">
+        <div class="ll-name">Electric Transmission</div>
+        <div class="ll-sub">HIFLD · DHS federal data · 69kV–765kV</div>
+      </div>
+      <span class="ll-badge ll-badge-live">LIVE</span>
+      <button class="ll-toggle on" id="lltog-hifld_lines" onclick="event.stopPropagation();toggleLayerRow('hifld_lines')"></button>
+    </div>
+    <div class="ll-row" onclick="toggleLayerRow('hifld_sub')" id="llrow-hifld_sub">
+      <div class="ll-color" style="background:#74C5E8;"></div>
+      <div class="ll-info">
+        <div class="ll-name">Substations</div>
+        <div class="ll-sub">HIFLD · Electric substations · 69kV+</div>
+      </div>
+      <span class="ll-badge ll-badge-live">LIVE</span>
+      <button class="ll-toggle on" id="lltog-hifld_sub" onclick="event.stopPropagation();toggleLayerRow('hifld_sub')"></button>
+    </div>
+
+    <div class="ll-section" style="margin-top:8px;">Demo distribution data</div>
+    <div class="ll-row" onclick="toggleLayerRow('telecom')" id="llrow-telecom">
+      <div class="ll-color" style="background:#FF6600;"></div>
+      <div class="ll-info">
+        <div class="ll-name">Telecom &amp; Fiber</div>
+        <div class="ll-sub">Communications · coax · fiber optic</div>
+      </div>
+      <span class="ll-badge ll-badge-demo">DEMO</span>
+      <button class="ll-toggle on" id="lltog-telecom" onclick="event.stopPropagation();toggleLayerRow('telecom')"></button>
+    </div>
+    <div class="ll-row" onclick="toggleLayerRow('water')" id="llrow-water">
+      <div class="ll-color" style="background:#0000CC;"></div>
+      <div class="ll-info">
+        <div class="ll-name">Water</div>
+        <div class="ll-sub">Potable water distribution mains</div>
+      </div>
+      <span class="ll-badge ll-badge-demo">DEMO</span>
+      <button class="ll-toggle on" id="lltog-water" onclick="event.stopPropagation();toggleLayerRow('water')"></button>
+    </div>
+    <div class="ll-row" onclick="toggleLayerRow('sewer')" id="llrow-sewer">
+      <div class="ll-color" style="background:#00AA00;"></div>
+      <div class="ll-info">
+        <div class="ll-name">Sewer</div>
+        <div class="ll-sub">Gravity sewer · drainage lines</div>
+      </div>
+      <span class="ll-badge ll-badge-demo">DEMO</span>
+      <button class="ll-toggle on" id="lltog-sewer" onclick="event.stopPropagation();toggleLayerRow('sewer')"></button>
+    </div>
+    <div class="ll-row" onclick="toggleLayerRow('gas')" id="llrow-gas">
+      <div class="ll-color" style="background:#FFD700;box-shadow:0 1px 4px rgba(0,0,0,.5);"></div>
+      <div class="ll-info">
+        <div class="ll-name">Gas</div>
+        <div class="ll-sub">Natural gas distribution lines</div>
+      </div>
+      <span class="ll-badge ll-badge-demo">DEMO</span>
+      <button class="ll-toggle on" id="lltog-gas" onclick="event.stopPropagation();toggleLayerRow('gas')"></button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
 HTMLEOF
