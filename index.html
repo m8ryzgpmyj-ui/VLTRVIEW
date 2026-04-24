@@ -30,8 +30,8 @@ try {
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 :root{
   --brand:#0A84FF;--brand-dk:#0060CC;--brand-glow:rgba(10,132,255,.18);
-  --elec:#FF453A;--elec-sec:#FF9F0A;--telecom:#30D158;
-  --water:#0A84FF;--sewer:#32D74B;--gas:#FF9F0A;
+  --elec:#FF0000;--elec-sec:#74C5E8;--telecom:#FF6600;
+  --water:#0000CC;--sewer:#00AA00;--gas:#FFD700;
   --bg-base:#0A0A0F;--bg-elevated:#111118;--bg-card:#18181F;--bg-input:#1C1C26;
   --border-subtle:rgba(255,255,255,.07);--border-mid:rgba(255,255,255,.12);
   --t1:#F2F2F7;--t2:#AEAEB2;--t3:#636366;
@@ -336,10 +336,10 @@ html,body{height:100%;width:100%;background:var(--bg-base);font-family:'DM Sans'
     ">
       <div style="font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;font-weight:700;margin-bottom:7px;">Voltage key</div>
       <div style="display:flex;flex-direction:column;gap:5px;">
-        <div style="display:flex;align-items:center;gap:7px;"><div style="width:24px;height:4px;background:#FF453A;border-radius:2px;"></div><span style="font-size:10px;color:var(--t2);font-family:'JetBrains Mono',monospace;">≥500 kV</span></div>
-        <div style="display:flex;align-items:center;gap:7px;"><div style="width:24px;height:3px;background:#FF6B35;border-radius:2px;"></div><span style="font-size:10px;color:var(--t2);font-family:'JetBrains Mono',monospace;">230–499</span></div>
-        <div style="display:flex;align-items:center;gap:7px;"><div style="width:24px;height:2px;background:#FF9F0A;border-radius:2px;"></div><span style="font-size:10px;color:var(--t2);font-family:'JetBrains Mono',monospace;">115–229</span></div>
-        <div style="display:flex;align-items:center;gap:7px;"><div style="width:24px;height:2px;background:#FFD60A;border-radius:2px;"></div><span style="font-size:10px;color:var(--t2);font-family:'JetBrains Mono',monospace;">69–114</span></div>
+        <div style="display:flex;align-items:center;gap:7px;"><div style="width:24px;height:4px;background:#FF0000;border-radius:2px;"></div><span style="font-size:10px;color:var(--t2);font-family:'JetBrains Mono',monospace;">≥500 kV</span></div>
+        <div style="display:flex;align-items:center;gap:7px;"><div style="width:24px;height:3px;background:#CC0000;border-radius:2px;"></div><span style="font-size:10px;color:var(--t2);font-family:'JetBrains Mono',monospace;">230–499</span></div>
+        <div style="display:flex;align-items:center;gap:7px;"><div style="width:24px;height:2px;background:#FF3333;border-radius:2px;"></div><span style="font-size:10px;color:var(--t2);font-family:'JetBrains Mono',monospace;">115–229</span></div>
+        <div style="display:flex;align-items:center;gap:7px;"><div style="width:24px;height:2px;background:#FF6666;border-radius:2px;"></div><span style="font-size:10px;color:var(--t2);font-family:'JetBrains Mono',monospace;">69–114</span></div>
       </div>
     </div>
 
@@ -644,7 +644,7 @@ const CITIES = [
   {
     id:'phoenix', name:'Phoenix', state:'AZ',
     lat:33.4484, lon:-112.0740, zoom:13,
-    color:'#FF6B35', assets:19, lines:8,
+    color:'#CC0000', assets:19, lines:8,
     desc:'APS territory · desert infrastructure'
   },
 ];
@@ -654,13 +654,13 @@ let currentCity = CITIES[0]; // Raleigh default
 // ── UTILITY LAYERS CONFIG ──
 const LAYER_DEFS = [
   // HIFLD REAL DATA layers
-  {id:'hifld_lines',    label:'Transmission', sub:'HIFLD · Federal data',  color:'#FF453A', icon:'⚡', real:true},
-  {id:'hifld_sub',      label:'Substations',  sub:'HIFLD · 69kV+',         color:'#FF9F0A', icon:'🔌', real:true},
+  {id:'hifld_lines',    label:'Transmission', sub:'HIFLD · Federal data',  color:'#FF0000', icon:'⚡', real:true},
+  {id:'hifld_sub',      label:'Substations',  sub:'HIFLD · 69kV+',         color:'#74C5E8', icon:'🔌', real:true},
   // Demo distribution layers
-  {id:'telecom',        label:'Telecom',       sub:'Demo · Fiber/coax',     color:'#30D158', icon:'📡', real:false},
-  {id:'water',          label:'Water',         sub:'Demo · Distribution',   color:'#0A84FF', icon:'💧', real:false},
-  {id:'sewer',          label:'Sewer',         sub:'Demo · Gravity lines',  color:'#32D74B', icon:'🔄', real:false},
-  {id:'gas',            label:'Gas',           sub:'Demo · Distribution',   color:'#FF9F0A', icon:'🔥', real:false},
+  {id:'telecom',        label:'Telecom',       sub:'Demo · Fiber/coax',     color:'#FF6600', icon:'📡', real:false},
+  {id:'water',          label:'Water',         sub:'Demo · Distribution',   color:'#0000CC', icon:'💧', real:false},
+  {id:'sewer',          label:'Sewer',         sub:'Demo · Gravity lines',  color:'#00AA00', icon:'🔄', real:false},
+  {id:'gas',            label:'Gas',           sub:'Demo · Distribution',   color:'#FFD700', icon:'🔥', real:false},
 ];
 const layerState = {hifld_lines:true,hifld_sub:true,telecom:true,water:true,sewer:true,gas:true};
 
@@ -764,7 +764,7 @@ function genLines(city) {
   const lines = [];
   const seed = city.id.charCodeAt(0);
   const layerTypes = ['elec','elec2','telecom','water','sewer','gas'];
-  const colors = {'elec':'#FF453A','elec2':'#FF9F0A','telecom':'#30D158','water':'#0A84FF','sewer':'#32D74B','gas':'#FF9F0A'};
+  const colors = {'elec':'#FF0000','elec2':'#74C5E8','telecom':'#FF6600','water':'#0000CC','sewer':'#00AA00','gas':'#FFD700'};
 
   for (let l = 0; l < city.lines; l++) {
     const layerType = layerTypes[l % layerTypes.length];
@@ -803,12 +803,12 @@ function boundsKey(b) {
 }
 
 function voltageColor(v) {
-  if(!v||v==='UNKNOWN'||v==='NOT AVAILABLE') return '#FF9F0A';
+  if(!v||v==='UNKNOWN'||v==='NOT AVAILABLE') return '#FF0000';
   const kv = parseFloat(v);
-  if(kv >= 500) return '#FF453A';   // 500kV+ — thick red
-  if(kv >= 230) return '#FF6B35';   // 230–499kV — orange-red
-  if(kv >= 115) return '#FF9F0A';   // 115–229kV — amber
-  return '#FFD60A';                  // 69–114kV — yellow
+  if(kv >= 500) return '#FF0000';   // 500kV+ — thick red
+  if(kv >= 230) return '#CC0000';   // 230–499kV — dark red
+  if(kv >= 115) return '#FF3333';   // 115–229kV — mid red
+  return '#FF6666';                  // 69–114kV — light red
 }
 
 function voltageWeight(v) {
@@ -913,9 +913,9 @@ function renderHIFLDSubs(geojson) {
       className: '',
       html: `<div style="
         width:20px;height:20px;border-radius:4px;
-        background:#FF9F0A;border:2px solid #fff;
+        background:#74C5E8;border:2px solid #fff;
         display:flex;align-items:center;justify-content:center;
-        font-size:7px;font-weight:800;color:#fff;
+        font-size:7px;font-weight:800;color:#1a1a2e;
         font-family:'JetBrains Mono',monospace;
         box-shadow:0 2px 6px rgba(0,0,0,.5);
         cursor:pointer;
@@ -1100,7 +1100,7 @@ function plotCity(city) {
   // Draw asset markers
   assets.forEach(asset => {
     const def = ASSET_TYPES[asset.type];
-    const condColors = {good:'#30D158',fair:'#FF9F0A',poor:'#FF453A',unknown:'#636366'};
+    const condColors = {good:'#00AA00',fair:'#FFD700',poor:'#FF0000',unknown:'#636366'};
     const condColor = condColors[asset.condition];
     const sz = def.size;
 
@@ -1209,7 +1209,7 @@ function renderLayerGrid() {
     <div class="util-tile ${layerState[l.id]?'on':'off'}" onclick="toggleLayer('${l.id}')">
       <div class="ut-badge"></div>
       <div class="ut-icon" style="background:${l.color}22;">
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="${l.color}" stroke-width="2" stroke-linecap="round">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#74C5E8" stroke-width="2" stroke-linecap="round">
           ${l.id==='telecom'?'<path d="M1 6l10.07 10L22 6"/><path d="M22 18H2"/>':
             l.id==='water'?'<path d="M12 2v6m0 0C8 8 5 11 5 14a7 7 0 0 0 14 0c0-3-3-6-7-6z"/>':
             l.id==='sewer'?'<circle cx="12" cy="12" r="4"/><path d="M12 2v4m0 12v4M2 12h4m12 0h4"/>':
