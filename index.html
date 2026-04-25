@@ -5016,11 +5016,22 @@ window.addEventListener('DOMContentLoaded', function() {
     <div style="padding:0 14px;">
       <div style="font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">Other 811 centers</div>
       <div style="background:var(--bg-card);border-radius:14px;border:1px solid var(--border-subtle);overflow:hidden;">
-        ${['Georgia — 811','Illinois — JULIE','Texas — Texas 811','Arizona — Blue Stake 811'].map((s,i) => `
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:${i<3?'1px solid var(--border-subtle)':'none'};">
-          <span style="font-size:13px;font-weight:500;color:var(--t1);">${s}</span>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border-subtle);">
+          <span style="font-size:13px;font-weight:500;color:var(--t1);">Georgia — 811</span>
           <a href="tel:811" style="color:var(--brand);font-size:13px;font-weight:600;text-decoration:none;">Call 811</a>
-        </div>`).join('')}
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border-subtle);">
+          <span style="font-size:13px;font-weight:500;color:var(--t1);">Illinois — JULIE</span>
+          <a href="tel:811" style="color:var(--brand);font-size:13px;font-weight:600;text-decoration:none;">Call 811</a>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border-subtle);">
+          <span style="font-size:13px;font-weight:500;color:var(--t1);">Texas — Texas 811</span>
+          <a href="tel:811" style="color:var(--brand);font-size:13px;font-weight:600;text-decoration:none;">Call 811</a>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;">
+          <span style="font-size:13px;font-weight:500;color:var(--t1);">Arizona — Blue Stake 811</span>
+          <a href="tel:811" style="color:var(--brand);font-size:13px;font-weight:600;text-decoration:none;">Call 811</a>
+        </div>
       </div>
     </div>
 
@@ -5028,16 +5039,22 @@ window.addEventListener('DOMContentLoaded', function() {
     <div style="margin:12px 14px 0;">
       <div style="font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">What happens next</div>
       <div style="background:var(--bg-card);border-radius:14px;padding:14px;border:1px solid var(--border-subtle);">
-        ${[
-          ['1','Call or submit online','811 takes your excavation details'],
-          ['2','Utilities notified','One call notifies all member utilities'],
-          ['3','Lines marked','Field techs mark lines within 3 days'],
-          ['4','Safe to dig','Only dig once all lines are marked'],
-        ].map(([n,t,s]) => `
         <div style="display:flex;gap:12px;padding:8px 0;border-bottom:1px solid var(--border-subtle);">
-          <div style="width:24px;height:24px;border-radius:50%;background:var(--brand);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0;">${n}</div>
-          <div><div style="font-size:13px;font-weight:500;color:var(--t1);">${t}</div><div style="font-size:11px;color:var(--t3);margin-top:2px;">${s}</div></div>
-        </div>`).join('').replace(/border-bottom:1px solid var\(--border-subtle\);">\s*<\/div>\s*$/, ';" style="border-bottom:none;">')}
+          <div style="width:24px;height:24px;border-radius:50%;background:var(--brand);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0;">1</div>
+          <div><div style="font-size:13px;font-weight:500;color:var(--t1);">Call or submit online</div><div style="font-size:11px;color:var(--t3);margin-top:2px;">811 takes your excavation details</div></div>
+        </div>
+        <div style="display:flex;gap:12px;padding:8px 0;border-bottom:1px solid var(--border-subtle);">
+          <div style="width:24px;height:24px;border-radius:50%;background:var(--brand);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0;">2</div>
+          <div><div style="font-size:13px;font-weight:500;color:var(--t1);">Utilities notified</div><div style="font-size:11px;color:var(--t3);margin-top:2px;">One call notifies all member utilities</div></div>
+        </div>
+        <div style="display:flex;gap:12px;padding:8px 0;border-bottom:1px solid var(--border-subtle);">
+          <div style="width:24px;height:24px;border-radius:50%;background:var(--brand);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0;">3</div>
+          <div><div style="font-size:13px;font-weight:500;color:var(--t1);">Lines marked</div><div style="font-size:11px;color:var(--t3);margin-top:2px;">Field techs mark lines within 3 days</div></div>
+        </div>
+        <div style="display:flex;gap:12px;padding:8px 0;">
+          <div style="width:24px;height:24px;border-radius:50%;background:var(--brand);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0;">4</div>
+          <div><div style="font-size:13px;font-weight:500;color:var(--t1);">Safe to dig</div><div style="font-size:11px;color:var(--t3);margin-top:2px;">Only dig once all lines are marked</div></div>
+        </div>
       </div>
     </div>
   </div>
