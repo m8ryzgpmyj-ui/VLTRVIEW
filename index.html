@@ -2859,9 +2859,7 @@ async function shareViaSystem() {
     try {
       await navigator.share({
         title: 'VLTRVIEW Work Order — ' + ((wo ? wo.id : '')),
-        text: ((wo ? wo.title : '')) + '
-Asset: ' + ((wo ? wo.asset : '')) + '
-Assigned: ' + ((wo ? wo.crew : '')),
+        text: ((wo ? wo.title : '')) + ' Asset: ' + ((wo ? wo.asset : '')) + ' Assigned: ' + ((wo ? wo.crew : '')),
         url: link,
       });
     } catch(e) {
@@ -3177,7 +3175,6 @@ window.addEventListener('DOMContentLoaded', function() {
     }
     var bar = document.getElementById('splash-bar');
     if (bar) { bar.style.background = '#FF453A'; bar.style.width = '100%'; }
-  }
 });
 </script>
 
@@ -3574,5 +3571,3 @@ window.addEventListener('DOMContentLoaded', function() {
 
 </body>
 </html>
-HTMLEOF
-echo "Done — $(wc -l < /home/claude/vltrview-nationwide.html) lines, $(du -sh /home/claude/vltrview-nationwide.html | cut -f1)"
