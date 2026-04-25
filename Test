@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>VLTRVIEW — Test</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#0A0A0F;color:#fff;font-family:sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;}
+#status{font-size:18px;margin:20px;padding:20px;background:#1a1a2e;border-radius:12px;text-align:center;width:90%;max-width:400px;}
+.ok{color:#30D158;}
+.err{color:#FF453A;}
+button{margin:10px;padding:14px 28px;border-radius:12px;border:none;background:#0A84FF;color:#fff;font-size:16px;cursor:pointer;}
+</style>
+</head>
+<body>
+<div style="font-size:28px;font-weight:800;margin-bottom:8px;">VLTRVIEW</div>
+<div style="font-size:12px;color:#0A84FF;letter-spacing:2px;margin-bottom:24px;">DIAGNOSTIC TEST</div>
+<div id="status">Running checks...</div>
+<button onclick="location.href='https://vltrviewbeta1.netlify.app'">Go to main app</button>
+<script>
+var results = [];
+function check(label, val) {
+  results.push(val ? '✓ ' + label : '✗ ' + label);
+  render();
+}
+function render() {
+  document.getElementById('status').innerHTML = results.map(function(r) {
+    return '<div class="' + (r[0]==='✓'?'ok':'err') + '">' + r + '</div>';
+  }).join('');
+}
+
+// Basic JS works (we got here)
+check('JavaScript executing', true);
+
+// Check APIs
+check('localStorage available', (function(){try{localStorage.setItem('t','1');localStorage.removeItem('t');return true;}catch(e){return false;}})());
+check('fetch available', typeof fetch === 'function');
+check('Promise available', typeof Promise === 'function');
+check('async/await (indirect)', typeof Promise.resolve === 'function');
+
+// Check Leaflet would load
+var s = document.createElement('script');
+s.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+s.onload = function() { check('Leaflet loaded OK', true); };
+s.onerror = function() { check('Leaflet FAILED to load', false); };
+document.head.appendChild(s);
+
+// Check geolocation
+check('Geolocation API', 'geolocation' in navigator);
+
+// Check service worker
+check('Service Worker API', 'serviceWorker' in navigator);
+
+// Done
+setTimeout(function() {
+  check('DOMContentLoaded fired', true);
+}, 100);
+</script>
+</body>
+</html>
