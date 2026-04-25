@@ -1,37 +1,10 @@
-# Netlify configuration for VLTRVIEW PWA
-
 [build]
   publish = "."
 
-# Correct MIME types and headers for PWA
-[[headers]]
-  for = "/sw.js"
-  [headers.values]
-    Content-Type = "application/javascript"
-    Cache-Control = "no-cache"
-    Service-Worker-Allowed = "/"
+[forms]
+  success_url = "/"
 
 [[headers]]
-  for = "/manifest.json"
+  for = "/*"
   [headers.values]
-    Content-Type = "application/manifest+json"
-    Cache-Control = "public, max-age=86400"
-
-[[headers]]
-  for = "/*.html"
-  [headers.values]
-    Cache-Control = "public, max-age=0, must-revalidate"
-    X-Frame-Options = "DENY"
-    X-Content-Type-Options = "nosniff"
-    Referrer-Policy = "strict-origin-when-cross-origin"
-
-[[headers]]
-  for = "/icons/*"
-  [headers.values]
-    Cache-Control = "public, max-age=31536000, immutable"
-
-# Redirect all routes to index.html (SPA routing)
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
+    Cache-Control = "no-cache, no-store, must-revalidate"
