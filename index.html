@@ -1593,7 +1593,7 @@ function renderHIFLDLines(geojson) {
 
   hifldLinesLayer = L.geoJSON(geojson, {
     style: feature => {
-      const v = feature.properties?.VOLTAGE;
+      const v = feature.(properties && properties.VOLTAGE);
       return {
         color: voltageColor(v),
         weight: voltageWeight(v),
@@ -1613,7 +1613,7 @@ function renderHIFLDLines(geojson) {
   });
 
   if(layerState.hifld_lines) hifldLinesLayer.addTo(map);
-  perfData.hifldLines = geojson.features?.length || 0;
+  perfData.hifldLines = geojson.(features && features.length) || 0;
   updateHIFLDLineCount(perfData.hifldLines);
   updatePerfIndicator();
 }
@@ -1624,7 +1624,7 @@ function renderHIFLDSubs(geojson) {
 
   (geojson.features || []).forEach(f => {
     const p = f.properties || {};
-    const coords = f.geometry?.coordinates;
+    const coords = f.(geometry && geometry.coordinates);
     if(!coords) return;
 
     const maxV = p.MAX_VOLT || '?';
@@ -1651,7 +1651,7 @@ function renderHIFLDSubs(geojson) {
   });
 
   if(layerState.hifld_sub) hifldSubsLayer.addTo(map);
-  updateHIFLDSubCount(geojson.features?.length || 0);
+  updateHIFLDSubCount(geojson.(features && features.length) || 0);
 }
 
 function showTransmissionPopup(voltage, owner, type, latlng) {
@@ -1725,7 +1725,7 @@ async function loadHIFLDData() {
 
     renderHIFLDLines(linesData);
     renderHIFLDSubs(subsData);
-    showHIFLDStatus('loaded', (linesData.features?.length||0), (subsData.features?.length||0));
+    showHIFLDStatus('loaded', (linesData.(features && features.length)||0), (subsData.(features && features.length)||0));
 
   } catch(err) {
     console.warn('HIFLD fetch error:', err);
@@ -1860,13 +1860,13 @@ function renderOSMPower(data) {
   (data.elements || []).forEach(el => {
     const pt = osmCenter(el);
     if (!pt) return;
-    const pwr = el.tags?.power || 'transformer';
+    const pwr = el.(tags && tags.power) || 'transformer';
     const cfg = icons[pwr] || icons.transformer;
     const sz = cfg.size;
 
-    const voltRaw = el.tags?.voltage || el.tags?.['voltage:primary'] || '';
+    const voltRaw = (el.tags && el.tags.voltage) || (el.tags && el.tags['voltage:primary']) || '';
     const voltStr = voltRaw ? ' · ' + voltRaw + 'V' : '';
-    const name = el.tags?.name || el.tags?.ref || cfg.label;
+    const name = el.(tags && tags.name) || el.(tags && tags.ref) || cfg.label;
 
     const icon = L.divIcon({
       className: '',
@@ -1940,8 +1940,8 @@ function renderOSMWater(data) {
   (data.elements || []).forEach(el => {
     const pt = osmCenter(el);
     if (!pt) return;
-    const wtype = el.tags?.emergency === 'fire_hydrant' ? 'fire_hydrant'
-      : el.tags?.man_made || el.tags?.waterway || 'fire_hydrant';
+    const wtype = el.(tags && tags.emergency) === 'fire_hydrant' ? 'fire_hydrant'
+      : el.(tags && tags.man_made) || el.(tags && tags.waterway) || 'fire_hydrant';
     const cfg = waterIcons[wtype] || waterIcons.fire_hydrant;
     const sz = 18;
 
@@ -2305,7 +2305,7 @@ function showAssetPopup(asset) {
   const city = CITIES.find(c=>c.id===asset.city);
 
   document.getElementById('ap-title').textContent = asset.id + ' — ' + def.label;
-  document.getElementById('ap-sub').textContent = (city?.name||asset.city) + ', USA · ' + asset.owner;
+  document.getElementById('ap-sub').textContent = ((city && city.name)||asset.city) + ', USA · ' + asset.owner;
 
   // Next inspection date (simulate: 1 year after last)
   const lastDate = new Date(asset.lastInsp);
@@ -2339,7 +2339,7 @@ function showAssetPopup(asset) {
       <span class="ap-k">Next inspection</span>
       <span class="ap-v" style="color:${overdue?'#FF0000':'var(--t1)'};">${nextStr}${overdue?' ⚠️ OVERDUE':''}</span>
     </div>
-    <div class="ap-row"><span class="ap-k">City</span><span class="ap-v">${city?.name||asset.city}, ${city?.state||'USA'}</span></div>
+    <div class="ap-row"><span class="ap-k">City</span><span class="ap-v">${(city && city.name)||asset.city}, ${(city && city.state)||'USA'}</span></div>
     <div class="ap-row"><span class="ap-k">GPS</span><span class="ap-v" style="font-family:'JetBrains Mono',monospace;font-size:11px;">${asset.lat.toFixed(5)}°N ${Math.abs(asset.lon).toFixed(5)}°W</span></div>
     <div class="ap-row"><span class="ap-k">Source</span><span class="ap-v">VLTRVIEW Demo Data</span></div>
   `;
@@ -2496,9 +2496,9 @@ const allPanels=['orders','crew','route','notif','photos','damage'];
 function switchTab(tab, btn) {
   document.querySelectorAll('.bnav-btn').forEach(b=>b.classList.remove('active'));
   if(btn) btn.classList.add('active');
-  allPanels.forEach(p=>document.getElementById('panel-'+p)?.classList.remove('open'));
+  allPanels.forEach(function(p){var _pe=document.getElementById('panel-'+p);if(_pe)_pe.classList.remove('open');});
   if(tab==='map'){ closeAssetPopup(); }
-  else { document.getElementById('panel-'+tab)?.classList.add('open'); }
+  else { (document.getElementById('panel-'+tab) && document.getElementById('panel-'+tab).classList).add('open'); }
 }
 
 // ── TOAST ──
@@ -3058,10 +3058,10 @@ function loadFromStorage() {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return false;
     const data = JSON.parse(raw);
-    if (data.workOrders?.length)   workOrders   = data.workOrders;
-    if (data.damageReports?.length) damageReports = data.damageReports;
-    if (data.photos?.length)       photos        = data.photos;
-    if (data.fieldNotes?.length)   fieldNotes    = data.fieldNotes;
+    if (data.(workOrders && workOrders.length))   workOrders   = data.workOrders;
+    if (data.(damageReports && damageReports.length)) damageReports = data.damageReports;
+    if (data.(photos && photos.length))       photos        = data.photos;
+    if (data.(fieldNotes && fieldNotes.length))   fieldNotes    = data.fieldNotes;
     return true;
   } catch(e) {
     console.warn('Storage load failed:', e);
@@ -3211,10 +3211,10 @@ async function shareViaSystem() {
   if (navigator.share) {
     try {
       await navigator.share({
-        title: 'VLTRVIEW Work Order — ' + (wo?.id || ''),
-        text: (wo?.title || '') + '
-Asset: ' + (wo?.asset || '') + '
-Assigned: ' + (wo?.crew || ''),
+        title: 'VLTRVIEW Work Order — ' + ((wo && wo.id) || ''),
+        text: ((wo && wo.title) || '') + '
+Asset: ' + ((wo && wo.asset) || '') + '
+Assigned: ' + ((wo && wo.crew) || ''),
         url: link,
       });
     } catch(e) {
@@ -3510,7 +3510,7 @@ function syncSettingToggles() {
     }
   });
   const styleEl = document.getElementById('set-map-style-val');
-  if (styleEl) styleEl.textContent = currentStyle?.label || 'Light';
+  if (styleEl) styleEl.textContent = (currentStyle && currentStyle.label) || 'Light';
 }
 
 function cycleMapStyle() {
@@ -3559,9 +3559,9 @@ function startClock() {
 // ── DASHBOARD ──
 function openDashboard() {
   try { renderDashboard(); } catch(e) { console.warn('renderDashboard:',e); }
-  document.getElementById('panel-dash')?.classList.add('open');
-  document.getElementById('panel-settings')?.classList.remove('open');
-  allPanels.forEach(p=>document.getElementById('panel-'+p)?.classList.remove('open'));
+  (function(){var _e=document.getElementById('panel-dash');if(_e)_e.classList.add('open');})();
+  (function(){var _e=document.getElementById('panel-settings');if(_e)_e.classList.remove('open');})();
+  allPanels.forEach(function(p){var _pe=document.getElementById('panel-'+p);if(_pe)_pe.classList.remove('open');});
   document.querySelectorAll('.bnav-btn').forEach(b => b.classList.remove('active'));
 }
 
@@ -3620,7 +3620,7 @@ function renderDashboard() {
         </div>
         <div style="flex:1;">
           <div style="font-size:13px;font-weight:600;color:var(--t1);">${a.id} — Poor condition</div>
-          <div style="font-size:11px;color:var(--t3);margin-top:2px;">${a.cityName} · ${ASSET_TYPES[a.type]?.label || a.type}</div>
+          <div style="font-size:11px;color:var(--t3);margin-top:2px;">${a.cityName} · ${(ASSET_TYPES[a.type] && ASSET_TYPES[a.type].label) || a.type}</div>
         </div>
         <div style="font-size:11px;color:#FF0000;font-weight:600;">Action needed</div>
       </div>`).join('');
@@ -3668,9 +3668,9 @@ function renderDashboard() {
 
 // ── SETTINGS TAB ──
 function openSettings() {
-  document.getElementById('panel-settings')?.classList.add('open');
-  document.getElementById('panel-dash')?.classList.remove('open');
-  allPanels.forEach(p=>document.getElementById('panel-'+p)?.classList.remove('open'));
+  (function(){var _e=document.getElementById('panel-settings');if(_e)_e.classList.add('open');})();
+  (function(){var _e=document.getElementById('panel-dash');if(_e)_e.classList.remove('open');})();
+  allPanels.forEach(function(p){var _pe=document.getElementById('panel-'+p);if(_pe)_pe.classList.remove('open');});
   document.querySelectorAll('.bnav-btn').forEach(b => b.classList.remove('active'));
   try { syncSettingToggles(); } catch(e) {}
 }
@@ -3755,14 +3755,14 @@ function upgradeTopbar() {
 // ── SWITCH TAB EXTENDED — handle dash + settings ──
 // Note: we extend switchTab after it's defined, using a wrapper approach
 const _sprint3SwitchTab = function(tab, btn) {
-  document.getElementById('panel-dash')?.classList.remove('open');
-  document.getElementById('panel-settings')?.classList.remove('open');
+  (function(){var _e=document.getElementById('panel-dash');if(_e)_e.classList.remove('open');})();
+  (function(){var _e=document.getElementById('panel-settings');if(_e)_e.classList.remove('open');})();
   // Call the original switchTab logic inline
   document.querySelectorAll('.bnav-btn').forEach(b=>b.classList.remove('active'));
   if(btn) btn.classList.add('active');
-  allPanels.forEach(p=>document.getElementById('panel-'+p)?.classList.remove('open'));
-  if(tab==='map'){ closeAssetPopup?.(); }
-  else { document.getElementById('panel-'+tab)?.classList.add('open'); }
+  allPanels.forEach(function(p){var _pe=document.getElementById('panel-'+p);if(_pe)_pe.classList.remove('open');});
+  if(tab==='map'){ (typeof closeAssetPopup === 'function' && closeAssetPopup()); }
+  else { (document.getElementById('panel-'+tab) && document.getElementById('panel-'+tab).classList).add('open'); }
 };
 
 // ── UPDATE BOTTOM NAV — add Dash + Settings ──
@@ -3847,11 +3847,11 @@ function startCrewTicker() {
     tick++;
     crewMembers.forEach((c, i) => {
       if (c.status !== 'offline') {
-        c.task = crewActivities[i]?.[tick % 4] || c.task;
+        c.task = (crewActivities[i] && crewActivities[i][tick % 4]) || c.task;
       }
     });
     // Only re-render if crew panel is open
-    if (document.getElementById('panel-crew')?.classList.contains('open')) {
+    if ((document.getElementById('panel-crew') && document.getElementById('panel-crew').classList).contains('open')) {
       renderCrew();
     }
   }, 7000);
@@ -4642,7 +4642,7 @@ window.addEventListener('DOMContentLoaded', function() {
       <div id="wod-id" style="font-size:11px;color:var(--brand);font-family:'JetBrains Mono',monospace;"></div>
       <div id="wod-title-small" style="font-size:14px;font-weight:600;color:var(--t1);"></div>
     </div>
-    <button onclick="printWO(currentWO?.id)" style="background:none;border:none;color:var(--t2);cursor:pointer;padding:8px;">
+    <button onclick="printWO((currentWO && currentWO.id))" style="background:none;border:none;color:var(--t2);cursor:pointer;padding:8px;">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
     </button>
   </div>
@@ -4657,12 +4657,12 @@ window.addEventListener('DOMContentLoaded', function() {
       <div id="wod-notes" style="font-size:13px;color:var(--t2);line-height:1.6;"></div>
     </div>
     <div class="wod-actions">
-      <button class="wod-btn wod-btn-share" onclick="shareWO(currentWO?.id)">Share</button>
-      <button class="wod-btn wod-btn-pri" onclick="markWODone(currentWO?.id);closeWODetail()">Mark done</button>
+      <button class="wod-btn wod-btn-share" onclick="shareWO((currentWO && currentWO.id))">Share</button>
+      <button class="wod-btn wod-btn-pri" onclick="markWODone((currentWO && currentWO.id));closeWODetail()">Mark done</button>
     </div>
     <div class="wod-actions" style="margin-top:8px;">
-      <button class="wod-btn wod-btn-print" onclick="printWO(currentWO?.id)">Print / PDF</button>
-      <button class="wod-btn wod-btn-danger" onclick="deleteWO(currentWO?.id)">Delete</button>
+      <button class="wod-btn wod-btn-print" onclick="printWO((currentWO && currentWO.id))">Print / PDF</button>
+      <button class="wod-btn wod-btn-danger" onclick="deleteWO((currentWO && currentWO.id))">Delete</button>
     </div>
   </div>
 </div>
