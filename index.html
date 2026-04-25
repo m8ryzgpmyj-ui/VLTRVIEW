@@ -1381,7 +1381,7 @@ function genAssets(city) {
   var conds = ['good','good','good','fair','fair','poor','unknown'];
   var assets = [];
   var seed = city.id.charCodeAt(0);
-  var assetLimit = Math.min(city.assets, 15);
+  var assetLimit = Math.min(city.assets, 8);
   for (var i = 0; i < assetLimit; i++) {
     var type = types[i % types.length];
     var angle = (seed * 137.5 + i * 47.3) * Math.PI / 180;
@@ -1409,8 +1409,9 @@ function genLines(city) {
   var seed = city.id.charCodeAt(0);
   var layerTypes = ['elec','elec2','telecom','water','sewer','gas'];
   var colors = {'elec':'#FF0000','elec2':'#74C5E8','telecom':'#FF6600','water':'#0000CC','sewer':'#00AA00','gas':'#FFD700'};
+  var lineLimit = Math.min(city.lines, 6);
 
-  for (var l = 0; l < city.lines; l++) {
+  for (var l = 0; l < lineLimit; l++) {
     var layerType = layerTypes[l % layerTypes.length];
     var color = colors[layerType];
     var pts = [];
@@ -1519,7 +1520,6 @@ function renderHIFLDLines(geojson) {
   if(hifldLinesLayer) map.removeLayer(hifldLinesLayer);
 
   hifldLinesLayer = L.geoJSON(geojson, {
-    renderer: L.canvas({padding: 0.5}),
     style: function(feature) {
       var v = (feature.properties && feature.properties.VOLTAGE);
       var kv = parseFloat(v) || 0;
@@ -1966,6 +1966,7 @@ function initMap() {
     zoomControl: true,
     attributionControl: true,
     preferCanvas: true,
+    renderer: L.canvas({padding: 0.5, tolerance: 5}),
   });
 
   // Position zoom controls
@@ -2032,7 +2033,6 @@ function plotCity(city) {
       dashArray: lineB.dashed ? '5 4' : null,
       lineCap: 'round',
       lineJoin: 'round',
-      renderer: L.canvas(),
     });
     polyB.layerType = lineB.layer;
     polyB.addTo(map);
@@ -2071,18 +2071,17 @@ function plotCity(city) {
   }
 }
 
+var _lastZoom = -1;
 function onMapMove() {
-  // Show asset markers only when zoomed in enough
   var zoom = map.getZoom();
-  for (var ami = 0; ami < assetMarkers.length; ami++) {
-    var m = assetMarkers[ami].marker;
-    var el = m.getElement();
-    if (el) el.style.display = zoom >= 14 ? '' : 'none';
-  }
-  // Hide OSM markers at low zoom too
-  if (osmPowerLayer) {
-    var osmEls = document.querySelectorAll('.leaflet-marker-pane .leaflet-marker-icon');
-    // OSM visibility handled by loadOSMData zoom check
+  // Only update marker visibility when zoom level actually changes
+  if (zoom !== _lastZoom) {
+    _lastZoom = zoom;
+    for (var ami = 0; ami < assetMarkers.length; ami++) {
+      var m = assetMarkers[ami].marker;
+      var el = m.getElement();
+      if (el) el.style.display = zoom >= 14 ? '' : 'none';
+    }
   }
 
   // Show voltage legend when zoomed in enough for HIFLD data
@@ -2947,9 +2946,7 @@ function runSplash() {
         setTimeout(() => {
           splash.style.display = 'none';
           // Start hotspot tour after map visible
-          if (!isOnboarded()) {
-            setTimeout(() => startHotspots(), 800);
-          }
+  
         }, 520);
       }, 300);
       return;
@@ -3701,7 +3698,7 @@ function debouncedHIFLD() {
   clearTimeout(hifldDebounceTimer);
   hifldDebounceTimer = setTimeout(function() {
     loadHIFLDData();
-  }, 600);
+  }, 1500);
 }
 
 function debouncedOSM() {
@@ -3709,7 +3706,7 @@ function debouncedOSM() {
   clearTimeout(osmDebounceTimer);
   osmDebounceTimer = setTimeout(function() {
     loadOSMData();
-  }, 800);
+  }, 2000);
 }
 
 // ── UPGRADE MAP HOOKS with debounce ──
@@ -3719,13 +3716,21 @@ function upgradeMapHooks() {
   map.off('zoomend');
   map.on('moveend', function() {
     onMapMove();
-    if (map.getZoom() >= 8) debouncedHIFLD();
-    if (map.getZoom() >= 13) debouncedOSM();
+    // Only fetch new data on zoom change, not every pan
+    // This is the main performance improvement
   });
   map.on('zoomend', function() {
     onMapMove();
     if (map.getZoom() >= 8) debouncedHIFLD();
     if (map.getZoom() >= 13) debouncedOSM();
+  });
+  // Also load HIFLD when user stops panning for 3 seconds
+  var panTimer = null;
+  map.on('moveend', function() {
+    clearTimeout(panTimer);
+    panTimer = setTimeout(function() {
+      if (map.getZoom() >= 8) debouncedHIFLD();
+    }, 3000);
   });
 }
 
@@ -4278,29 +4283,16 @@ function startAppDemo() {
     if (banner) banner.classList.add('show');
   }, 800);
 
-  // City fly-through — visit all 6 cities
-  var delays = [500, 2500, 4500, 6500, 8500, 10500];
-  for (var i = 0; i < CITIES.length; i++) {
-    (function(city, delay) {
-      setTimeout(function() {
-        if (typeof map !== 'undefined' && map) {
-          map.flyTo([city.lat, city.lon], city.zoom, {duration: 1.8, easeLinearity: 0.3});
-          showToast(city.name + ', ' + city.state + ' — ' + city.assets + ' assets');
-        }
-      }, delay);
-    })(CITIES[i], delays[i]);
-  }
-
-  // After city tour, settle on Raleigh and load HIFLD
+  // Fly to Raleigh and load HIFLD data
   setTimeout(function() {
     if (typeof map !== 'undefined' && map) {
-      map.flyTo([35.7796, -78.6382], 13, {duration: 2, easeLinearity: 0.3});
+      map.setView([35.7796, -78.6382], 11);
+      showToast('Welcome to VLTRVIEW — tap any asset to inspect it');
       setTimeout(function() {
-        showToast('Loading real federal transmission data...');
         if (typeof loadHIFLDData === 'function') loadHIFLDData();
-      }, 2500);
+      }, 1500);
     }
-  }, 16000);
+  }, 500);
 }
 
 function exitDemo() {
