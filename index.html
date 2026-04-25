@@ -3338,41 +3338,67 @@ function renderDashboard() {
   var dashAlerts = document.getElementById('dash-alerts');
   if (poorList.length > 0 && alertSection && dashAlerts) {
     alertSection.style.display = 'block';
-    var alertHtml = '';
+    dashAlerts.innerHTML = '';
     for (var pi = 0; pi < poorList.length; pi++) {
-      var pa = poorList[pi];
-      alertHtml +=
-        '<div style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid var(--border-subtle);cursor:pointer;" data-city="' + pa.cityId + '" onclick="flyToCity(this.getAttribute(\"data-city\"));closeDash();">' +
-          '<div style="width:36px;height:36px;border-radius:10px;background:rgba(255,0,0,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;">' +
-            '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FF0000" stroke-width="2" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/></svg>' +
-          '</div>' +
-          '<div style="flex:1;">' +
-            '<div style="font-size:13px;font-weight:600;color:var(--t1);">' + pa.asset.id + ' - Poor condition</div>' +
-            '<div style="font-size:11px;color:var(--t3);margin-top:2px;">' + pa.cityName + '</div>' +
-          '</div>' +
-          '<div style="font-size:11px;color:#FF0000;font-weight:600;">Action needed</div>' +
-        '</div>';
+      (function(pa) {
+        var row = document.createElement('div');
+        row.style.cssText = 'display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid var(--border-subtle);cursor:pointer;';
+        row.onclick = function() { flyToCity(pa.cityId); closeDash(); };
+        var icon = document.createElement('div');
+        icon.style.cssText = 'width:36px;height:36px;border-radius:10px;background:rgba(255,0,0,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;';
+        icon.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FF0000" stroke-width="2" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/></svg>';
+        var info = document.createElement('div');
+        info.style.flex = '1';
+        var title = document.createElement('div');
+        title.style.cssText = 'font-size:13px;font-weight:600;color:var(--t1);';
+        title.textContent = pa.asset.id + ' - Poor condition';
+        var sub = document.createElement('div');
+        sub.style.cssText = 'font-size:11px;color:var(--t3);margin-top:2px;';
+        sub.textContent = pa.cityName;
+        info.appendChild(title);
+        info.appendChild(sub);
+        var badge = document.createElement('div');
+        badge.style.cssText = 'font-size:11px;color:#FF0000;font-weight:600;';
+        badge.textContent = 'Action needed';
+        row.appendChild(icon);
+        row.appendChild(info);
+        row.appendChild(badge);
+        dashAlerts.appendChild(row);
+      })(poorList[pi]);
     }
-    dashAlerts.innerHTML = alertHtml;
   } else if (alertSection) {
     alertSection.style.display = 'none';
   }
 
-  // City coverage
+  // City coverage - use DOM to avoid quote nesting issues
   var covGrid = document.getElementById('city-cov-grid');
   if (covGrid) {
-    var covHtml = '';
+    covGrid.innerHTML = '';
     for (var cci = 0; cci < CITIES.length; cci++) {
-      var c = CITIES[cci];
-      covHtml +=
-        '<div class="city-cov-card" data-city=' + c.id + ' onclick="flyToCity(this.getAttribute('data-city'));closeDash();">' +
-          '<div class="city-cov-dot" style="background:' + c.color + ';box-shadow:0 0 0 3px ' + c.color + '33;"></div>' +
-          '<div class="city-cov-name">' + c.name + '</div>' +
-          '<div class="city-cov-state">' + c.state + '</div>' +
-          '<div class="city-cov-count">' + c.assets + ' assets</div>' +
-        '</div>';
+      (function(city) {
+        var card = document.createElement('div');
+        card.className = 'city-cov-card';
+        card.onclick = function() { flyToCity(city.id); closeDash(); };
+        var dot = document.createElement('div');
+        dot.className = 'city-cov-dot';
+        dot.style.background = city.color;
+        dot.style.boxShadow = '0 0 0 3px ' + city.color + '33';
+        var name = document.createElement('div');
+        name.className = 'city-cov-name';
+        name.textContent = city.name;
+        var state = document.createElement('div');
+        state.className = 'city-cov-state';
+        state.textContent = city.state;
+        var count = document.createElement('div');
+        count.className = 'city-cov-count';
+        count.textContent = city.assets + ' assets';
+        card.appendChild(dot);
+        card.appendChild(name);
+        card.appendChild(state);
+        card.appendChild(count);
+        covGrid.appendChild(card);
+      })(CITIES[cci]);
     }
-    covGrid.innerHTML = covHtml;
   }
 
   // Activity feed
