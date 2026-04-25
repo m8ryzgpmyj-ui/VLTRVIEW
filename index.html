@@ -25,6 +25,7 @@ try {
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
 <meta http-equiv="Pragma" content="no-cache"/>
 <meta http-equiv="Expires" content="0"/>
+<meta name="version" content="1.0.2"/>
 <title>VLTRVIEW — Utility Locator</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -918,7 +919,7 @@ window.onunhandledrejection = function(e) {
     <div id="splash-bar" style="height:100%;width:0%;background:linear-gradient(90deg,#0A84FF,#30D158);border-radius:2px;transition:width .35s ease;"></div>
   </div>
   <div id="splash-status" style="font-size:11px;color:#636366;margin-top:10px;font-family:'JetBrains Mono',monospace;">Initializing...</div>
-  <div style="position:absolute;bottom:32px;font-size:11px;color:#2a2a3a;font-family:'JetBrains Mono',monospace;">v1.0.1-beta · © 2026 VLTRVIEW</div>
+  <div style="position:absolute;bottom:32px;font-size:11px;color:#2a2a3a;font-family:'JetBrains Mono',monospace;">v1.0.2-beta · © 2026 VLTRVIEW</div>
 </div>
 
 <div id="app">
@@ -1465,9 +1466,9 @@ async function fetchHIFLDLines(bounds) {
   const key = boundsKey(bounds);
   if(hifldCache.lines[key]) return hifldCache.lines[key];
 
-  const params = new URLSearchParams({
+  var params = new URLSearchParams({
     where: "STATUS='IN SERVICE'",
-    outFields: 'VOLTAGE,TYPE,STATUS,OWNER,NAICS_DESC',
+    outFields: 'VOLTAGE,TYPE,STATUS,OWNER',
     geometry: JSON.stringify({
       xmin: bounds.getWest(), ymin: bounds.getSouth(),
       xmax: bounds.getEast(), ymax: bounds.getNorth(),
@@ -1475,7 +1476,7 @@ async function fetchHIFLDLines(bounds) {
     }),
     geometryType: 'esriGeometryEnvelope',
     spatialRel: 'esriSpatialRelIntersects',
-    resultRecordCount: 500,
+    resultRecordCount: 200,
     outSR: 4326,
     f: 'geojson',
   });
@@ -1517,19 +1518,23 @@ function renderHIFLDLines(geojson) {
   if(hifldLinesLayer) map.removeLayer(hifldLinesLayer);
 
   hifldLinesLayer = L.geoJSON(geojson, {
-    style: feature => {
-      const v = (feature.properties && feature.properties.VOLTAGE);
+    renderer: L.canvas({padding: 0.5}),
+    style: function(feature) {
+      var v = (feature.properties && feature.properties.VOLTAGE);
+      var kv = parseFloat(v) || 0;
       return {
         color: voltageColor(v),
-        weight: voltageWeight(v),
-        opacity: 0.85,
+        weight: kv >= 500 ? 3 : kv >= 230 ? 2.5 : 2,
+        opacity: 0.8,
         dashArray: null,
+        lineCap: 'round',
+        lineJoin: 'round',
       };
     },
-    onEachFeature: (feature, layer) => {
-      const p = feature.properties || {};
-      const v = p.VOLTAGE || 'Unknown';
-      const owner = p.OWNER || 'Unknown utility';
+    onEachFeature: function(feature, layer) {
+      var p = feature.properties || {};
+      var v = p.VOLTAGE || 'Unknown';
+      var owner = p.OWNER || 'Unknown utility';
       layer.on('click', e => {
         L.DomEvent.stopPropagation(e);
         showTransmissionPopup(v, owner, p.TYPE, e.latlng);
@@ -1551,26 +1556,19 @@ function renderHIFLDSubs(geojson) {
     if(!coords) return;
 
     const maxV = p.MAX_VOLT || '?';
-    const icon = L.divIcon({
+    var subIcon = L.divIcon({
       className: '',
-      html: `<div style="
-        width:20px;height:20px;border-radius:4px;
-        background:#74C5E8;border:2px solid #fff;
-        display:flex;align-items:center;justify-content:center;
-        font-size:7px;font-weight:800;color:#1a1a2e;
-        font-family:'JetBrains Mono',monospace;
-        box-shadow:0 2px 6px rgba(0,0,0,.5);
-        cursor:pointer;
-      ">SUB</div>`,
-      iconSize:[20,20], iconAnchor:[10,10],
+      html: '<div style="width:14px;height:14px;border-radius:3px;background:#74C5E8;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.4);cursor:pointer;"></div>',
+      iconSize: [14, 14],
+      iconAnchor: [7, 7],
     });
 
-    const marker = L.marker([coords[1], coords[0]], {icon});
-    marker.on('click', e => {
+    var subMarker = L.marker([coords[1], coords[0]], {icon: subIcon});
+    subMarker.on('click', function(e) {
       L.DomEvent.stopPropagation(e);
       showSubstationPopup(p);
     });
-    hifldSubsLayer.addLayer(marker);
+    hifldSubsLayer.addLayer(subMarker);
   });
 
   if(layerState.hifld_sub) hifldSubsLayer.addTo(map);
@@ -2016,56 +2014,67 @@ function plotCity(city) {
   const lines = genLines(city);
 
   // Draw utility lines
-  lines.forEach(line => {
-    const poly = L.polyline(line.pts, {
-      color: line.color,
-      weight: 3,
-      opacity: 0.75,
-      dashArray: line.dashed ? '8 6' : null,
-      className: `utility-line layer-${line.layer}`,
+  for (var li2 = 0; li2 < lines.length; li2++) {
+    var lineB = lines[li2];
+    var polyB = L.polyline(lineB.pts, {
+      color: lineB.color,
+      weight: 2.5,
+      opacity: 0.7,
+      dashArray: lineB.dashed ? '6 5' : null,
+      lineCap: 'round',
+      lineJoin: 'round',
     });
-    poly.layerType = line.layer;
-    poly.addTo(map);
-    linePolys.push(poly);
-    if (!layerState[line.layer]) poly.setStyle({opacity:0});
-  });
+    polyB.layerType = lineB.layer;
+    polyB.addTo(map);
+    linePolys.push(polyB);
+    if (!layerState[lineB.layer]) polyB.setStyle({opacity:0});
+  }
 
-  // Draw asset markers
-  assets.forEach(asset => {
-    const def = ASSET_TYPES[asset.type];
-    const condColors = {good:'#00AA00',fair:'#FFD700',poor:'#FF0000',unknown:'#636366'};
-    const condColor = condColors[asset.condition];
-    const sz = def.size;
+  // Draw asset markers — zoom-aware
+  for (var aii = 0; aii < assets.length; aii++) {
+    var asset = assets[aii];
+    var def = ASSET_TYPES[asset.type];
+    var condColors = {good:'#00AA00',fair:'#FFD700',poor:'#FF0000',unknown:'#636366'};
+    var condColor = condColors[asset.condition];
+    var sz = def.size;
 
-    const icon = L.divIcon({
+    var icon = L.divIcon({
       className: '',
-      html: `<div style="
-        width:${sz}px;height:${sz}px;border-radius:50%;
-        background:${def.color};
-        border:2.5px solid ${condColor};
-        display:flex;align-items:center;justify-content:center;
-        font-size:${sz < 26 ? 7.5 : 9}px;font-weight:700;color:#fff;
-        font-family:'JetBrains Mono',monospace;
-        box-shadow:0 2px 8px rgba(0,0,0,.4);
-        cursor:pointer;transition:transform .15s;
-        white-space:nowrap;
-      ">${asset.type}</div>`,
+      html: '<div style="width:' + sz + 'px;height:' + sz + 'px;border-radius:50%;background:' + def.color + ';border:2.5px solid ' + condColor + ';display:flex;align-items:center;justify-content:center;font-size:' + (sz < 26 ? 7.5 : 9) + 'px;font-weight:700;color:#fff;font-family:JetBrains Mono,monospace;box-shadow:0 2px 8px rgba(0,0,0,.4);cursor:pointer;white-space:nowrap;">' + asset.type + '</div>',
       iconSize: [sz, sz],
       iconAnchor: [sz/2, sz/2],
     });
 
-    const marker = L.marker([asset.lat, asset.lon], {icon});
+    var marker = L.marker([asset.lat, asset.lon], {icon});
     marker.assetData = asset;
-    marker.on('click', (e) => {
+    marker.on('click', function(e) {
       L.DomEvent.stopPropagation(e);
       showAssetPopup(asset);
     });
     marker.addTo(map);
-    assetMarkers.push({marker, asset, layerType: asset.type});
+    // Hide marker if zoomed out — show at zoom 14+
+    if (map.getZoom() < 14) {
+      var el = marker.getElement();
+      if (el) el.style.display = 'none';
+    }
+    assetMarkers.push({marker: marker, asset: asset, layerType: asset.type});
   });
 }
 
 function onMapMove() {
+  // Show asset markers only when zoomed in enough
+  var zoom = map.getZoom();
+  for (var ami = 0; ami < assetMarkers.length; ami++) {
+    var m = assetMarkers[ami].marker;
+    var el = m.getElement();
+    if (el) el.style.display = zoom >= 14 ? '' : 'none';
+  }
+  // Hide OSM markers at low zoom too
+  if (osmPowerLayer) {
+    var osmEls = document.querySelectorAll('.leaflet-marker-pane .leaflet-marker-icon');
+    // OSM visibility handled by loadOSMData zoom check
+  }
+
   // Show voltage legend when zoomed in enough for HIFLD data
   const legend = document.getElementById('volt-legend');
   if(legend) legend.style.display = map.getZoom() >= 8 ? 'block' : 'none';
@@ -4382,27 +4391,26 @@ function initDemo() {
   // Check if coming from a demo link
   var isDemoLink = checkDemoMode();
 
-  // Show pitch screen by default (replaces normal onboarding for new visitors)
-  // But only if user has NOT seen the pitch before and NOT onboarded
+  // Show pitch screen for new visitors only
   if (!isDemoLink) {
     var seenPitch = false;
     try { seenPitch = localStorage.getItem('vltrview_pitch_seen') === '1'; } catch(e) {}
 
     if (!seenPitch) {
-      // New visitor — show pitch screen
+      // New visitor — show pitch screen, hide splash and onboarding
       var splash = document.getElementById('splash');
       if (splash) splash.style.display = 'none';
       var welcome = document.getElementById('ob-welcome');
       if (welcome) welcome.style.display = 'none';
       var pitch = document.getElementById('pitch-screen');
       if (pitch) pitch.style.display = 'flex';
-
-      // Mark pitch as seen so returning users go straight to app
       try { localStorage.setItem('vltrview_pitch_seen', '1'); } catch(e) {}
     } else {
-      // Returning user — hide pitch, show normal app
+      // Returning user — hide pitch, NO demo banner, normal app
       var pitch2 = document.getElementById('pitch-screen');
       if (pitch2) pitch2.style.display = 'none';
+      var banner = document.getElementById('demo-banner');
+      if (banner) banner.style.display = 'none';
     }
   }
 }
@@ -4512,7 +4520,7 @@ window.addEventListener('DOMContentLoaded', function() {
   <button class="ob-skip" onclick="skipOnboarding()">Skip — take me to the map</button>
 
   <div style="position:absolute;bottom:28px;font-size:11px;color:#2a2a3a;font-family:'JetBrains Mono',monospace;">
-    v1.0.1-beta · © 2026 VLTRVIEW
+    v1.0.2-beta · © 2026 VLTRVIEW
   </div>
 </div>
 
@@ -4900,7 +4908,7 @@ window.addEventListener('DOMContentLoaded', function() {
     </div>
 
     <div style="text-align:center;padding:16px;font-size:11px;color:var(--t3);font-family:'JetBrains Mono',monospace;">
-      VLTRVIEW v1.0.1-beta<br>
+      VLTRVIEW v1.0.2-beta<br>
       <span style="color:var(--brand);">vltrviewbeta1.netlify.app</span>
     </div>
   </div>
@@ -4963,7 +4971,7 @@ window.addEventListener('DOMContentLoaded', function() {
         </div>
         <div>
           <div style="font-size:16px;font-weight:700;color:var(--t1);">VLTRVIEW</div>
-          <div style="font-size:11px;color:var(--t3);font-family:'JetBrains Mono',monospace;">v1.0.1-beta</div>
+          <div style="font-size:11px;color:var(--t3);font-family:'JetBrains Mono',monospace;">v1.0.2-beta</div>
         </div>
       </div>
       <div style="font-size:12px;color:var(--t3);line-height:1.6;">Professional utility locator platform for field crews and utility operators. Real federal HIFLD data plus OpenStreetMap infrastructure.</div>
