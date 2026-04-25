@@ -785,6 +785,198 @@ html,body{height:100%;width:100%;background:var(--bg-base);font-family:'DM Sans'
   font-family:'JetBrains Mono',monospace;display:none;
 }
 
+
+/* ══ SPRINT 4 — PWA + FIELD TOOLS + PERFORMANCE ══ */
+
+/* ── MEASURE TOOL ── */
+#measure-panel{
+  position:absolute;top:0;left:0;right:0;z-index:700;
+  background:rgba(10,10,20,.96);backdrop-filter:blur(16px);
+  border-bottom:1px solid rgba(10,132,255,.2);
+  display:none;padding:12px 16px;
+  box-shadow:0 4px 20px rgba(0,0,0,.4);
+}
+#measure-panel.open{display:flex;align-items:center;gap:12px;}
+#measure-result{
+  flex:1;font-size:16px;font-weight:700;
+  color:var(--t1);font-family:'JetBrains Mono',monospace;
+}
+#measure-sub{font-size:11px;color:var(--t3);margin-top:2px;}
+.measure-btn{
+  padding:7px 14px;border-radius:20px;border:none;
+  font-size:12px;font-weight:600;cursor:pointer;
+  font-family:'DM Sans',sans-serif;
+}
+.measure-clear{background:rgba(255,69,58,.15);color:#FF453A;border:1px solid rgba(255,69,58,.25);}
+.measure-done{background:var(--brand);color:#fff;}
+.measure-tap-hint{
+  position:absolute;bottom:80px;left:50%;transform:translateX(-50%);
+  background:rgba(10,132,255,.92);color:#fff;
+  font-size:12px;font-weight:600;padding:8px 18px;
+  border-radius:20px;white-space:nowrap;z-index:600;
+  display:none;pointer-events:none;
+  box-shadow:0 4px 16px rgba(10,132,255,.4);
+  font-family:'DM Sans',sans-serif;
+}
+#measure-tap-hint.show{display:block;}
+
+/* ── 811 PANEL ── */
+#panel-811{
+  position:fixed;inset:0;z-index:2000;
+  background:var(--bg-base);display:none;flex-direction:column;
+}
+#panel-811.open{display:flex;}
+.panel-811-head{
+  height:56px;background:rgba(255,100,0,.95);
+  display:flex;align-items:center;padding:0 16px;gap:12px;
+  box-shadow:0 2px 20px rgba(255,100,0,.4);flex-shrink:0;
+}
+.call-811-btn{
+  width:calc(100% - 28px);margin:0 14px;
+  padding:22px;border-radius:20px;
+  background:linear-gradient(135deg,#FF6600,#FF4400);
+  border:none;color:#fff;font-size:22px;font-weight:800;
+  cursor:pointer;font-family:'DM Sans',sans-serif;
+  box-shadow:0 8px 32px rgba(255,100,0,.5);
+  letter-spacing:.5px;display:flex;align-items:center;
+  justify-content:center;gap:12px;
+  transition:transform .15s,box-shadow .15s;
+}
+.call-811-btn:active{transform:scale(.97);box-shadow:0 4px 16px rgba(255,100,0,.4);}
+.ticket-card{
+  background:var(--bg-card);border-radius:16px;
+  margin:8px 14px;padding:16px;
+  border:1px solid var(--border-subtle);
+}
+
+/* ── SAFETY CHECKLIST ── */
+#panel-checklist{
+  position:fixed;inset:0;z-index:2000;
+  background:var(--bg-base);display:none;flex-direction:column;
+}
+#panel-checklist.open{display:flex;}
+.check-item{
+  display:flex;align-items:flex-start;gap:14px;
+  padding:14px 16px;border-bottom:1px solid var(--border-subtle);
+  cursor:pointer;transition:background .12s;
+}
+.check-item:active{background:rgba(255,255,255,.04);}
+.check-box{
+  width:26px;height:26px;border-radius:8px;
+  border:2px solid var(--border-mid);flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  transition:all .2s;margin-top:1px;
+}
+.check-box.checked{background:#30D158;border-color:#30D158;}
+.check-box.checked::after{
+  content:'✓';color:#fff;font-size:14px;font-weight:700;
+}
+.check-label{font-size:14px;font-weight:500;color:var(--t1);line-height:1.4;}
+.check-sub{font-size:12px;color:var(--t3);margin-top:3px;line-height:1.4;}
+.check-category{
+  padding:10px 16px 4px;font-size:10px;font-weight:700;
+  color:var(--t3);text-transform:uppercase;letter-spacing:.1em;
+}
+.checklist-progress{
+  padding:14px 16px;border-bottom:1px solid var(--border-subtle);
+  flex-shrink:0;
+}
+.cl-bar-bg{height:6px;background:rgba(255,255,255,.08);border-radius:3px;overflow:hidden;}
+.cl-bar-fill{height:100%;background:linear-gradient(90deg,#0A84FF,#30D158);border-radius:3px;transition:width .4s ease;}
+.cl-stats{display:flex;justify-content:space-between;margin-bottom:8px;}
+.cl-stat-val{font-size:20px;font-weight:700;font-family:'JetBrains Mono',monospace;}
+.cl-stat-lbl{font-size:10px;color:var(--t3);margin-top:1px;}
+.checklist-complete{
+  margin:14px;padding:16px;border-radius:16px;
+  background:rgba(48,209,88,.1);border:1px solid rgba(48,209,88,.25);
+  text-align:center;display:none;
+}
+
+/* ── NIGHT MODE FAB ── */
+#fab-night{
+  position:absolute;right:14px;bottom:248px;
+  width:46px;height:46px;border-radius:50%;
+  background:rgba(18,18,28,.94);backdrop-filter:blur(12px);
+  border:none;cursor:pointer;z-index:500;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 4px 16px rgba(0,0,0,.4);
+  font-size:20px;transition:transform .15s;
+}
+#fab-night:active{transform:scale(.92);}
+#fab-measure{
+  position:absolute;right:14px;bottom:304px;
+  width:46px;height:46px;border-radius:50%;
+  background:rgba(18,18,28,.94);backdrop-filter:blur(12px);
+  border:none;cursor:pointer;z-index:500;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 4px 16px rgba(0,0,0,.4);
+  transition:transform .15s;
+}
+#fab-measure svg{width:22px;height:22px;fill:none;stroke:var(--t1);stroke-width:2;stroke-linecap:round;}
+#fab-measure:active{transform:scale(.92);}
+#fab-measure.active{background:rgba(10,132,255,.8);}
+#fab-measure.active svg{stroke:#fff;}
+
+/* ── PWA INSTALL BANNER ── */
+#pwa-install-bar{
+  position:fixed;bottom:62px;left:0;right:0;z-index:1200;
+  background:linear-gradient(135deg,#0A84FF,#0060CC);
+  display:none;align-items:center;gap:12px;padding:12px 16px;
+  box-shadow:0 -4px 24px rgba(10,132,255,.4);
+}
+#pwa-install-bar.show{display:flex;}
+.pwa-install-text{flex:1;font-size:13px;color:#fff;font-weight:500;}
+.pwa-install-text strong{display:block;font-size:14px;font-weight:700;margin-bottom:1px;}
+.pwa-install-btn{
+  padding:9px 18px;border-radius:20px;
+  background:#fff;border:none;color:#0A84FF;
+  font-size:13px;font-weight:700;cursor:pointer;
+  font-family:'DM Sans',sans-serif;white-space:nowrap;
+}
+.pwa-install-dismiss{
+  background:none;border:none;color:rgba(255,255,255,.6);
+  font-size:20px;cursor:pointer;padding:0;line-height:1;
+}
+
+/* ── NOTIFICATION PERMISSION BANNER ── */
+#notif-permission-bar{
+  position:fixed;top:56px;left:0;right:0;z-index:900;
+  background:linear-gradient(135deg,#FF9F0A,#FF6B00);
+  display:none;align-items:center;gap:10px;
+  padding:10px 14px;
+}
+#notif-permission-bar.show{display:flex;}
+.npb-text{flex:1;font-size:12px;color:#fff;font-weight:500;}
+.npb-btn{
+  padding:6px 14px;border-radius:20px;
+  background:#fff;border:none;color:#FF6B00;
+  font-size:12px;font-weight:700;cursor:pointer;
+  font-family:'DM Sans',sans-serif;
+}
+.npb-dismiss{background:none;border:none;color:rgba(255,255,255,.7);font-size:18px;cursor:pointer;}
+
+/* ── OFFLINE TILE CACHE INDICATOR ── */
+#cache-status{
+  position:absolute;top:8px;right:60px;z-index:500;
+  font-size:9px;font-weight:700;padding:3px 8px;
+  border-radius:6px;font-family:'JetBrains Mono',monospace;
+  display:none;
+}
+#cache-status.offline{background:rgba(255,159,10,.9);color:#fff;display:block;}
+#cache-status.cached{background:rgba(48,209,88,.9);color:#fff;display:block;}
+
+/* ── MEASURE LINE ON MAP ── */
+.measure-line{stroke:#0A84FF;stroke-width:2.5;stroke-dasharray:8 4;fill:none;}
+.measure-point{fill:#0A84FF;stroke:#fff;stroke-width:2;}
+
+/* ── PERFORMANCE: skeleton loading ── */
+.data-skeleton{
+  background:linear-gradient(90deg,var(--bg-card) 25%,var(--bg-elevated) 50%,var(--bg-card) 75%);
+  background-size:200% 100%;
+  animation:skeleton-sweep 1.5s ease-in-out infinite;
+  border-radius:8px;height:16px;
+}
+
 @keyframes gps-pulse{0%{transform:scale(1);opacity:.7}100%{transform:scale(3);opacity:0}}
 </style>
 </head>
@@ -2796,7 +2988,8 @@ function syncLayerToggles() {
 // ══════════════════════════════════════════════
 function runSplash() {
   const splash = document.getElementById('splash');
-  if (!splash || splash.style.display === 'none') return;
+  if (!splash) return;
+  splash.style.display = 'flex'; // ensure visible
 
   const steps = [
     [20,'Loading map...'],
@@ -3361,8 +3554,10 @@ function startClock() {
 
 // ── DASHBOARD ──
 function openDashboard() {
-  renderDashboard();
-  document.getElementById('panel-dash').classList.add('open');
+  try { renderDashboard(); } catch(e) { console.warn('renderDashboard:',e); }
+  document.getElementById('panel-dash')?.classList.add('open');
+  document.getElementById('panel-settings')?.classList.remove('open');
+  allPanels.forEach(p=>document.getElementById('panel-'+p)?.classList.remove('open'));
   document.querySelectorAll('.bnav-btn').forEach(b => b.classList.remove('active'));
 }
 
@@ -3469,9 +3664,11 @@ function renderDashboard() {
 
 // ── SETTINGS TAB ──
 function openSettings() {
-  document.getElementById('panel-settings').classList.add('open');
+  document.getElementById('panel-settings')?.classList.add('open');
+  document.getElementById('panel-dash')?.classList.remove('open');
+  allPanels.forEach(p=>document.getElementById('panel-'+p)?.classList.remove('open'));
   document.querySelectorAll('.bnav-btn').forEach(b => b.classList.remove('active'));
-  syncSettingToggles();
+  try { syncSettingToggles(); } catch(e) {}
 }
 
 // ── PERFORMANCE INDICATOR ──
@@ -3552,29 +3749,33 @@ function upgradeTopbar() {
 }
 
 // ── SWITCH TAB EXTENDED — handle dash + settings ──
-const _origSwitchTab = switchTab;
-function switchTab(tab, btn) {
-  // Close dash and settings if open
+// Note: we extend switchTab after it's defined, using a wrapper approach
+const _sprint3SwitchTab = function(tab, btn) {
   document.getElementById('panel-dash')?.classList.remove('open');
   document.getElementById('panel-settings')?.classList.remove('open');
-  _origSwitchTab(tab, btn);
-}
+  // Call the original switchTab logic inline
+  document.querySelectorAll('.bnav-btn').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  allPanels.forEach(p=>document.getElementById('panel-'+p)?.classList.remove('open'));
+  if(tab==='map'){ closeAssetPopup?.(); }
+  else { document.getElementById('panel-'+tab)?.classList.add('open'); }
+};
 
 // ── UPDATE BOTTOM NAV — add Dash + Settings ──
 function upgradeBottomNav() {
   const nav = document.getElementById('bottomnav');
   if (!nav) return;
 
-  // Replace route button with dashboard
+  // Replace route button with dashboard (keep id for safety)
   const routeBtn = document.getElementById('bn-route');
   if (routeBtn) {
     routeBtn.innerHTML = `
       <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
       <span class="bnav-label">Dash</span>`;
-    routeBtn.id = 'bn-dash';
-    routeBtn.onclick = () => {
+    routeBtn.setAttribute('data-tab','dash');
+    routeBtn.onclick = function() {
       document.querySelectorAll('.bnav-btn').forEach(b => b.classList.remove('active'));
-      routeBtn.classList.add('active');
+      this.classList.add('active');
       openDashboard();
     };
   }
@@ -3600,6 +3801,7 @@ function upgradeBottomNav() {
 
 // ── REPLACE MAP EVENT HOOKS WITH DEBOUNCED VERSIONS ──
 function upgradeMapHooks() {
+  if (!map) return;
   // Remove old move/zoom listeners and replace with debounced
   map.off('moveend');
   map.off('zoomend');
@@ -3661,30 +3863,472 @@ function showAssetPopup(asset) {
   }, 100);
 }
 
+
+// ══════════════════════════════════════════════
+// SPRINT 4 — PWA + FIELD TOOLS + PERFORMANCE
+// ══════════════════════════════════════════════
+
+// ── MEASURE DISTANCE TOOL ──
+let measureMode   = false;
+let measurePoints = [];
+let measureMarkers= [];
+let measureLine   = null;
+
+function toggleMeasure() {
+  if (measureMode) { exitMeasure(); return; }
+  measureMode = true;
+  measurePoints = [];
+  document.getElementById('fab-measure').classList.add('active');
+  document.getElementById('measure-panel').classList.add('open');
+  document.getElementById('measure-tap-hint').classList.add('show');
+  document.getElementById('measure-result').textContent = 'Tap first point';
+  document.getElementById('measure-sub').textContent = 'Tap any location on the map';
+  map.on('click', onMeasureClick);
+  map.getContainer().style.cursor = 'crosshair';
+}
+
+function onMeasureClick(e) {
+  if (!measureMode) return;
+  measurePoints.push(e.latlng);
+
+  // Drop marker
+  const icon = L.divIcon({
+    className: '',
+    html: `<div style="width:14px;height:14px;border-radius:50%;background:#0A84FF;border:3px solid #fff;box-shadow:0 2px 8px rgba(10,132,255,.6);"></div>`,
+    iconSize:[14,14], iconAnchor:[7,7],
+  });
+  measureMarkers.push(L.marker(e.latlng, {icon}).addTo(map));
+
+  if (measurePoints.length === 1) {
+    document.getElementById('measure-result').textContent = 'Tap second point';
+    document.getElementById('measure-sub').textContent = 'First point set · tap to complete';
+    document.getElementById('measure-tap-hint').classList.remove('show');
+  }
+
+  if (measurePoints.length === 2) {
+    // Draw line
+    if (measureLine) map.removeLayer(measureLine);
+    measureLine = L.polyline(measurePoints, {
+      color:'#0A84FF', weight:2.5, dashArray:'8 5', opacity:.9
+    }).addTo(map);
+
+    // Calculate distance
+    const m   = measurePoints[0].distanceTo(measurePoints[1]);
+    const ft  = (m * 3.28084).toFixed(1);
+    const mi  = (m / 1609.344).toFixed(3);
+    const km  = (m / 1000).toFixed(3);
+
+    document.getElementById('measure-result').textContent = ft + ' ft';
+    document.getElementById('measure-sub').textContent =
+      mi + ' mi · ' + km + ' km · ' + Math.round(m) + ' m';
+
+    // Remove click listener — done
+    map.off('click', onMeasureClick);
+    map.getContainer().style.cursor = '';
+  }
+}
+
+function clearMeasure() {
+  measurePoints = [];
+  measureMarkers.forEach(m => map.removeLayer(m));
+  measureMarkers = [];
+  if (measureLine) { map.removeLayer(measureLine); measureLine = null; }
+  document.getElementById('measure-result').textContent = 'Tap first point';
+  document.getElementById('measure-sub').textContent = 'Tap any location on the map';
+  map.off('click', onMeasureClick);
+  map.on('click', onMeasureClick);
+  map.getContainer().style.cursor = 'crosshair';
+}
+
+function exitMeasure() {
+  measureMode = false;
+  clearMeasure();
+  map.off('click', onMeasureClick);
+  map.getContainer().style.cursor = '';
+  document.getElementById('fab-measure').classList.remove('active');
+  document.getElementById('measure-panel').classList.remove('open');
+  document.getElementById('measure-tap-hint').classList.remove('show');
+}
+
+// ── 811 PANEL ──
+function open811() {
+  document.getElementById('panel-811').classList.add('open');
+  document.querySelectorAll('.bnav-btn').forEach(b => b.classList.remove('active'));
+}
+function close811() {
+  document.getElementById('panel-811').classList.remove('open');
+}
+function call811() {
+  if (confirm('Call 811 (Call Before You Dig) now?')) {
+    window.location.href = 'tel:811';
+  }
+}
+
+// ── PRE-DIG SAFETY CHECKLIST ──
+const CHECKLIST_ITEMS = [
+  // Pre-planning
+  { id:'c01', cat:'Pre-planning',     label:'811 ticket submitted',          sub:'Call made or online ticket filed at least 3 business days before dig' },
+  { id:'c02', cat:'Pre-planning',     label:'Ticket number documented',      sub:'Record the 811 ticket number for your records' },
+  { id:'c03', cat:'Pre-planning',     label:'All utilities responded',       sub:'Confirm all member utilities have marked or cleared the area' },
+  { id:'c04', cat:'Pre-planning',     label:'Dig site survey complete',      sub:'Physical walk-through of excavation area performed' },
+  { id:'c05', cat:'Pre-planning',     label:'Weather conditions acceptable', sub:'No severe weather forecast during excavation window' },
+  // On site
+  { id:'c06', cat:'On-site setup',    label:'Work zone marked and barricaded', sub:'Traffic control and safety barriers in place' },
+  { id:'c07', cat:'On-site setup',    label:'PPE issued to all crew',        sub:'Hard hats, hi-vis vests, gloves, safety glasses' },
+  { id:'c08', cat:'On-site setup',    label:'Utility marks visible and clear', sub:'Color-coded marks are legible and within tolerance zone' },
+  { id:'c09', cat:'On-site setup',    label:'Hand digging zone identified',  sub:'18" tolerance zone on each side of marked utilities' },
+  { id:'c10', cat:'On-site setup',    label:'Emergency contacts posted',     sub:'911, utility emergency numbers, supervisor contact visible' },
+  // Excavation
+  { id:'c11', cat:'Excavation',       label:'Hand dig within tolerance zone', sub:'No mechanical equipment within 18" of marked utilities' },
+  { id:'c12', cat:'Excavation',       label:'Spotter assigned',              sub:'Dedicated spotter watching for utility contact at all times' },
+  { id:'c13', cat:'Excavation',       label:'Depth verified before digging', sub:'Confirm utility depths from records or potholing' },
+  { id:'c14', cat:'Excavation',       label:'VLTRVIEW map active',          sub:'Real-time utility map visible on device during excavation' },
+  // Post-dig
+  { id:'c15', cat:'Post-excavation',  label:'No damage observed',            sub:'All utilities intact — no nicks, scrapes, or breaks' },
+  { id:'c16', cat:'Post-excavation',  label:'Site restored and marked',      sub:'Excavation area restored, hazards marked if work continues' },
+  { id:'c17', cat:'Post-excavation',  label:'Work order updated',            sub:'VLTRVIEW work order marked complete with notes' },
+];
+
+let checklistState = {};
+
+function openChecklist() {
+  // Load saved state
+  try {
+    const saved = JSON.parse(localStorage.getItem('vltrview_checklist_v1') || '{}');
+    checklistState = saved;
+  } catch(e) { checklistState = {}; }
+  document.getElementById('panel-checklist').classList.add('open');
+  renderChecklist();
+  document.querySelectorAll('.bnav-btn').forEach(b => b.classList.remove('active'));
+}
+
+function closeChecklist() {
+  document.getElementById('panel-checklist').classList.remove('open');
+}
+
+function renderChecklist() {
+  const categories = [...new Set(CHECKLIST_ITEMS.map(i => i.cat))];
+  const doneCount  = CHECKLIST_ITEMS.filter(i => checklistState[i.id]).length;
+  const total      = CHECKLIST_ITEMS.length;
+  const pct        = Math.round((doneCount / total) * 100);
+
+  document.getElementById('cl-done-count').textContent  = doneCount;
+  document.getElementById('cl-total-count').textContent = total;
+  document.getElementById('cl-pct').textContent = pct + '%';
+  document.getElementById('cl-bar').style.width = pct + '%';
+
+  const complete = document.getElementById('checklist-complete');
+  complete.style.display = doneCount === total ? 'block' : 'none';
+
+  document.getElementById('checklist-body').innerHTML = categories.map(cat => {
+    const items = CHECKLIST_ITEMS.filter(i => i.cat === cat);
+    const catDone = items.filter(i => checklistState[i.id]).length;
+    return `
+      <div class="check-category">${cat} <span style="color:var(--brand);font-family:'JetBrains Mono',monospace;">${catDone}/${items.length}</span></div>
+      ${items.map(item => `
+        <div class="check-item" onclick="toggleCheck('${item.id}')">
+          <div class="check-box ${checklistState[item.id] ? 'checked' : ''}" id="cb-${item.id}"></div>
+          <div>
+            <div class="check-label" style="text-decoration:${checklistState[item.id]?'line-through':'none'};color:${checklistState[item.id]?'var(--t3)':'var(--t1)'};">${item.label}</div>
+            <div class="check-sub">${item.sub}</div>
+          </div>
+        </div>`).join('')}`;
+  }).join('');
+}
+
+function toggleCheck(id) {
+  checklistState[id] = !checklistState[id];
+  renderChecklist();
+}
+
+function resetChecklist() {
+  if (!confirm('Reset all checklist items?')) return;
+  checklistState = {};
+  renderChecklist();
+}
+
+function saveChecklist() {
+  try { localStorage.setItem('vltrview_checklist_v1', JSON.stringify(checklistState)); } catch(e) {}
+  const done = CHECKLIST_ITEMS.filter(i => checklistState[i.id]).length;
+  showToast('✓ Checklist saved — ' + done + '/' + CHECKLIST_ITEMS.length + ' complete');
+  closeChecklist();
+}
+
+// ── NIGHT MODE ──
+let nightMode = false;
+const NIGHT_STYLE = {
+  id:'dark', label:'Night',
+  url:'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+  attr:'© CARTO',
+};
+
+function toggleNightMode() {
+  nightMode = !nightMode;
+  const btn = document.getElementById('fab-night');
+  if (nightMode) {
+    setMapStyle(NIGHT_STYLE);
+    btn.textContent = '☀️';
+    btn.style.background = 'rgba(10,0,40,.94)';
+    showToast('🌙 Night mode on — satellite dark tiles');
+  } else {
+    setMapStyle(currentStyle.id === 'dark' ? MAP_STYLES[3] : currentStyle);
+    btn.textContent = '🌙';
+    btn.style.background = 'rgba(18,18,28,.94)';
+    showToast('☀️ Day mode restored');
+  }
+}
+
+// ── PWA INSTALL ──
+let deferredInstallPrompt = null;
+
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  setTimeout(() => {
+    if (deferredInstallPrompt && !localStorage.getItem('vltrview_install_dismissed')) {
+      document.getElementById('pwa-install-bar').classList.add('show');
+    }
+  }, 15000);
+});
+
+async function triggerInstall() {
+  if (!deferredInstallPrompt) {
+    showToast('On iPhone: tap Share → Add to Home Screen');
+    return;
+  }
+  document.getElementById('pwa-install-bar').classList.remove('show');
+  deferredInstallPrompt.prompt();
+  const { outcome } = await deferredInstallPrompt.userChoice;
+  if (outcome === 'accepted') showToast('✓ VLTRVIEW installed!');
+  deferredInstallPrompt = null;
+}
+
+function dismissInstall() {
+  document.getElementById('pwa-install-bar').classList.remove('show');
+  try { localStorage.setItem('vltrview_install_dismissed', '1'); } catch(e) {}
+}
+
+window.addEventListener('appinstalled', () => {
+  document.getElementById('pwa-install-bar').classList.remove('show');
+  showToast('✓ VLTRVIEW installed successfully');
+});
+
+// ── PUSH NOTIFICATIONS ──
+async function requestNotifPermission() {
+  dismissNotifBar();
+  if (!('Notification' in window)) { showToast('Notifications not supported on this browser'); return; }
+  const perm = await Notification.requestPermission();
+  if (perm === 'granted') {
+    showToast('✓ Notifications enabled — you'll be alerted about urgent orders');
+    scheduleTestNotif();
+  } else {
+    showToast('Notifications blocked — enable in browser settings');
+  }
+}
+
+function dismissNotifBar() {
+  document.getElementById('notif-permission-bar').classList.remove('show');
+  try { localStorage.setItem('vltrview_notif_asked', '1'); } catch(e) {}
+}
+
+function scheduleTestNotif() {
+  setTimeout(() => {
+    if (Notification.permission === 'granted' && document.hidden) {
+      new Notification('VLTRVIEW Alert', {
+        body: 'WO-2847 — TXF-0102 inspection is overdue. Tap to view.',
+        icon: '/icons/icon-192.png',
+        badge: '/icons/icon-96.png',
+        tag: 'vltrview-test',
+      });
+    }
+  }, 30000);
+}
+
+function sendUrgentNotif(wo) {
+  if (Notification.permission !== 'granted') return;
+  new Notification('VLTRVIEW — Urgent work order', {
+    body: wo.id + ' · ' + wo.title + '
+Assigned: ' + wo.crew,
+    icon: '/icons/icon-192.png',
+    tag: 'urgent-' + wo.id,
+  });
+}
+
+// ── OFFLINE / CACHE STATUS ──
+function updateCacheStatus() {
+  const el = document.getElementById('cache-status');
+  if (!el) return;
+  if (!navigator.onLine) {
+    el.textContent = '📵 OFFLINE';
+    el.className = 'offline';
+    document.getElementById('offline-bar').classList.add('show');
+  } else {
+    el.className = '';
+    document.getElementById('offline-bar').classList.remove('show');
+  }
+}
+window.addEventListener('online',  updateCacheStatus);
+window.addEventListener('offline', updateCacheStatus);
+
+// ── ADD 811 + CHECKLIST TO SETTINGS PANEL ──
+function addFieldToolsToSettings() {
+  const body = document.getElementById('settings-body');
+  if (!body) return;
+  const section = document.createElement('div');
+  section.innerHTML = `
+    <div class="set-section">Field tools</div>
+    <div class="set-row" onclick="close811();openSettings();open811();" style="cursor:pointer;">
+      <div class="set-icon" style="background:rgba(255,100,0,.12);">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FF6600" stroke-width="2" stroke-linecap="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12.21 19.79 19.79 0 0 1 1.64 3.59 2 2 0 0 1 3.61 1.39h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9.09a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+      </div>
+      <div class="set-info">
+        <div class="set-name">811 — Call before you dig</div>
+        <div class="set-sub">Federal dig safety · NC811 info</div>
+      </div>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--t3)" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </div>
+    <div class="set-row" onclick="switchTab('map',document.getElementById('bn-map'));setTimeout(openChecklist,200);" style="cursor:pointer;">
+      <div class="set-icon" style="background:rgba(48,209,88,.12);">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#30D158" stroke-width="2" stroke-linecap="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+      </div>
+      <div class="set-info">
+        <div class="set-name">Pre-dig safety checklist</div>
+        <div class="set-sub">17-point excavation safety verification</div>
+      </div>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--t3)" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </div>
+    <div class="set-row" onclick="toggleMeasure();switchTab('map',document.getElementById('bn-map'));" style="cursor:pointer;">
+      <div class="set-icon" style="background:rgba(10,132,255,.12);">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0A84FF" stroke-width="2" stroke-linecap="round"><line x1="2" y1="12" x2="22" y2="12"/><polyline points="16 6 22 12 16 18"/><polyline points="8 6 2 12 8 18"/></svg>
+      </div>
+      <div class="set-info">
+        <div class="set-name">Measure distance</div>
+        <div class="set-sub">Tap two map points to measure footage</div>
+      </div>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--t3)" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </div>
+  `;
+  // Insert before the about section
+  const aboutSection = body.querySelector('.set-section:last-of-type');
+  if (aboutSection) body.insertBefore(section, aboutSection);
+  else body.appendChild(section);
+}
+
+// ── ADD 811 BUTTON TO TOPBAR ──
+function add811ToTopbar() {
+  const topbar = document.getElementById('topbar');
+  if (!topbar) return;
+  const btn = document.createElement('button');
+  btn.className = 'ti';
+  btn.title = '811 Call Before You Dig';
+  btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="var(--t2)" stroke-width="2" stroke-linecap="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12.21 19.79 19.79 0 0 1 1.64 3.59 2 2 0 0 1 3.61 1.39h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9.09a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>`;
+  btn.onclick = () => {
+    switchTab('map', document.getElementById('bn-map'));
+    setTimeout(open811, 100);
+  };
+  // Insert before the clock status element
+  try {
+    const statusEl = document.getElementById('topbar-status');
+    if (statusEl) topbar.insertBefore(btn, statusEl);
+    else topbar.appendChild(btn);
+  } catch(e) { try { topbar.appendChild(btn); } catch(e2) {} }
+}
+
+// ── PERFORMANCE: preload critical assets ──
+function preloadCriticalAssets() {
+  // Preload Leaflet icons
+  const imgs = [
+    'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+    'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+  ];
+  imgs.forEach(src => { const img = new Image(); img.src = src; });
+}
+
+// ── PERFORMANCE: lazy render panels ──
+const panelRenderQueue = {};
+function lazyRenderPanel(panelId, renderFn) {
+  const panel = document.getElementById(panelId);
+  if (!panel) return;
+  const observer = new IntersectionObserver(entries => {
+    if (entries[0].isIntersecting && !panelRenderQueue[panelId]) {
+      panelRenderQueue[panelId] = true;
+      renderFn();
+      observer.disconnect();
+    }
+  });
+  observer.observe(panel);
+}
+
+// ── SPRINT 4 INIT ──
+function initSprint4() {
+  // Field tools
+  addFieldToolsToSettings();
+  add811ToTopbar();
+
+  // Check if should show notif bar
+  setTimeout(() => {
+    if (!localStorage.getItem('vltrview_notif_asked') &&
+        'Notification' in window &&
+        Notification.permission === 'default') {
+      document.getElementById('notif-permission-bar').classList.add('show');
+    }
+  }, 8000);
+
+  // Offline status
+  updateCacheStatus();
+
+  // Preload assets
+  preloadCriticalAssets();
+
+  // Hook urgent WO notification
+  const origSaveNewWO = saveNewWO;
+  // Patch markWODone to send completion notif
+  const origMarkDone = markWODone;
+  window.markWODone = function(id) {
+    origMarkDone(id);
+    const wo = workOrders.find(w => w.id === id);
+    if (wo && Notification.permission === 'granted') {
+      new Notification('VLTRVIEW — Work order complete', {
+        body: wo.id + ' · ' + wo.title,
+        icon: '/icons/icon-192.png',
+        tag: 'done-' + wo.id,
+      });
+    }
+  };
+}
+
 window.addEventListener('DOMContentLoaded', function() {
   // ── Check onboarding state ──
-  if (!isOnboarded()) {
-    // New user — show welcome screen, skip splash
-    document.getElementById('splash').style.display = 'none';
-    document.getElementById('ob-welcome').style.display = 'flex';
-  } else {
-    // Returning user — run splash normally
+  try {
+    if (!isOnboarded()) {
+      // New user — show welcome screen (ob-welcome is already flex from HTML)
+      document.getElementById('splash').style.display = 'none';
+      const welcome = document.getElementById('ob-welcome');
+      if (welcome) welcome.style.display = 'flex';
+    } else {
+      // Returning user — hide welcome, run splash
+      const welcome = document.getElementById('ob-welcome');
+      if (welcome) welcome.style.display = 'none';
+      runSplash();
+    }
+  } catch(e) {
+    // If onboarding check fails, just run splash
+    console.warn('Onboarding check error:', e);
     runSplash();
   }
 
-  // Init map
-  try {
-    initMap();
-    addQuickNoteButton();
-    checkSharedWO();
-    upgradeTopbar();
-    upgradeBottomNav();
-    upgradeMapHooks();
-    addLayerNote();
-    loadSettings();
-    startCrewTicker();
-    setTimeout(showConditionAlerts, 4000);
-  } catch(e) { console.error('Map init error:',e); }
+  // Init map — each step isolated so one failure doesn't block others
+  try { initMap(); } catch(e) { console.error('initMap failed:',e); }
+  try { addQuickNoteButton(); } catch(e) { console.warn('quickNote:',e); }
+  try { checkSharedWO(); } catch(e) { console.warn('sharedWO:',e); }
+  try { upgradeTopbar(); } catch(e) { console.warn('topbar:',e); }
+  try { upgradeBottomNav(); } catch(e) { console.warn('bottomNav:',e); }
+  try { if(typeof map !== 'undefined' && map) upgradeMapHooks(); } catch(e) { console.warn('mapHooks:',e); }
+  try { addLayerNote(); } catch(e) { console.warn('layerNote:',e); }
+  try { loadSettings(); } catch(e) { console.warn('settings:',e); }
+  try { startCrewTicker(); } catch(e) { console.warn('crewTicker:',e); }
+  try { setTimeout(showConditionAlerts, 4000); } catch(e) {}
+  try { initSprint4(); } catch(e) { console.warn('sprint4:',e); }
 
   // Load HIFLD data after map is ready (slight delay for tiles to settle)
   setTimeout(() => {
@@ -4295,6 +4939,145 @@ window.addEventListener('DOMContentLoaded', function() {
 
 <!-- ══ PULL TO REFRESH ══ -->
 <div id="ptr-indicator">↓ Release to refresh data</div>
+
+
+<!-- ══ MEASURE PANEL ══ -->
+<div id="measure-panel">
+  <div>
+    <div id="measure-result" style="font-size:16px;font-weight:700;color:var(--t1);font-family:'JetBrains Mono',monospace;">Tap two points</div>
+    <div id="measure-sub" style="font-size:11px;color:var(--t3);margin-top:2px;">Tap first point on map</div>
+  </div>
+  <button class="measure-btn measure-clear" onclick="clearMeasure()">Clear</button>
+  <button class="measure-btn measure-done" onclick="exitMeasure()">Done</button>
+</div>
+<div class="measure-tap-hint" id="measure-tap-hint">📏 Tap any two points to measure</div>
+
+<!-- ══ FAB BUTTONS ══ -->
+<div id="fab-measure" onclick="toggleMeasure()" title="Measure distance">
+  <svg viewBox="0 0 24 24"><line x1="2" y1="12" x2="22" y2="12"/><polyline points="16 6 22 12 16 18"/><polyline points="8 6 2 12 8 18"/></svg>
+</div>
+<div id="fab-night" onclick="toggleNightMode()" title="Night mode">🌙</div>
+
+<!-- ══ PWA INSTALL BAR ══ -->
+<div id="pwa-install-bar">
+  <div style="width:40px;height:40px;border-radius:10px;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3.5" fill="#fff"/><circle cx="12" cy="12" r="7" fill="none" stroke-opacity=".6"/><line x1="12" y1="2" x2="12" y2="5.5"/><line x1="12" y1="18.5" x2="12" y2="22"/><line x1="2" y1="12" x2="5.5" y2="12"/><line x1="18.5" y1="12" x2="22" y2="12"/></svg>
+  </div>
+  <div class="pwa-install-text">
+    <strong>Install VLTRVIEW</strong>
+    Add to home screen for offline field use
+  </div>
+  <button class="pwa-install-btn" onclick="triggerInstall()">Install</button>
+  <button class="pwa-install-dismiss" onclick="dismissInstall()">×</button>
+</div>
+
+<!-- ══ NOTIFICATION PERMISSION BAR ══ -->
+<div id="notif-permission-bar">
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+  <div class="npb-text">Enable notifications for urgent work order alerts</div>
+  <button class="npb-btn" onclick="requestNotifPermission()">Enable</button>
+  <button class="npb-dismiss" onclick="dismissNotifBar()">×</button>
+</div>
+
+<!-- ══ 811 PANEL ══ -->
+<div id="panel-811">
+  <div class="panel-811-head">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12.21 19.79 19.79 0 0 1 1.64 3.59 2 2 0 0 1 3.61 1.39h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9.09a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+    <span style="font-size:17px;font-weight:700;color:#fff;flex:1;">Call Before You Dig</span>
+    <button class="fp-close" style="background:rgba(255,255,255,.2);" onclick="close811()">×</button>
+  </div>
+  <div style="flex:1;overflow-y:auto;padding:0 0 32px;">
+
+    <!-- Big 811 call button -->
+    <div style="padding:20px 14px 16px;">
+      <button class="call-811-btn" onclick="call811()">
+        📞 Call 811 — Free · 24/7
+      </button>
+      <div style="text-align:center;font-size:12px;color:var(--t3);margin-top:10px;line-height:1.5;">
+        Federal law requires calling 811 before any excavation.<br>
+        Lines are marked free within 3 business days.
+      </div>
+    </div>
+
+    <!-- State info -->
+    <div class="ticket-card">
+      <div style="font-size:13px;font-weight:700;color:var(--t1);margin-bottom:10px;">North Carolina — NC811</div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div style="display:flex;justify-content:space-between;font-size:13px;">
+          <span style="color:var(--t3);">Phone</span><span style="color:var(--t1);font-weight:500;">1-800-632-4949</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:13px;">
+          <span style="color:var(--t3);">Website</span><span style="color:var(--brand);">nc811.org</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:13px;">
+          <span style="color:var(--t3);">Notice required</span><span style="color:var(--t1);">3 business days</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:13px;">
+          <span style="color:var(--t3);">Ticket valid</span><span style="color:var(--t1);">15 business days</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Other states quick reference -->
+    <div style="padding:0 14px;">
+      <div style="font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">Other 811 centers</div>
+      <div style="background:var(--bg-card);border-radius:14px;border:1px solid var(--border-subtle);overflow:hidden;">
+        ${['Georgia — 811','Illinois — JULIE','Texas — Texas 811','Arizona — Blue Stake 811'].map((s,i) => `
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:${i<3?'1px solid var(--border-subtle)':'none'};">
+          <span style="font-size:13px;font-weight:500;color:var(--t1);">${s}</span>
+          <a href="tel:811" style="color:var(--brand);font-size:13px;font-weight:600;text-decoration:none;">Call 811</a>
+        </div>`).join('')}
+      </div>
+    </div>
+
+    <!-- What happens after you call -->
+    <div style="margin:12px 14px 0;">
+      <div style="font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">What happens next</div>
+      <div style="background:var(--bg-card);border-radius:14px;padding:14px;border:1px solid var(--border-subtle);">
+        ${[
+          ['1','Call or submit online','811 takes your excavation details'],
+          ['2','Utilities notified','One call notifies all member utilities'],
+          ['3','Lines marked','Field techs mark lines within 3 days'],
+          ['4','Safe to dig','Only dig once all lines are marked'],
+        ].map(([n,t,s]) => `
+        <div style="display:flex;gap:12px;padding:8px 0;border-bottom:1px solid var(--border-subtle);">
+          <div style="width:24px;height:24px;border-radius:50%;background:var(--brand);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0;">${n}</div>
+          <div><div style="font-size:13px;font-weight:500;color:var(--t1);">${t}</div><div style="font-size:11px;color:var(--t3);margin-top:2px;">${s}</div></div>
+        </div>`).join('').replace(/border-bottom:1px solid var\(--border-subtle\);">\s*<\/div>\s*$/, ';" style="border-bottom:none;">')}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SAFETY CHECKLIST ══ -->
+<div id="panel-checklist">
+  <div class="fp-head">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#30D158" stroke-width="2" stroke-linecap="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+    <span class="fp-title">Pre-dig safety checklist</span>
+    <button class="fp-close" onclick="closeChecklist()">×</button>
+  </div>
+  <div class="checklist-progress">
+    <div class="cl-stats">
+      <div><div class="cl-stat-val" id="cl-done-count" style="color:#30D158;">0</div><div class="cl-stat-lbl">Complete</div></div>
+      <div style="text-align:center;"><div class="cl-stat-val" id="cl-total-count" style="color:var(--t1);">0</div><div class="cl-stat-lbl">Total items</div></div>
+      <div style="text-align:right;"><div class="cl-stat-val" id="cl-pct" style="color:var(--brand);">0%</div><div class="cl-stat-lbl">Complete</div></div>
+    </div>
+    <div class="cl-bar-bg"><div class="cl-bar-fill" id="cl-bar" style="width:0%"></div></div>
+  </div>
+  <div class="checklist-complete" id="checklist-complete">
+    <div style="font-size:32px;margin-bottom:8px;">✅</div>
+    <div style="font-size:16px;font-weight:700;color:#30D158;margin-bottom:4px;">All checks complete</div>
+    <div style="font-size:13px;color:var(--t3);">Safe to proceed with excavation</div>
+  </div>
+  <div style="flex:1;overflow-y:auto;" id="checklist-body"></div>
+  <div style="padding:12px 14px 20px;display:flex;gap:8px;flex-shrink:0;">
+    <button onclick="resetChecklist()" style="flex:1;padding:13px;border-radius:12px;background:rgba(255,255,255,.08);border:none;color:var(--t2);font-size:14px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;">Reset</button>
+    <button onclick="saveChecklist()" style="flex:2;padding:13px;border-radius:12px;background:var(--brand);border:none;color:#fff;font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">Save &amp; close</button>
+  </div>
+</div>
+
+<!-- ══ CACHE STATUS BADGE ══ -->
+<div id="cache-status"></div>
 
 </body>
 </html>
