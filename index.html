@@ -3342,7 +3342,7 @@ function renderDashboard() {
     for (var pi = 0; pi < poorList.length; pi++) {
       var pa = poorList[pi];
       alertHtml +=
-        '<div style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid var(--border-subtle);cursor:pointer;" onclick="flyToCity('' + pa.cityId + '');closeDash();">' +
+        '<div style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid var(--border-subtle);cursor:pointer;" data-city="' + pa.cityId + '" onclick="flyToCity(this.getAttribute(\"data-city\"));closeDash();">' +
           '<div style="width:36px;height:36px;border-radius:10px;background:rgba(255,0,0,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;">' +
             '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FF0000" stroke-width="2" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/></svg>' +
           '</div>' +
@@ -3365,7 +3365,7 @@ function renderDashboard() {
     for (var cci = 0; cci < CITIES.length; cci++) {
       var c = CITIES[cci];
       covHtml +=
-        '<div class="city-cov-card" onclick="flyToCity('' + c.id + '');closeDash();">' +
+        '<div class="city-cov-card" data-city=' + c.id + ' onclick="flyToCity(this.getAttribute('data-city'));closeDash();">' +
           '<div class="city-cov-dot" style="background:' + c.color + ';box-shadow:0 0 0 3px ' + c.color + '33;"></div>' +
           '<div class="city-cov-name">' + c.name + '</div>' +
           '<div class="city-cov-state">' + c.state + '</div>' +
