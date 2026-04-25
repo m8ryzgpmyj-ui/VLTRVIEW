@@ -1247,7 +1247,7 @@ window.onunhandledrejection = function(e) {
 // ══════════════════════════════════════════════════════════
 
 // ── CITIES WITH DEMO UTILITY DATA ──
-const CITIES = [
+var CITIES = [
   {
     id:'raleigh', name:'Raleigh', state:'NC',
     lat:35.7796, lon:-78.6382, zoom:14,
@@ -1286,10 +1286,10 @@ const CITIES = [
   },
 ];
 
-let currentCity = CITIES[0]; // Raleigh default
+var currentCity = CITIES[0]; // Raleigh default
 
 // ── UTILITY LAYERS CONFIG ──
-const LAYER_DEFS = [
+var LAYER_DEFS = [
   // ── REAL federal data ──
   {id:'hifld_lines', label:'Electric Lines',  sub:'HIFLD · Transmission 69kV+', color:'#FF0000', real:true,  osm:false},
   {id:'hifld_sub',   label:'Substations',     sub:'HIFLD · Electric substations',color:'#74C5E8', real:true,  osm:false},
@@ -1301,14 +1301,14 @@ const LAYER_DEFS = [
   {id:'sewer',       label:'Sewer',            sub:'Demo · Gravity lines',        color:'#00AA00', real:false, osm:false},
   {id:'gas',         label:'Gas',              sub:'Demo · Distribution',         color:'#FFD700', real:false, osm:false},
 ];
-const layerState = {
+var layerState = {
   hifld_lines:true, hifld_sub:true,
   osm_power:true, osm_telecom:true, osm_water:true,
   sewer:true, gas:true
 };
 
 // ── HIFLD API ENDPOINTS ──
-const HIFLD = {
+var HIFLD = {
   // Electric transmission lines — Hp6G80Pky0om7QvQ service
   lines: 'https://services1.arcgis.com/Hp6G80Pky0om7QvQ/arcgis/rest/services/Electric_Power_Transmission_Lines/FeatureServer/0/query',
   // Electric substations — G4S1dGvn7PIgYd6Y service  
@@ -1316,14 +1316,14 @@ const HIFLD = {
 };
 
 // Cache so we don't re-fetch when panning small amounts
-const hifldCache = {lines:{}, subs:{}};
-let hifldLinesLayer = null;   // Leaflet GeoJSON layer for lines
-let hifldSubsLayer  = null;   // Leaflet layer group for substation markers
-let hifldLoading = false;
-let lastFetchBounds = null;
+var hifldCache = {lines:{}, subs:{}};
+var hifldLinesLayer = null;   // Leaflet GeoJSON layer for lines
+var hifldSubsLayer  = null;   // Leaflet layer group for substation markers
+var hifldLoading = false;
+var lastFetchBounds = null;
 
 // ── MAP STYLES ──
-const MAP_STYLES = [
+var MAP_STYLES = [
   {
     id:'standard', label:'Standard',
     url:'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
@@ -1361,10 +1361,10 @@ const MAP_STYLES = [
     preview:'#e0dcd4'
   },
 ];
-let currentStyle = MAP_STYLES[3]; // Light/CARTO default
+var currentStyle = MAP_STYLES[3]; // Light/CARTO default
 
 // ── ASSET DEFINITIONS ──
-const ASSET_TYPES = {
+var ASSET_TYPES = {
   TX:{label:'Transformer',color:'#791F1F',size:32,border:'good'},
   DP:{label:'Distribution Pedestal',color:'#185FA5',size:28,border:'fair'},
   EJ:{label:'Junction Handhole',color:'#006600',size:24,border:'good'},
@@ -1377,18 +1377,18 @@ const ASSET_TYPES = {
 
 // ── GENERATE DEMO ASSETS FOR ALL CITIES ──
 function genAssets(city) {
-  const types = ['TX','TX','DP','DP','DP','EJ','EJ','WV','WV','MH','FH','FH','SL','SL','GP'];
-  const conds = ['good','good','good','fair','fair','poor','unknown'];
-  const assets = [];
-  const seed = city.id.charCodeAt(0);
-  for (let i = 0; i < city.assets; i++) {
-    const type = types[i % types.length];
-    const angle = (seed * 137.5 + i * 47.3) * Math.PI / 180;
-    const radius = 0.002 + (i % 5) * 0.0015;
-    const lat = city.lat + Math.sin(angle + i) * radius;
-    const lon = city.lon + Math.cos(angle * 1.3 + i * 0.7) * radius * 1.4;
-    const cond = conds[(seed + i * 3) % conds.length];
-    const num = String(100 + i).padStart(4,'0');
+  var types = ['TX','TX','DP','DP','DP','EJ','EJ','WV','WV','MH','FH','FH','SL','SL','GP'];
+  var conds = ['good','good','good','fair','fair','poor','unknown'];
+  var assets = [];
+  var seed = city.id.charCodeAt(0);
+  for (var i = 0; i < city.assets; i++) {
+    var type = types[i % types.length];
+    var angle = (seed * 137.5 + i * 47.3) * Math.PI / 180;
+    var radius = 0.002 + (i % 5) * 0.0015;
+    var lat = city.lat + Math.sin(angle + i) * radius;
+    var lon = city.lon + Math.cos(angle * 1.3 + i * 0.7) * radius * 1.4;
+    var cond = conds[(seed + i * 3) % conds.length];
+    var num = String(100 + i).padStart(4,'0');
     assets.push({
       id:`${type}-${num}`, type, lat, lon,
       condition: cond,
@@ -1404,19 +1404,19 @@ function genAssets(city) {
 
 // ── GENERATE UTILITY LINES ──
 function genLines(city) {
-  const lines = [];
-  const seed = city.id.charCodeAt(0);
-  const layerTypes = ['elec','elec2','telecom','water','sewer','gas'];
-  const colors = {'elec':'#FF0000','elec2':'#74C5E8','telecom':'#FF6600','water':'#0000CC','sewer':'#00AA00','gas':'#FFD700'};
+  var lines = [];
+  var seed = city.id.charCodeAt(0);
+  var layerTypes = ['elec','elec2','telecom','water','sewer','gas'];
+  var colors = {'elec':'#FF0000','elec2':'#74C5E8','telecom':'#FF6600','water':'#0000CC','sewer':'#00AA00','gas':'#FFD700'};
 
-  for (let l = 0; l < city.lines; l++) {
-    const layerType = layerTypes[l % layerTypes.length];
-    const color = colors[layerType];
-    const pts = [];
-    let lat = city.lat + (Math.sin(seed + l * 33) * 0.006);
-    let lon = city.lon + (Math.cos(seed * 1.7 + l * 27) * 0.009);
-    const segments = 3 + (l % 4);
-    for (let s = 0; s <= segments; s++) {
+  for (var l = 0; l < city.lines; l++) {
+    var layerType = layerTypes[l % layerTypes.length];
+    var color = colors[layerType];
+    var pts = [];
+    var lat = city.lat + (Math.sin(seed + l * 33) * 0.006);
+    var lon = city.lon + (Math.cos(seed * 1.7 + l * 27) * 0.009);
+    var segments = 3 + (l % 4);
+    for (var s = 0; s <= segments; s++) {
       pts.push([lat, lon]);
       lat += (Math.sin(seed + l * 7 + s * 13) * 0.003);
       lon += (Math.cos(seed + l * 11 + s * 17) * 0.004);
@@ -1429,10 +1429,10 @@ function genLines(city) {
 // ══════════════════════════════════════
 // LEAFLET MAP INIT
 // ══════════════════════════════════════
-let map, tileLayer, assetMarkers = [], linePolys = [], gpsMarker = null, gpsRing = null;
-let gpsMode = 'demo', realGPS = null, gpsWatchId = null;
-let activeAsset = null;
-let searchDebounce = null;
+var map, tileLayer, assetMarkers = [], linePolys = [], gpsMarker = null, gpsRing = null;
+var gpsMode = 'demo', realGPS = null, gpsWatchId = null;
+var activeAsset = null;
+var searchDebounce = null;
 
 
 // ══════════════════════════════════════
@@ -1447,7 +1447,7 @@ function boundsKey(b) {
 
 function voltageColor(v) {
   if(!v||v==='UNKNOWN'||v==='NOT AVAILABLE') return '#FF0000';
-  const kv = parseFloat(v);
+  var kv = parseFloat(v);
   if(kv >= 500) return '#FF0000';   // 500kV+ — thick red
   if(kv >= 230) return '#CC0000';   // 230–499kV — dark red
   if(kv >= 115) return '#FF3333';   // 115–229kV — mid red
@@ -1456,14 +1456,14 @@ function voltageColor(v) {
 
 function voltageWeight(v) {
   if(!v||v==='UNKNOWN') return 2;
-  const kv = parseFloat(v);
+  var kv = parseFloat(v);
   if(kv >= 500) return 4;
   if(kv >= 230) return 3;
   return 2;
 }
 
 async function fetchHIFLDLines(bounds) {
-  const key = boundsKey(bounds);
+  var key = boundsKey(bounds);
   if(hifldCache.lines[key]) return hifldCache.lines[key];
 
   var params = new URLSearchParams({
@@ -1481,18 +1481,18 @@ async function fetchHIFLDLines(bounds) {
     f: 'geojson',
   });
 
-  const res = await fetch(HIFLD.lines + '?' + params);
+  var res = await fetch(HIFLD.lines + '?' + params);
   if(!res.ok) throw new Error('HIFLD lines HTTP ' + res.status);
-  const data = await res.json();
+  var data = await res.json();
   hifldCache.lines[key] = data;
   return data;
 }
 
 async function fetchHIFLDSubs(bounds) {
-  const key = boundsKey(bounds);
+  var key = boundsKey(bounds);
   if(hifldCache.subs[key]) return hifldCache.subs[key];
 
-  const params = new URLSearchParams({
+  var params = new URLSearchParams({
     where: "STATUS='IN SERVICE'",
     outFields: 'NAME,OWNER,MAX_VOLT,MIN_VOLT,STATUS,COUNTY,STATE',
     geometry: JSON.stringify({
@@ -1507,9 +1507,9 @@ async function fetchHIFLDSubs(bounds) {
     f: 'geojson',
   });
 
-  const res = await fetch(HIFLD.subs + '?' + params);
+  var res = await fetch(HIFLD.subs + '?' + params);
   if(!res.ok) throw new Error('HIFLD subs HTTP ' + res.status);
-  const data = await res.json();
+  var data = await res.json();
   hifldCache.subs[key] = data;
   return data;
 }
@@ -1551,11 +1551,11 @@ function renderHIFLDSubs(geojson) {
   hifldSubsLayer = L.layerGroup();
 
   (geojson.features || []).forEach(f => {
-    const p = f.properties || {};
-    const coords = (f.geometry && f.geometry.coordinates);
+    var p = f.properties || {};
+    var coords = (f.geometry && f.geometry.coordinates);
     if(!coords) return;
 
-    const maxV = p.MAX_VOLT || '?';
+    var maxV = p.MAX_VOLT || '?';
     var subIcon = L.divIcon({
       className: '',
       html: '<div style="width:14px;height:14px;border-radius:3px;background:#74C5E8;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.4);cursor:pointer;"></div>',
@@ -1604,29 +1604,29 @@ function showSubstationPopup(p) {
 }
 
 function updateHIFLDLineCount(n) {
-  const el = document.getElementById('hifld-line-count');
+  var el = document.getElementById('hifld-line-count');
   if(el) el.textContent = n + ' lines';
 }
 function updateHIFLDSubCount(n) {
-  const el = document.getElementById('hifld-sub-count');
+  var el = document.getElementById('hifld-sub-count');
   if(el) el.textContent = n + ' subs';
 }
 
 // Main loader — called on map move and zoom
 async function loadHIFLDData() {
   if(hifldLoading) return;
-  const zoom = map.getZoom();
+  var zoom = map.getZoom();
   // Only fetch when zoomed in enough to be useful (avoid fetching entire USA at once)
   if(zoom < 8) {
     showToast('Zoom in to load real transmission data');
     return;
   }
 
-  const bounds = map.getBounds();
+  var bounds = map.getBounds();
   // Don't re-fetch if bounds haven't changed much
   if(lastFetchBounds) {
-    const prev = lastFetchBounds;
-    const moved = Math.abs(bounds.getCenter().lat - prev.getCenter().lat) +
+    var prev = lastFetchBounds;
+    var moved = Math.abs(bounds.getCenter().lat - prev.getCenter().lat) +
                   Math.abs(bounds.getCenter().lng - prev.getCenter().lng);
     if(moved < 0.05 && zoom === prev._zoom) return;
   }
@@ -1639,7 +1639,7 @@ async function loadHIFLDData() {
   showHIFLDStatus('loading');
 
   try {
-    const [linesData, subsData] = await Promise.all([
+    var [linesData, subsData] = await Promise.all([
       layerState.hifld_lines ? fetchHIFLDLines(bounds) : Promise.resolve({features:[]}),
       layerState.hifld_sub   ? fetchHIFLDSubs(bounds)  : Promise.resolve({features:[]}),
     ]);
@@ -1657,7 +1657,7 @@ async function loadHIFLDData() {
 }
 
 function showHIFLDStatus(state, lines, subs) {
-  const bar = document.getElementById('hifld-status-bar');
+  var bar = document.getElementById('hifld-status-bar');
   if(!bar) return;
   if(state === 'loading') {
     bar.style.display = 'flex';
@@ -1677,12 +1677,12 @@ function showHIFLDStatus(state, lines, subs) {
 // ══════════════════════════════════════════════
 // OSM OVERPASS — real infrastructure data
 // ══════════════════════════════════════════════
-const OSM_ENDPOINT = 'https://overpass-api.de/api/interpreter';
-const osmCache = {};
-let osmPowerLayer   = null;
-let osmTelecomLayer = null;
-let osmWaterLayer   = null;
-let osmLoading      = false;
+var OSM_ENDPOINT = 'https://overpass-api.de/api/interpreter';
+var osmCache = {};
+var osmPowerLayer   = null;
+var osmTelecomLayer = null;
+var osmWaterLayer   = null;
+var osmLoading      = false;
 
 function osmBoundsKey(b) {
   return 'osm:' + [b.getSouth(),b.getWest(),b.getNorth(),b.getEast()]
@@ -1690,7 +1690,7 @@ function osmBoundsKey(b) {
 }
 
 async function fetchOSM(query) {
-  const res = await fetch(OSM_ENDPOINT, {
+  var res = await fetch(OSM_ENDPOINT, {
     method: 'POST',
     headers: {'Content-Type': 'application/x-www-form-urlencoded'},
     body: 'data=' + encodeURIComponent(query),
@@ -1700,8 +1700,8 @@ async function fetchOSM(query) {
 }
 
 function osmQuery(bounds, tags, extra='') {
-  const bb = `${bounds.getSouth()},${bounds.getWest()},${bounds.getNorth()},${bounds.getEast()}`;
-  const parts = tags.map(t => `
+  var bb = `${bounds.getSouth()},${bounds.getWest()},${bounds.getNorth()},${bounds.getEast()}`;
+  var parts = tags.map(t => `
     node${t}(${bb});
     way${t}(${bb});`).join('');
   return `[out:json][timeout:20];
@@ -1719,48 +1719,48 @@ function osmCenter(el) {
 
 // ── POWER ASSETS (transformers, towers, switches) ──
 async function fetchOSMPower(bounds) {
-  const key = osmBoundsKey(bounds) + ':power';
+  var key = osmBoundsKey(bounds) + ':power';
   if (osmCache[key]) return osmCache[key];
-  const q = osmQuery(bounds, [
+  var q = osmQuery(bounds, [
     '["power"="transformer"]',
     '["power"="tower"]',
     '["power"="pole"]',
     '["power"="switch"]',
     '["power"="generator"]',
   ], 'tags');
-  const data = await fetchOSM(q);
+  var data = await fetchOSM(q);
   osmCache[key] = data;
   return data;
 }
 
 // ── TELECOM ASSETS ──
 async function fetchOSMTelecom(bounds) {
-  const key = osmBoundsKey(bounds) + ':telecom';
+  var key = osmBoundsKey(bounds) + ':telecom';
   if (osmCache[key]) return osmCache[key];
-  const q = osmQuery(bounds, [
+  var q = osmQuery(bounds, [
     '["man_made"="mast"]["tower:type"="communication"]',
     '["telecom"="exchange"]',
     '["telecom"="cabinet"]',
     '["man_made"="communications_tower"]',
     '["amenity"="telephone"]',
   ], 'tags');
-  const data = await fetchOSM(q);
+  var data = await fetchOSM(q);
   osmCache[key] = data;
   return data;
 }
 
 // ── WATER INFRASTRUCTURE ──
 async function fetchOSMWater(bounds) {
-  const key = osmBoundsKey(bounds) + ':water';
+  var key = osmBoundsKey(bounds) + ':water';
   if (osmCache[key]) return osmCache[key];
-  const q = osmQuery(bounds, [
+  var q = osmQuery(bounds, [
     '["emergency"="fire_hydrant"]',
     '["man_made"="water_tower"]',
     '["man_made"="water_well"]',
     '["man_made"="pumping_station"]',
     '["waterway"="pump"]',
   ], 'tags');
-  const data = await fetchOSM(q);
+  var data = await fetchOSM(q);
   osmCache[key] = data;
   return data;
 }
@@ -1770,7 +1770,7 @@ function renderOSMPower(data) {
   if (osmPowerLayer) map.removeLayer(osmPowerLayer);
   osmPowerLayer = L.layerGroup();
 
-  const icons = {
+  var icons = {
     transformer: { label:'TX', color:'#FF0000', size:22 },
     tower:       { label:'TW', color:'#CC0000', size:18 },
     pole:        { label:'PL', color:'#DD2222', size:16 },
@@ -1779,17 +1779,17 @@ function renderOSMPower(data) {
   };
 
   (data.elements || []).forEach(el => {
-    const pt = osmCenter(el);
+    var pt = osmCenter(el);
     if (!pt) return;
-    const pwr = (el.tags ? el.tags.power : null) || 'transformer';
-    const cfg = icons[pwr] || icons.transformer;
-    const sz = cfg.size;
+    var pwr = (el.tags ? el.tags.power : null) || 'transformer';
+    var cfg = icons[pwr] || icons.transformer;
+    var sz = cfg.size;
 
-    const voltRaw = (el.tags && el.tags.voltage) || (el.tags && el.tags['voltage:primary']) || '';
-    const voltStr = voltRaw ? ' · ' + voltRaw + 'V' : '';
-    const name = (el.tags && el.tags.name) || (el.tags && el.tags.ref) || cfg.label;
+    var voltRaw = (el.tags && el.tags.voltage) || (el.tags && el.tags['voltage:primary']) || '';
+    var voltStr = voltRaw ? ' · ' + voltRaw + 'V' : '';
+    var name = (el.tags && el.tags.name) || (el.tags && el.tags.ref) || cfg.label;
 
-    const icon = L.divIcon({
+    var icon = L.divIcon({
       className: '',
       html: `<div title="${name}${voltStr}" style="
         width:${sz}px;height:${sz}px;border-radius:4px;
@@ -1803,7 +1803,7 @@ function renderOSMPower(data) {
       iconSize:[sz,sz], iconAnchor:[sz/2,sz/2],
     });
 
-    const marker = L.marker(pt, {icon});
+    var marker = L.marker(pt, {icon});
     marker.on('click', e => {
       L.DomEvent.stopPropagation(e);
       showOSMPopup('power', el, pt);
@@ -1821,10 +1821,10 @@ function renderOSMTelecom(data) {
   osmTelecomLayer = L.layerGroup();
 
   (data.elements || []).forEach(el => {
-    const pt = osmCenter(el);
+    var pt = osmCenter(el);
     if (!pt) return;
-    const sz = 16;
-    const icon = L.divIcon({
+    var sz = 16;
+    var icon = L.divIcon({
       className: '',
       html: `<div style="
         width:${sz}px;height:${sz}px;border-radius:50%;
@@ -1836,7 +1836,7 @@ function renderOSMTelecom(data) {
       ">TC</div>`,
       iconSize:[sz,sz], iconAnchor:[sz/2,sz/2],
     });
-    const marker = L.marker(pt, {icon});
+    var marker = L.marker(pt, {icon});
     marker.on('click', e => { L.DomEvent.stopPropagation(e); showOSMPopup('telecom', el, pt); });
     osmTelecomLayer.addLayer(marker);
   });
@@ -1850,7 +1850,7 @@ function renderOSMWater(data) {
   if (osmWaterLayer) map.removeLayer(osmWaterLayer);
   osmWaterLayer = L.layerGroup();
 
-  const waterIcons = {
+  var waterIcons = {
     fire_hydrant:    { label:'FH', color:'#0000CC' },
     water_tower:     { label:'WT', color:'#0033AA' },
     water_well:      { label:'WW', color:'#002288' },
@@ -1859,14 +1859,14 @@ function renderOSMWater(data) {
   };
 
   (data.elements || []).forEach(el => {
-    const pt = osmCenter(el);
+    var pt = osmCenter(el);
     if (!pt) return;
-    const wtype = (el.tags && el.tags.emergency) === 'fire_hydrant' ? 'fire_hydrant'
+    var wtype = (el.tags && el.tags.emergency) === 'fire_hydrant' ? 'fire_hydrant'
       : (el.tags && el.tags.man_made) || (el.tags && el.tags.waterway) || 'fire_hydrant';
-    const cfg = waterIcons[wtype] || waterIcons.fire_hydrant;
-    const sz = 18;
+    var cfg = waterIcons[wtype] || waterIcons.fire_hydrant;
+    var sz = 18;
 
-    const icon = L.divIcon({
+    var icon = L.divIcon({
       className: '',
       html: `<div style="
         width:${sz}px;height:${sz}px;border-radius:50%;
@@ -1878,7 +1878,7 @@ function renderOSMWater(data) {
       ">${cfg.label}</div>`,
       iconSize:[sz,sz], iconAnchor:[sz/2,sz/2],
     });
-    const marker = L.marker(pt, {icon});
+    var marker = L.marker(pt, {icon});
     marker.on('click', e => { L.DomEvent.stopPropagation(e); showOSMPopup('water', el, pt); });
     osmWaterLayer.addLayer(marker);
   });
@@ -1889,20 +1889,20 @@ function renderOSMWater(data) {
 
 // ── OSM ASSET POPUP ──
 function showOSMPopup(type, el, pt) {
-  const tags = el.tags || {};
-  const typeLabels = {
+  var tags = el.tags || {};
+  var typeLabels = {
     power: { title: (tags.power||'Power asset').replace(/_/g,' '), color:'#FF0000' },
     telecom: { title: (tags.telecom||tags.man_made||'Telecom asset').replace(/_/g,' '), color:'#FF6600' },
     water: { title: (tags.emergency||tags.man_made||tags.waterway||'Water asset').replace(/_/g,' '), color:'#0000CC' },
   };
-  const cfg = typeLabels[type] || typeLabels.power;
+  var cfg = typeLabels[type] || typeLabels.power;
 
   document.getElementById('ap-title').textContent =
     (tags.name || tags.ref || cfg.title).replace(/\w/g,c=>c.toUpperCase());
   document.getElementById('ap-sub').textContent =
     'OpenStreetMap · Real infrastructure · OSM ID ' + el.id;
 
-  const rows = Object.entries(tags)
+  var rows = Object.entries(tags)
     .filter(([k]) => !['source','fixme','note','created_by'].includes(k))
     .slice(0, 8)
     .map(([k, v]) => `
@@ -1932,19 +1932,19 @@ function showOSMPopup(type, el, pt) {
 // ── MAIN OSM LOADER ──
 async function loadOSMData() {
   if (osmLoading) return;
-  const zoom = map.getZoom();
+  var zoom = map.getZoom();
   if (zoom < 13) return; // OSM detail only useful close up
 
   osmLoading = true;
   try {
-    const bounds = map.getBounds();
-    const results = await Promise.allSettled([
+    var bounds = map.getBounds();
+    var results = await Promise.allSettled([
       layerState.osm_power   ? fetchOSMPower(bounds)   : Promise.resolve({elements:[]}),
       layerState.osm_telecom ? fetchOSMTelecom(bounds) : Promise.resolve({elements:[]}),
       layerState.osm_water   ? fetchOSMWater(bounds)   : Promise.resolve({elements:[]}),
     ]);
 
-    let total = 0;
+    var total = 0;
     if (results[0].status === 'fulfilled') total += renderOSMPower(results[0].value);
     if (results[1].status === 'fulfilled') total += renderOSMTelecom(results[1].value);
     if (results[2].status === 'fulfilled') total += renderOSMWater(results[2].value);
@@ -2076,15 +2076,15 @@ function onMapMove() {
   }
 
   // Show voltage legend when zoomed in enough for HIFLD data
-  const legend = document.getElementById('volt-legend');
+  var legend = document.getElementById('volt-legend');
   if(legend) legend.style.display = map.getZoom() >= 8 ? 'block' : 'none';
 
-  const center = map.getCenter();
-  const zoom = map.getZoom();
+  var center = map.getCenter();
+  var zoom = map.getZoom();
   // Find closest city
-  let closest = null, minDist = Infinity;
+  var closest = null, minDist = Infinity;
   CITIES.forEach(city => {
-    const d = Math.hypot(center.lat - city.lat, center.lng - city.lon);
+    var d = Math.hypot(center.lat - city.lat, center.lng - city.lon);
     if (d < minDist) { minDist = d; closest = city; }
   });
   if (closest && minDist < 0.5) {
@@ -2097,7 +2097,7 @@ function onMapMove() {
 // ── LAYER TOGGLE ──
 function toggleLayer(id) {
   layerState[id] = !layerState[id];
-  const on = layerState[id];
+  var on = layerState[id];
 
   // Handle HIFLD real layers
   if(id === 'hifld_lines') {
@@ -2138,7 +2138,7 @@ function toggleLayer(id) {
 }
 
 function renderLayerGrid() {
-  const grid = document.getElementById('layer-grid');
+  var grid = document.getElementById('layer-grid');
   // Section headers
   grid.innerHTML = `
     <div style="grid-column:1/-1;font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;font-weight:700;margin-bottom:2px;display:flex;align-items:center;gap:6px;">
@@ -2178,7 +2178,7 @@ function renderLayerGrid() {
     </div>`).join('');
 
   // City chips
-  const chips = document.getElementById('city-chips');
+  var chips = document.getElementById('city-chips');
   chips.innerHTML = CITIES.map(c => `
     <div onclick="flyToCity('${c.id}');toggleLayerPanel();" style="padding:4px 12px;border-radius:20px;background:${c.color}20;border:1px solid ${c.color}40;color:${c.color};font-size:11px;font-weight:600;cursor:pointer;font-family:'JetBrains Mono',monospace;">
       ${c.name}
@@ -2187,7 +2187,7 @@ function renderLayerGrid() {
 
 // ── MAP STYLE GRID ──
 function renderStyleGrid() {
-  const grid = document.getElementById('style-grid');
+  var grid = document.getElementById('style-grid');
   grid.innerHTML = MAP_STYLES.map(s => `
     <div onclick="applyMapStyle('${s.id}')" style="border-radius:14px;overflow:hidden;cursor:pointer;border:2px solid ${currentStyle.id===s.id?'var(--brand)':'transparent'};transition:all .15s;background:var(--bg-card);">
       <div style="width:100%;height:54px;background:${s.preview};border-bottom:1px solid rgba(255,255,255,.05);"></div>
@@ -2196,7 +2196,7 @@ function renderStyleGrid() {
 }
 
 function applyMapStyle(id) {
-  const style = MAP_STYLES.find(s => s.id === id);
+  var style = MAP_STYLES.find(s => s.id === id);
   if (style) { setMapStyle(style); renderStyleGrid(); }
 }
 
@@ -2214,7 +2214,7 @@ function renderCityList() {
 }
 
 function flyToCity(id) {
-  const city = CITIES.find(c => c.id === id);
+  var city = CITIES.find(c => c.id === id);
   if (!city) return;
   currentCity = city;
   map.flyTo([city.lat, city.lon], city.zoom, {duration:1.4, easeLinearity:0.4});
@@ -2225,26 +2225,26 @@ function flyToCity(id) {
 // ── ASSET POPUP ──
 function showAssetPopup(asset) {
   activeAsset = asset;
-  const def = ASSET_TYPES[asset.type];
-  const condLabels = {good:'Good',fair:'Fair',poor:'Poor',unknown:'Unknown'};
-  const condClass  = {good:'cg', fair:'cf',  poor:'cp',  unknown:'cu'};
-  const condColors = {good:'#00AA00',fair:'#FFD700',poor:'#FF0000',unknown:'#636366'};
-  const cond = asset.condition;
-  const city = CITIES.find(c=>c.id===asset.city);
+  var def = ASSET_TYPES[asset.type];
+  var condLabels = {good:'Good',fair:'Fair',poor:'Poor',unknown:'Unknown'};
+  var condClass  = {good:'cg', fair:'cf',  poor:'cp',  unknown:'cu'};
+  var condColors = {good:'#00AA00',fair:'#FFD700',poor:'#FF0000',unknown:'#636366'};
+  var cond = asset.condition;
+  var city = CITIES.find(c=>c.id===asset.city);
 
   document.getElementById('ap-title').textContent = asset.id + ' — ' + def.label;
   document.getElementById('ap-sub').textContent = ((city ? city.name : asset.city)) + ', USA · ' + asset.owner;
 
   // Next inspection date (simulate: 1 year after last)
-  const lastDate = new Date(asset.lastInsp);
-  const nextDate = new Date(lastDate);
+  var lastDate = new Date(asset.lastInsp);
+  var nextDate = new Date(lastDate);
   nextDate.setFullYear(nextDate.getFullYear() + 1);
-  const nextStr = nextDate.toISOString().split('T')[0];
-  const overdue = nextDate < new Date();
+  var nextStr = nextDate.toISOString().split('T')[0];
+  var overdue = nextDate < new Date();
 
   // Age in years
-  const installDate = new Date(asset.install);
-  const ageYears = Math.floor((new Date()-installDate)/31536000000);
+  var installDate = new Date(asset.install);
+  var ageYears = Math.floor((new Date()-installDate)/31536000000);
 
   document.getElementById('ap-rows').innerHTML = `
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:12px 16px;border-bottom:1px solid var(--border-subtle);">
@@ -2301,8 +2301,8 @@ function drawGPSDot(lat, lon, isReal) {
   if (gpsMarker) { map.removeLayer(gpsMarker); }
   if (gpsRing) { map.removeLayer(gpsRing); }
 
-  const color = isReal ? '#30D158' : '#0A84FF';
-  const icon = L.divIcon({
+  var color = isReal ? '#30D158' : '#0A84FF';
+  var icon = L.divIcon({
     className:'',
     html:`<div style="position:relative;width:24px;height:24px;">
       <div style="position:absolute;inset:0;border-radius:50%;background:${color};opacity:.25;animation:gps-pulse 2s ease-out infinite;transform-origin:center;"></div>
@@ -2316,7 +2316,7 @@ function drawGPSDot(lat, lon, isReal) {
 }
 
 function handleGPSFab() {
-  const btn = document.getElementById('fab-gps');
+  var btn = document.getElementById('fab-gps');
   if (gpsMode === 'real' && realGPS) {
     map.flyTo([realGPS.lat, realGPS.lon], 16, {duration:1.2});
     showToast('📍 Centered on your location');
@@ -2339,7 +2339,7 @@ function handleGPSFab() {
       },
       err => {
         btn.classList.remove('live');
-        const msgs = {1:'Location permission denied',2:'GPS unavailable',3:'GPS timeout'};
+        var msgs = {1:'Location permission denied',2:'GPS unavailable',3:'GPS timeout'};
         showToast('⚠️ ' + (msgs[err.code]||'GPS error'));
       },
       {enableHighAccuracy:true, timeout:10000, maximumAge:0}
@@ -2348,7 +2348,7 @@ function handleGPSFab() {
 }
 
 // ── SEARCH ──
-let searchOpen = false;
+var searchOpen = false;
 function toggleSearch() {
   searchOpen = !searchOpen;
   document.getElementById('search-overlay').classList.toggle('open', searchOpen);
@@ -2361,8 +2361,8 @@ function doSearch(q) {
   if (q.length < 2) { document.getElementById('search-results').innerHTML=''; return; }
   searchDebounce = setTimeout(async () => {
     try {
-      const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=6&countrycodes=us`);
-      const data = await res.json();
+      var res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=6&countrycodes=us`);
+      var data = await res.json();
       document.getElementById('search-results').innerHTML = data.map(r => `
         <div class="sr-item" onclick="goToResult(${r.lat},${r.lon},'${r.display_name.replace(/'/g,"\\'")}')">
           <div class="sr-main">${r.display_name.split(',')[0]}</div>
@@ -2381,7 +2381,7 @@ function goToResult(lat, lon, name) {
 }
 
 // ── UI TOGGLES ──
-let lpanelOpen = false, mspanelOpen = false, cityPanelOpen = false;
+var lpanelOpen = false, mspanelOpen = false, cityPanelOpen = false;
 
 function toggleLayerPanel() {
   lpanelOpen = !lpanelOpen;
@@ -2416,7 +2416,7 @@ function closeAllMenus() {
 }
 
 // ── BOTTOM NAV + TAB SWITCHING ──
-const allPanels=['orders','crew','route','notif','photos','damage'];
+var allPanels=['orders','crew','route','notif','photos','damage'];
 function switchTab(tab, btn) {
   document.querySelectorAll('.bnav-btn').forEach(b=>b.classList.remove('active'));
   if(btn) btn.classList.add('active');
@@ -2427,7 +2427,7 @@ function switchTab(tab, btn) {
 
 // ── TOAST ──
 function showToast(msg) {
-  const t = document.getElementById('toast');
+  var t = document.getElementById('toast');
   t.textContent = msg;
   t.classList.add('show');
   clearTimeout(t._t);
@@ -2442,7 +2442,7 @@ function openDamageReport() { document.getElementById('modal-damage').classList.
 // ══════════════════════════════════════
 // WORK ORDERS
 // ══════════════════════════════════════
-let workOrders = [
+var workOrders = [
   {id:'WO-2847',title:'Inspect transformer TXF-0102 — Raleigh',asset:'TXF-0102',status:'urgent',priority:'urgent',crew:'Marcus R.',time:'Due today 5:00 PM',notes:'Annual inspection overdue 3 days.'},
   {id:'WO-2841',title:'Replace handhole EJH-0104 cover',asset:'EJH-0104',status:'progress',priority:'high',crew:'James T.',time:'In progress · Started 9:14 AM',notes:'Cover cracked, water intrusion risk.'},
   {id:'WO-2835',title:'Chicago SMH-0107 manhole assessment',asset:'SMH-0107',status:'open',priority:'normal',crew:'Alicia L.',time:'Scheduled tomorrow 8:00 AM',notes:'Structural assessment needed.'},
@@ -2450,10 +2450,10 @@ let workOrders = [
   {id:'WO-2820',title:'Houston WV-0113 valve condition check',asset:'WV-0113',status:'done',priority:'normal',crew:'Sam K.',time:'Completed Apr 19',notes:'Gate valve fair condition.'},
   {id:'WO-2815',title:'Charlotte GP-0116 ground strap install',asset:'GP-0116',status:'done',priority:'high',crew:'Marcus R.',time:'Completed Apr 18',notes:'Missing ground strap replaced.'},
 ];
-let woFilter='all';
-const statusLabel={open:'Open',progress:'In progress',done:'Completed',urgent:'Urgent'};
-const statusClass={open:'st-open',progress:'st-progress',done:'st-done',urgent:'st-urgent'};
-const priorityIcon={urgent:'🔴',high:'🟠',normal:'🔵'};
+var woFilter='all';
+var statusLabel={open:'Open',progress:'In progress',done:'Completed',urgent:'Urgent'};
+var statusClass={open:'st-open',progress:'st-progress',done:'st-done',urgent:'st-urgent'};
+var priorityIcon={urgent:'🔴',high:'🟠',normal:'🔵'};
 
 function filterWO(f,btn){
   woFilter=f;
@@ -2462,7 +2462,7 @@ function filterWO(f,btn){
   renderWO();
 }
 function renderWO(){
-  let filtered=workOrders.filter(w=>woFilter==='all'||w.status===woFilter);
+  var filtered=workOrders.filter(w=>woFilter==='all'||w.status===woFilter);
   if(woSearchQuery) {
     filtered = filtered.filter(w =>
       w.id.toLowerCase().includes(woSearchQuery) ||
@@ -2500,17 +2500,17 @@ function renderWO(){
     </div>`).join('')||'<div style="text-align:center;padding:3rem;color:var(--t3);font-size:13px;">No orders in this filter</div>';
 }
 function markWODone(id){
-  const wo=workOrders.find(w=>w.id===id);
+  var wo=workOrders.find(w=>w.id===id);
   if(wo){wo.status='done';wo.time='Completed just now';renderWO();saveToStorage();addNotif('Work order complete',wo.id+' — '+wo.title,'success');}
 }
 function saveNewWO(){
-  const title=document.getElementById('wo-new-title').value.trim();
-  const asset=document.getElementById('wo-new-asset').value.trim()||'Unspecified';
-  const priority=document.getElementById('wo-new-priority').value;
-  const crew=document.getElementById('wo-new-crew').value;
-  const notes=document.getElementById('wo-new-notes').value.trim();
+  var title=document.getElementById('wo-new-title').value.trim();
+  var asset=document.getElementById('wo-new-asset').value.trim()||'Unspecified';
+  var priority=document.getElementById('wo-new-priority').value;
+  var crew=document.getElementById('wo-new-crew').value;
+  var notes=document.getElementById('wo-new-notes').value.trim();
   if(!title){showToast('Please enter a job title');return;}
-  const newId='WO-'+(2848+workOrders.length);
+  var newId='WO-'+(2848+workOrders.length);
   workOrders.unshift({id:newId,title,asset,status:priority==='urgent'?'urgent':'open',priority,crew,time:'Just created',notes:notes||'No notes'});
   closeModal('modal-newwo');renderWO();saveToStorage();addNotif('New work order',newId+' — '+title,'info');
   document.getElementById('wo-new-title').value='';
@@ -2521,14 +2521,14 @@ function saveNewWO(){
 // ══════════════════════════════════════
 // CREW
 // ══════════════════════════════════════
-const crewMembers=[
+var crewMembers=[
   {initials:'MR',name:'Marcus R.',color:'#0A84FF',status:'online',statusLabel:'Active',task:'Inspecting TXF-0102 · Raleigh',loc:'Downtown Raleigh',dist:'0.3 mi'},
   {initials:'JT',name:'James T.',color:'#30D158',status:'online',statusLabel:'Active',task:'EJH-0104 cover replacement · Raleigh',loc:'Glenwood Ave area',dist:'0.6 mi'},
   {initials:'AL',name:'Alicia L.',color:'#FF9F0A',status:'busy',statusLabel:'On site',task:'SMH-0107 assessment · Chicago',loc:'Chicago, IL',dist:'740 mi'},
   {initials:'SK',name:'Sam K.',color:'#636366',status:'offline',statusLabel:'Off shift',task:'Last: WV-0113 Houston · Apr 19',loc:'Offline',dist:'—'},
 ];
-const dotClass={online:'crew-dot-online',busy:'crew-dot-busy',offline:'crew-dot-offline'};
-const statusColors={online:'#30D158',busy:'#FF9F0A',offline:'#636366'};
+var dotClass={online:'crew-dot-online',busy:'crew-dot-busy',offline:'crew-dot-offline'};
+var statusColors={online:'#30D158',busy:'#FF9F0A',offline:'#636366'};
 function renderCrew(){
   document.getElementById('crew-list').innerHTML='<div style="padding:0 14px;">'+crewMembers.map(c=>`
     <div class="crew-card">
@@ -2548,7 +2548,7 @@ function renderCrew(){
 // ══════════════════════════════════════
 // PHOTOS
 // ══════════════════════════════════════
-let photos=[
+var photos=[
   {asset:'TXF-0102',note:'Oil level low — marked. Bushing left shows surface cracking.',time:'Today 9:42 AM',color:'#FF453A'},
   {asset:'EJH-0104',note:'Cover cracked east face. Full replacement needed.',time:'Today 8:15 AM',color:'#30D158'},
   {asset:'SMH-0107',note:'Brick mortar degrading at 4 o\'clock, 6" section.',time:'Apr 19 3:22 PM',color:'#0A84FF'},
@@ -2568,8 +2568,8 @@ function renderPhotos(){
     </div>`).join('');
 }
 function addPhoto(){
-  const asset=prompt('Asset ID:');if(!asset)return;
-  const note=prompt('Notes:');
+  var asset=prompt('Asset ID:');if(!asset)return;
+  var note=prompt('Notes:');
   photos.unshift({asset:asset.toUpperCase(),note:note||'Field photo.',time:'Just now',color:'#a594fc'});
   renderPhotos();showToast('Photo added to '+asset.toUpperCase());
 }
@@ -2578,14 +2578,14 @@ function openPhotos(){switchTab('photos',null);document.querySelectorAll('.bnav-
 // ══════════════════════════════════════
 // DAMAGE REPORTS
 // ══════════════════════════════════════
-let damageReports=[
+var damageReports=[
   {id:'DMG-019',asset:'TXF-0102',sev:'high',title:'Transformer — bushing surface cracking',desc:'Left bushing shows hairline cracks. Recommend replacement within 30 days.',reporter:'Marcus R.',time:'Today 9:45 AM',status:'Open'},
   {id:'DMG-018',asset:'EJH-0104',sev:'high',title:'Handhole cover — structural crack',desc:'Cover cracked east face. Water intrusion risk. Immediate replacement required.',reporter:'James T.',time:'Today 8:18 AM',status:'In review'},
   {id:'DMG-017',asset:'SMH-0107',sev:'low',title:'Manhole — mortar degradation',desc:'Brick mortar degrading at 4 o\'clock. Tuck-pointing recommended.',reporter:'Sam K.',time:'Apr 19 3:25 PM',status:'Scheduled'},
   {id:'DMG-016',asset:'WV-0113',sev:'low',title:'Water valve — surface rust',desc:'Surface rust on handwheel. Functional. Wire brush and paint recommended.',reporter:'Alicia L.',time:'Apr 17 2:10 PM',status:'Resolved'},
 ];
-const sevClass={critical:'sev-critical',high:'sev-high',low:'sev-low'};
-const sevLabel={critical:'Critical',high:'High',low:'Low'};
+var sevClass={critical:'sev-critical',high:'sev-high',low:'sev-low'};
+var sevLabel={critical:'Critical',high:'High',low:'Low'};
 function renderDamage(){
   document.getElementById('damage-list').innerHTML=damageReports.map(d=>`
     <div class="dmg-card">
@@ -2602,12 +2602,12 @@ function renderDamage(){
     </div>`).join('');
 }
 function saveDamageReport(){
-  const asset=document.getElementById('dmg-asset').value.trim()||'Unknown';
-  const sev=document.getElementById('dmg-sev').value;
-  const desc=document.getElementById('dmg-desc').value.trim();
+  var asset=document.getElementById('dmg-asset').value.trim()||'Unknown';
+  var sev=document.getElementById('dmg-sev').value;
+  var desc=document.getElementById('dmg-desc').value.trim();
   if(!desc){showToast('Please describe the damage');return;}
-  const sevTitles={low:'Minor damage',high:'Significant damage',critical:'Critical damage'};
-  const newId='DMG-'+(20+damageReports.length);
+  var sevTitles={low:'Minor damage',high:'Significant damage',critical:'Critical damage'};
+  var newId='DMG-'+(20+damageReports.length);
   damageReports.unshift({id:newId,asset:asset.toUpperCase(),sev,title:sevTitles[sev],desc,reporter:'You',time:'Just now',status:'Open'});
   closeModal('modal-damage');renderDamage();saveToStorage();
   addNotif('Damage report filed',newId+' — '+asset.toUpperCase(),'danger');
@@ -2619,7 +2619,7 @@ function openDamage(){switchTab('damage',null);document.querySelectorAll('.bnav-
 // ══════════════════════════════════════
 // NOTIFICATIONS
 // ══════════════════════════════════════
-let notifications=[
+var notifications=[
   {title:'Inspection overdue',desc:'TXF-0102 Raleigh — annual inspection 3 days past due.',time:'2 hours ago',type:'warning',unread:true},
   {title:'Damage report filed',desc:'DMG-018 — EJH-0104 handhole cover cracked.',time:'Today 8:20 AM',type:'danger',unread:true},
   {title:'Work order complete',desc:'WO-2820 — Houston WV-0113 inspection done by Sam K.',time:'Yesterday 4:32 PM',type:'success',unread:true},
@@ -2628,9 +2628,9 @@ let notifications=[
   {title:'Maintenance reminder',desc:'SMH-0107 Chicago — last inspected 14 months ago.',time:'Yesterday 7:00 AM',type:'warning',unread:false},
   {title:'Battery low — beacon',desc:'Asset beacon at EJH-0042 reporting low battery.',time:'Apr 18 9:12 AM',type:'warning',unread:false},
 ];
-const notifColors={warning:'rgba(255,159,10,.15)',danger:'rgba(255,69,58,.15)',success:'rgba(48,209,88,.15)',info:'rgba(10,132,255,.15)'};
-const notifStrokes={warning:'#FF9F0A',danger:'#FF453A',success:'#30D158',info:'#0A84FF'};
-const notifIcons={
+var notifColors={warning:'rgba(255,159,10,.15)',danger:'rgba(255,69,58,.15)',success:'rgba(48,209,88,.15)',info:'rgba(10,132,255,.15)'};
+var notifStrokes={warning:'#FF9F0A',danger:'#FF453A',success:'#30D158',info:'#0A84FF'};
+var notifIcons={
   warning:'<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>',
   danger:'<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>',
   success:'<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>',
@@ -2649,8 +2649,8 @@ function renderNotifs(){
       </div>
       ${n.unread?'<div class="notif-dot"></div>':''}
     </div>`).join('');
-  const u=notifications.filter(n=>n.unread).length;
-  const badge=document.querySelector('#bn-notif .bnav-badge');
+  var u=notifications.filter(n=>n.unread).length;
+  var badge=document.querySelector('#bn-notif .bnav-badge');
   if(badge){badge.textContent=u||'';badge.style.display=u?'flex':'none';}
 }
 function markNotifRead(i){notifications[i].unread=false;renderNotifs();}
@@ -2663,7 +2663,7 @@ function addNotif(title,desc,type){
 // ══════════════════════════════════════
 // ROUTE
 // ══════════════════════════════════════
-let routeStops=[
+var routeStops=[
   {num:1,name:'TXF-0102 — Transformer',addr:'200 S Salisbury St, Raleigh NC',dist:'Start',status:'done'},
   {num:2,name:'DP-0103 — Distribution pedestal',addr:'215 S Salisbury St',dist:'0.1 mi',status:'done'},
   {num:3,name:'EJH-0104 — Junction handhole',addr:'310 S Wilmington St',dist:'0.15 mi',status:'current'},
@@ -2685,7 +2685,7 @@ function renderRoute(){
   document.getElementById('rt-done-count').textContent=routeStops.filter(s=>s.status==='done').length;
 }
 function advanceRoute(){
-  const cur=routeStops.findIndex(s=>s.status==='current');
+  var cur=routeStops.findIndex(s=>s.status==='current');
   if(cur>=0){
     routeStops[cur].status='done';
     if(cur+1<routeStops.length){routeStops[cur+1].status='current';showToast('Navigating to '+routeStops[cur+1].name);}
@@ -2710,12 +2710,12 @@ window.addEventListener('offline',checkOffline);
 // ══════════════════════════════════════════════
 // ONBOARDING SYSTEM
 // ══════════════════════════════════════════════
-const OB_KEY = 'vltrview_onboarded_v1';
-let obTourSlide = 1;
-let obHotspotIdx = 0;
+var OB_KEY = 'vltrview_onboarded_v1';
+var obTourSlide = 1;
+var obHotspotIdx = 0;
 
 // Hotspot definitions — element id, ring size, tooltip position, title, body
-const HOTSPOTS = [
+var HOTSPOTS = [
   {
     elId: 'fab-layers',
     title: 'Utility layers',
@@ -2763,7 +2763,7 @@ function initOnboarding() {
   }
   // New user — show welcome screen (splash already handled separately)
   // Hide splash first, show welcome
-  const splash = document.getElementById('splash');
+  var splash = document.getElementById('splash');
   if (splash) splash.style.display = 'none';
   document.getElementById('ob-welcome').style.display = 'flex';
 }
@@ -2779,7 +2779,7 @@ function showTourSlide(n) {
   // Hide all slides
   document.querySelectorAll('.ob-slide').forEach(s => s.classList.remove('active'));
   // Show target
-  const slide = document.getElementById('ob-slide-' + n);
+  var slide = document.getElementById('ob-slide-' + n);
   if (slide) slide.classList.add('active');
   // Progress dots
   document.querySelectorAll('.ob-dot').forEach((d, i) => {
@@ -2813,22 +2813,22 @@ function startHotspots() {
 
 function showHotspot(idx) {
   if (idx >= HOTSPOTS.length) { finishOnboarding(); return; }
-  const hs = HOTSPOTS[idx];
-  const el = document.getElementById(hs.elId);
+  var hs = HOTSPOTS[idx];
+  var el = document.getElementById(hs.elId);
   if (!el) { showHotspot(idx + 1); return; }
 
-  const overlay = document.getElementById('ob-hotspot');
-  const ring = document.getElementById('hs-ring');
-  const tooltip = document.getElementById('hs-tooltip');
+  var overlay = document.getElementById('ob-hotspot');
+  var ring = document.getElementById('hs-ring');
+  var tooltip = document.getElementById('hs-tooltip');
 
   overlay.classList.add('active');
   overlay.style.pointerEvents = 'none';
   tooltip.style.pointerEvents = 'all';
 
-  const rect = el.getBoundingClientRect();
-  const cx = rect.left + rect.width / 2;
-  const cy = rect.top + rect.height / 2;
-  const r = Math.max(rect.width, rect.height) / 2 + 10;
+  var rect = el.getBoundingClientRect();
+  var cx = rect.left + rect.width / 2;
+  var cy = rect.top + rect.height / 2;
+  var r = Math.max(rect.width, rect.height) / 2 + 10;
 
   // Position ring
   ring.style.width  = (r * 2) + 'px';
@@ -2837,9 +2837,9 @@ function showHotspot(idx) {
   ring.style.top    = (cy - r) + 'px';
 
   // Position tooltip
-  const tipW = 240, tipH = 160;
-  let tipLeft = cx - tipW / 2;
-  let tipTop;
+  var tipW = 240, tipH = 160;
+  var tipLeft = cx - tipW / 2;
+  var tipTop;
 
   if (hs.tipPos === 'top') {
     tipTop = cy - r - tipH - 16;
@@ -2899,14 +2899,14 @@ function toggleLayerRow(id) {
   // Use existing toggleLayer logic
   toggleLayer(id);
   // Update toggle button visual
-  const tog = document.getElementById('lltog-' + id);
+  var tog = document.getElementById('lltog-' + id);
   if (tog) tog.classList.toggle('on', layerState[id]);
 }
 
 // Update layer list toggles whenever state changes externally
 function syncLayerToggles() {
   Object.keys(layerState).forEach(id => {
-    const tog = document.getElementById('lltog-' + id);
+    var tog = document.getElementById('lltog-' + id);
     if (tog) tog.classList.toggle('on', layerState[id]);
   });
 }
@@ -2915,19 +2915,19 @@ function syncLayerToggles() {
 // SPLASH SEQUENCE (extracted so skipOnboarding can call it)
 // ══════════════════════════════════════════════
 function runSplash() {
-  const splash = document.getElementById('splash');
+  var splash = document.getElementById('splash');
   if (!splash || splash.style.display === 'none') return;
 
-  const steps = [
+  var steps = [
     [20,'Loading map...'],
     [45,'Plotting city infrastructure...'],
     [70,'Loading utility data...'],
     [90,'Finalizing...'],
     [100,'Ready'],
   ];
-  let i = 0;
-  const bar = document.getElementById('splash-bar');
-  const status = document.getElementById('splash-status');
+  var i = 0;
+  var bar = document.getElementById('splash-bar');
+  var status = document.getElementById('splash-status');
 
   function nextStep() {
     if (i >= steps.length) {
@@ -2944,7 +2944,7 @@ function runSplash() {
       }, 300);
       return;
     }
-    const [pct, msg] = steps[i++];
+    var [pct, msg] = steps[i++];
     if (bar) bar.style.width = pct + '%';
     if (status) status.textContent = msg;
     setTimeout(nextStep, i === steps.length ? 400 : 320);
@@ -2958,11 +2958,11 @@ function runSplash() {
 // ══════════════════════════════════════════════
 
 // ── LOCAL STORAGE PERSISTENCE ──
-const STORAGE_KEY = 'vltrview_data_v1';
+var STORAGE_KEY = 'vltrview_data_v1';
 
 function saveToStorage() {
   try {
-    const data = {
+    var data = {
       workOrders,
       damageReports,
       photos,
@@ -2978,9 +2978,9 @@ function saveToStorage() {
 
 function loadFromStorage() {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    var raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return false;
-    const data = JSON.parse(raw);
+    var data = JSON.parse(raw);
     if ((data.workOrders && data.workOrders.length))   workOrders   = data.workOrders;
     if ((data.damageReports && data.damageReports.length)) damageReports = data.damageReports;
     if ((data.photos && data.photos.length))       photos        = data.photos;
@@ -2993,7 +2993,7 @@ function loadFromStorage() {
 }
 
 function showPersistBadge() {
-  const badge = document.getElementById('persist-badge');
+  var badge = document.getElementById('persist-badge');
   if (!badge) return;
   badge.style.display = 'block';
   clearTimeout(badge._t);
@@ -3001,22 +3001,22 @@ function showPersistBadge() {
 }
 
 // ── WORK ORDER DETAIL VIEW ──
-let currentWO = null;
+var currentWO = null;
 
 function openWODetail(id) {
-  const wo = workOrders.find(w => w.id === id);
+  var wo = workOrders.find(w => w.id === id);
   if (!wo) return;
   currentWO = wo;
 
-  const statusColors = {open:'#0A84FF',progress:'#FF9F0A',done:'#30D158',urgent:'#FF453A'};
-  const statusLabels = {open:'Open',progress:'In progress',done:'Completed',urgent:'Urgent'};
-  const priorityIcons = {urgent:'🔴',high:'🟠',normal:'🔵'};
+  var statusColors = {open:'#0A84FF',progress:'#FF9F0A',done:'#30D158',urgent:'#FF453A'};
+  var statusLabels = {open:'Open',progress:'In progress',done:'Completed',urgent:'Urgent'};
+  var priorityIcons = {urgent:'🔴',high:'🟠',normal:'🔵'};
 
   document.getElementById('wod-id').textContent = wo.id;
   document.getElementById('wod-title-small').textContent = wo.title;
 
   // Status bar
-  const sc = statusColors[wo.status] || '#636366';
+  var sc = statusColors[wo.status] || '#636366';
   document.getElementById('wod-status-bar').innerHTML = `
     <div style="width:36px;height:36px;border-radius:50%;background:${sc}22;border:2px solid ${sc};display:flex;align-items:center;justify-content:center;flex-shrink:0;">
       <div style="width:12px;height:12px;border-radius:50%;background:${sc};"></div>
@@ -3077,7 +3077,7 @@ function openWODetail(id) {
   document.getElementById('wod-notes').textContent = wo.notes || 'No notes added.';
 
   // Hide mark done if already done
-  const doneBtn = document.querySelector('#wo-detail-panel .wod-btn-pri');
+  var doneBtn = document.querySelector('#wo-detail-panel .wod-btn-pri');
   if (doneBtn) doneBtn.style.display = wo.status === 'done' ? 'none' : 'flex';
 
   document.getElementById('wo-detail-panel').classList.add('open');
@@ -3089,22 +3089,22 @@ function closeWODetail() {
 }
 
 // ── SHARE SYSTEM ──
-let currentShareId = null;
+var currentShareId = null;
 
 function shareWO(id) {
-  const wo = workOrders.find(w => w.id === id);
+  var wo = workOrders.find(w => w.id === id);
   if (!wo) return;
   currentShareId = id;
 
   // Encode WO data into URL
-  const payload = btoa(JSON.stringify({
+  var payload = btoa(JSON.stringify({
     id: wo.id, title: wo.title, asset: wo.asset,
     status: wo.status, crew: wo.crew, priority: wo.priority,
     time: wo.time, notes: wo.notes,
     shared: new Date().toISOString().split('T')[0],
     app: 'VLTRVIEW'
   }));
-  const shareUrl = `${window.location.origin}${window.location.pathname}?wo=${payload}`;
+  var shareUrl = `${window.location.origin}${window.location.pathname}?wo=${payload}`;
 
   document.getElementById('share-modal-title').textContent = 'Share — ' + wo.id;
   document.getElementById('share-modal-sub').textContent = wo.title;
@@ -3113,12 +3113,12 @@ function shareWO(id) {
 }
 
 function copyShareLink() {
-  const link = document.getElementById('share-link-text').textContent;
+  var link = document.getElementById('share-link-text').textContent;
   if (navigator.clipboard) {
     navigator.clipboard.writeText(link).then(() => showToast('✓ Link copied to clipboard'));
   } else {
     // Fallback
-    const ta = document.createElement('textarea');
+    var ta = document.createElement('textarea');
     ta.value = link;
     document.body.appendChild(ta);
     ta.select();
@@ -3129,8 +3129,8 @@ function copyShareLink() {
 }
 
 async function shareViaSystem() {
-  const link = document.getElementById('share-link-text').textContent;
-  const wo = workOrders.find(w => w.id === currentShareId);
+  var link = document.getElementById('share-link-text').textContent;
+  var wo = workOrders.find(w => w.id === currentShareId);
   if (navigator.share) {
     try {
       await navigator.share({
@@ -3148,11 +3148,11 @@ async function shareViaSystem() {
 }
 
 function emailWO(id) {
-  const wo = workOrders.find(w => w.id === id);
+  var wo = workOrders.find(w => w.id === id);
   if (!wo) return;
-  const link = document.getElementById('share-link-text').textContent;
-  const subject = encodeURIComponent(`VLTRVIEW Work Order ${wo.id} — ${wo.title}`);
-  const body = encodeURIComponent(
+  var link = document.getElementById('share-link-text').textContent;
+  var subject = encodeURIComponent(`VLTRVIEW Work Order ${wo.id} — ${wo.title}`);
+  var body = encodeURIComponent(
     `Work Order: ${wo.id}
 ` +
     `Title: ${wo.title}
@@ -3183,14 +3183,14 @@ function closeShareModal() {
 
 // ── PRINT / PDF VIEW ──
 function printWO(id) {
-  const wo = workOrders.find(w => w.id === id);
+  var wo = workOrders.find(w => w.id === id);
   if (!wo) return;
   closeShareModal();
 
-  const statusLabels = {open:'Open',progress:'In Progress',done:'Completed',urgent:'Urgent — Priority'};
-  const statusColors = {open:'#0A84FF',progress:'#FF9F0A',done:'#00AA00',urgent:'#FF0000'};
-  const sc = statusColors[wo.status] || '#333';
-  const now = new Date().toLocaleString();
+  var statusLabels = {open:'Open',progress:'In Progress',done:'Completed',urgent:'Urgent — Priority'};
+  var statusColors = {open:'#0A84FF',progress:'#FF9F0A',done:'#00AA00',urgent:'#FF0000'};
+  var sc = statusColors[wo.status] || '#333';
+  var now = new Date().toLocaleString();
 
   document.getElementById('pv-body').innerHTML = `
     <div class="pv-title">${wo.title}</div>
@@ -3246,16 +3246,16 @@ function closePrintView() {
 }
 
 // ── WO SEARCH ──
-let woSearchQuery = '';
+var woSearchQuery = '';
 function searchWO(q) {
   woSearchQuery = q.toLowerCase();
   renderWO();
 }
 
 // ── FIELD NOTES (quick pin drop) ──
-let fieldNotes = [];
-let quickNoteLatLon = null;
-let fieldNoteMarkers = [];
+var fieldNotes = [];
+var quickNoteLatLon = null;
+var fieldNoteMarkers = [];
 
 function enableQuickNote() {
   showToast('Tap anywhere on the map to drop a note');
@@ -3269,10 +3269,10 @@ function enableQuickNote() {
 }
 
 function saveQuickNote() {
-  const text = document.getElementById('qn-text').value.trim();
+  var text = document.getElementById('qn-text').value.trim();
   if (!text) { showToast('Please enter a note'); return; }
-  const cat = document.getElementById('qn-category').value;
-  const note = {
+  var cat = document.getElementById('qn-category').value;
+  var note = {
     id: 'NOTE-' + Date.now(),
     lat: quickNoteLatLon.lat,
     lon: quickNoteLatLon.lng,
@@ -3287,12 +3287,12 @@ function saveQuickNote() {
 }
 
 function plotFieldNote(note) {
-  const catColors = {
+  var catColors = {
     observation:'#FFD700', hazard:'#FF0000',
     damage:'#FF6600', locate:'#0000CC', other:'#636366'
   };
-  const color = catColors[note.cat] || '#FFD700';
-  const icon = L.divIcon({
+  var color = catColors[note.cat] || '#FFD700';
+  var icon = L.divIcon({
     className:'',
     html:`<div style="
       width:28px;height:28px;border-radius:50% 50% 50% 0;
@@ -3303,7 +3303,7 @@ function plotFieldNote(note) {
     "><span style="transform:rotate(45deg);font-size:12px;">📝</span></div>`,
     iconSize:[28,28], iconAnchor:[10,28],
   });
-  const marker = L.marker([note.lat, note.lon], {icon});
+  var marker = L.marker([note.lat, note.lon], {icon});
   marker.on('click', e => {
     L.DomEvent.stopPropagation(e);
     document.getElementById('ap-title').textContent = 'Field Note — ' + note.id;
@@ -3337,11 +3337,11 @@ function deleteWO(id) {
 
 // ── HANDLE SHARED WO LINK ──
 function checkSharedWO() {
-  const params = new URLSearchParams(window.location.search);
-  const woParam = params.get('wo');
+  var params = new URLSearchParams(window.location.search);
+  var woParam = params.get('wo');
   if (!woParam) return;
   try {
-    const wo = JSON.parse(atob(woParam));
+    var wo = JSON.parse(atob(woParam));
     // Show shared WO view
     setTimeout(() => {
       document.getElementById('ap-title').textContent = wo.id + ' — ' + wo.title;
@@ -3370,9 +3370,9 @@ function checkSharedWO() {
 
 // ── ADD QUICK NOTE BUTTON TO MAP ──
 function addQuickNoteButton() {
-  const btn = L.control({position:'bottomleft'});
+  var btn = L.control({position:'bottomleft'});
   btn.onAdd = function() {
-    const div = L.DomUtil.create('div');
+    var div = L.DomUtil.create('div');
     div.innerHTML = `<button onclick="enableQuickNote()" style="
       width:46px;height:46px;border-radius:50%;
       background:rgba(18,18,28,.94);backdrop-filter:blur(12px);
