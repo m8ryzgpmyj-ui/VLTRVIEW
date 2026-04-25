@@ -52,7 +52,7 @@ html,body{height:100%;width:100%;background:var(--bg-base);font-family:'DM Sans'
 
 /* MAP */
 #main{flex:1;position:relative;overflow:hidden;}
-#map{width:100%;height:100%;z-index:1;}
+#map{width:100%;height:100%;z-index:1;position:absolute;top:0;left:0;right:0;bottom:0;}
 
 /* LEAFLET OVERRIDES */
 .leaflet-control-zoom{border:none!important;box-shadow:0 4px 20px rgba(0,0,0,.3)!important;border-radius:12px!important;overflow:hidden;margin-right:14px!important;margin-bottom:14px!important;}
@@ -1381,7 +1381,8 @@ function genAssets(city) {
   var conds = ['good','good','good','fair','fair','poor','unknown'];
   var assets = [];
   var seed = city.id.charCodeAt(0);
-  for (var i = 0; i < city.assets; i++) {
+  var assetLimit = Math.min(city.assets, 15);
+  for (var i = 0; i < assetLimit; i++) {
     var type = types[i % types.length];
     var angle = (seed * 137.5 + i * 47.3) * Math.PI / 180;
     var radius = 0.002 + (i % 5) * 0.0015;
@@ -1476,7 +1477,7 @@ async function fetchHIFLDLines(bounds) {
     }),
     geometryType: 'esriGeometryEnvelope',
     spatialRel: 'esriSpatialRelIntersects',
-    resultRecordCount: 200,
+    resultRecordCount: 100,
     outSR: 4326,
     f: 'geojson',
   });
@@ -1960,10 +1961,11 @@ async function loadOSMData() {
 
 function initMap() {
   map = L.map('map', {
-    center: [currentCity.lat, currentCity.lon],
-    zoom: currentCity.zoom,
+    center: [35.7796, -78.6382],
+    zoom: 11,
     zoomControl: true,
     attributionControl: true,
+    preferCanvas: true,
   });
 
   // Position zoom controls
@@ -1985,6 +1987,9 @@ function initMap() {
 
   // Update subtitle on move
   map.on('moveend', onMapMove);
+  // Force map to fill container after render
+  setTimeout(function() { map.invalidateSize(); }, 300);
+  setTimeout(function() { map.invalidateSize(); }, 1000);
   map.on('moveend', () => {
     if(map.getZoom()>=8)  loadHIFLDData();
     if(map.getZoom()>=13) loadOSMData();
@@ -2003,7 +2008,11 @@ function setMapStyle(style) {
   tileLayer = L.tileLayer(style.url, {
     attribution: style.attr,
     maxZoom: 19,
-    subdomains: style.id === 'dark' || style.id === 'carto' || style.id === 'cartovoyager' ? 'abcd' : 'abc',
+    minZoom: 3,
+    subdomains: (style.id === 'dark' || style.id === 'carto' || style.id === 'cartovoyager') ? 'abcd' : 'abc',
+    keepBuffer: 4,
+    updateWhenIdle: false,
+    updateWhenZooming: false,
   });
   tileLayer.addTo(map);
   currentStyle = style;
@@ -2018,11 +2027,12 @@ function plotCity(city) {
     var lineB = lines[li2];
     var polyB = L.polyline(lineB.pts, {
       color: lineB.color,
-      weight: 2.5,
-      opacity: 0.7,
-      dashArray: lineB.dashed ? '6 5' : null,
+      weight: 2,
+      opacity: 0.65,
+      dashArray: lineB.dashed ? '5 4' : null,
       lineCap: 'round',
       lineJoin: 'round',
+      renderer: L.canvas(),
     });
     polyB.layerType = lineB.layer;
     polyB.addTo(map);
@@ -4269,7 +4279,7 @@ function startAppDemo() {
   }, 800);
 
   // City fly-through — visit all 6 cities
-  var delays = [1000, 3500, 6000, 8500, 11000, 13500];
+  var delays = [500, 2500, 4500, 6500, 8500, 10500];
   for (var i = 0; i < CITIES.length; i++) {
     (function(city, delay) {
       setTimeout(function() {
@@ -4406,11 +4416,12 @@ function initDemo() {
       if (pitch) pitch.style.display = 'flex';
       try { localStorage.setItem('vltrview_pitch_seen', '1'); } catch(e) {}
     } else {
-      // Returning user — hide pitch, NO demo banner, normal app
+      // Returning user — hide pitch and banner, normal app flow
       var pitch2 = document.getElementById('pitch-screen');
       if (pitch2) pitch2.style.display = 'none';
-      var banner = document.getElementById('demo-banner');
-      if (banner) banner.style.display = 'none';
+      var banner2 = document.getElementById('demo-banner');
+      if (banner2) { banner2.style.display = 'none'; banner2.classList.remove('show'); }
+      demoMode = false;
     }
   }
 }
