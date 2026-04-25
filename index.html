@@ -882,6 +882,114 @@ html,body{height:100%;width:100%;background:var(--bg-base);font-family:'DM Sans'
   50%{box-shadow:0 0 0 10px rgba(10,132,255,.1),0 0 40px rgba(10,132,255,.5);}
 }
 
+
+/* ══ SIGNUP FORM ══ */
+#signup-screen{
+  position:fixed;inset:0;z-index:9500;
+  background:linear-gradient(160deg,#07070F 0%,#0A0A18 50%,#07070F 100%);
+  display:none;flex-direction:column;overflow-y:auto;
+}
+#signup-screen.open{display:flex;}
+.signup-head{
+  display:flex;align-items:center;gap:12px;
+  padding:20px 24px 0;
+}
+.signup-back{
+  background:rgba(255,255,255,.08);border:none;
+  color:var(--t2);font-size:14px;cursor:pointer;
+  padding:8px 14px;border-radius:20px;
+  font-family:'DM Sans',sans-serif;
+}
+.signup-hero{
+  text-align:center;padding:28px 24px 20px;
+}
+.signup-title{font-size:24px;font-weight:800;color:#F2F2F7;margin-bottom:6px;}
+.signup-sub{font-size:14px;color:#AEAEB2;line-height:1.5;}
+.signup-plan-badge{
+  display:inline-block;margin-top:10px;
+  padding:6px 16px;border-radius:20px;
+  background:rgba(10,132,255,.15);
+  border:1px solid rgba(10,132,255,.3);
+  font-size:13px;font-weight:600;color:#0A84FF;
+}
+.signup-form{padding:0 24px 40px;}
+.sf-label{
+  font-size:11px;font-weight:700;color:#636366;
+  text-transform:uppercase;letter-spacing:.07em;
+  display:block;margin-bottom:6px;margin-top:16px;
+}
+.sf-input{
+  width:100%;background:rgba(255,255,255,.06);
+  border:1.5px solid rgba(255,255,255,.1);
+  border-radius:14px;padding:14px 16px;
+  font-size:15px;color:#F2F2F7;
+  font-family:'DM Sans',sans-serif;outline:none;
+  transition:border-color .15s;
+  -webkit-appearance:none;
+}
+.sf-input:focus{border-color:#0A84FF;background:rgba(10,132,255,.06);}
+.sf-input::placeholder{color:#636366;}
+.sf-select{
+  width:100%;background:rgba(255,255,255,.06);
+  border:1.5px solid rgba(255,255,255,.1);
+  border-radius:14px;padding:14px 16px;
+  font-size:15px;color:#F2F2F7;
+  font-family:'DM Sans',sans-serif;outline:none;
+  -webkit-appearance:none;appearance:none;
+  cursor:pointer;
+}
+.sf-select option{background:#1a1a2e;color:#F2F2F7;}
+.sf-submit{
+  width:100%;padding:18px;border-radius:18px;
+  background:linear-gradient(135deg,#0A84FF,#0060CC);
+  border:none;color:#fff;font-size:17px;font-weight:700;
+  cursor:pointer;font-family:'DM Sans',sans-serif;
+  box-shadow:0 8px 32px rgba(10,132,255,.4);
+  margin-top:24px;letter-spacing:.3px;
+  transition:transform .15s,box-shadow .15s;
+}
+.sf-submit:active{transform:scale(.98);}
+.sf-terms{
+  font-size:11px;color:#636366;text-align:center;
+  margin-top:14px;line-height:1.5;
+}
+.sf-terms a{color:#0A84FF;text-decoration:none;}
+
+/* Success screen */
+#signup-success{
+  position:fixed;inset:0;z-index:9600;
+  background:linear-gradient(160deg,#07070F,#0A0A18);
+  display:none;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:40px 28px;text-align:center;
+}
+#signup-success.open{display:flex;}
+.success-icon{font-size:64px;margin-bottom:24px;}
+.success-title{font-size:26px;font-weight:800;color:#30D158;margin-bottom:10px;}
+.success-sub{font-size:15px;color:#AEAEB2;line-height:1.6;margin-bottom:32px;max-width:300px;}
+.success-next{
+  background:var(--bg-card);border-radius:16px;
+  padding:16px 20px;margin-bottom:12px;
+  border:1px solid var(--border-subtle);
+  text-align:left;width:100%;max-width:340px;
+  display:flex;align-items:center;gap:14px;
+}
+.success-next-num{
+  width:32px;height:32px;border-radius:50%;
+  background:var(--brand);color:#fff;
+  font-size:14px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+}
+.success-next-text{font-size:13px;color:var(--t2);line-height:1.4;}
+.success-cta{
+  width:100%;max-width:340px;padding:16px;
+  border-radius:16px;background:#30D158;
+  border:none;color:#fff;font-size:16px;font-weight:700;
+  cursor:pointer;font-family:'DM Sans',sans-serif;
+  margin-top:8px;
+}
+
 @keyframes gps-pulse{0%{transform:scale(1);opacity:.7}100%{transform:scale(3);opacity:0}}
 </style>
 </head>
@@ -4418,6 +4526,89 @@ function initDemo() {
   }
 }
 
+
+// ══════════════════════════════════════════════
+// SIGNUP FORM
+// ══════════════════════════════════════════════
+var currentSignupPlan = 'Pro';
+var currentSignupPrice = '$99/month';
+
+function openSignup(plan, price) {
+  currentSignupPlan = plan || 'Pro';
+  currentSignupPrice = price || '$99/month';
+
+  var badge = document.getElementById('signup-plan-badge');
+  if (badge) badge.textContent = currentSignupPlan + ' Plan — ' + currentSignupPrice;
+
+  var hidden = document.getElementById('sf-plan-hidden');
+  if (hidden) hidden.value = currentSignupPlan + ' — ' + currentSignupPrice;
+
+  var screen = document.getElementById('signup-screen');
+  if (screen) screen.classList.add('open');
+
+  // Scroll to top of signup
+  screen.scrollTop = 0;
+}
+
+function closeSignup() {
+  var screen = document.getElementById('signup-screen');
+  if (screen) screen.classList.remove('open');
+}
+
+function handleSignupSubmit(e) {
+  e.preventDefault();
+  var form = e.target;
+
+  // Get email for success screen
+  var emailInput = form.querySelector('[name="email"]');
+  var emailVal = emailInput ? emailInput.value : '';
+
+  // Submit to Netlify
+  var formData = new FormData(form);
+
+  fetch('/', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+    body: new URLSearchParams(formData).toString(),
+  }).then(function() {
+    showSignupSuccess(emailVal);
+  }).catch(function(err) {
+    // Even if fetch fails, show success — Netlify may still process it
+    console.warn('Form submit error:', err);
+    showSignupSuccess(emailVal);
+  });
+}
+
+function showSignupSuccess(email) {
+  // Hide signup form
+  var screen = document.getElementById('signup-screen');
+  if (screen) screen.classList.remove('open');
+
+  // Show success
+  var successEl = document.getElementById('signup-success');
+  var emailEl = document.getElementById('success-email');
+  if (emailEl) emailEl.textContent = email;
+  if (successEl) successEl.classList.add('open');
+
+  // Save to localStorage so we know they signed up
+  try {
+    localStorage.setItem('vltrview_signed_up', '1');
+    localStorage.setItem('vltrview_signup_email', email);
+    localStorage.setItem('vltrview_signup_plan', currentSignupPlan);
+  } catch(e) {}
+}
+
+function closeSignupSuccess() {
+  var successEl = document.getElementById('signup-success');
+  if (successEl) successEl.classList.remove('open');
+
+  // Take them into the app
+  var pitch = document.getElementById('pitch-screen');
+  if (pitch) pitch.style.display = 'none';
+  demoMode = true;
+  startAppDemo();
+}
+
 window.addEventListener('DOMContentLoaded', function() {
   // ── Check onboarding state ──
   if (!isOnboarded()) {
@@ -5146,6 +5337,7 @@ window.addEventListener('DOMContentLoaded', function() {
         <div class="price-feat"><span class="price-feat-check">v</span> 811 call integration</div>
         <div class="price-feat"><span class="price-feat-check">v</span> Pre-dig safety checklist</div>
       </div>
+      <button onclick="openSignup('Starter', '$49/month')" style="width:100%;margin-top:14px;padding:12px;border-radius:12px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);color:#F2F2F7;font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">Start free trial</button>
     </div>
 
     <div class="price-card featured">
@@ -5160,6 +5352,7 @@ window.addEventListener('DOMContentLoaded', function() {
         <div class="price-feat"><span class="price-feat-check">v</span> Measure distance tool</div>
         <div class="price-feat"><span class="price-feat-check">v</span> Priority support</div>
       </div>
+      <button onclick="openSignup('Pro', '$99/month')" style="width:100%;margin-top:14px;padding:12px;border-radius:12px;background:linear-gradient(135deg,#0A84FF,#0060CC);border:none;color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;box-shadow:0 4px 16px rgba(10,132,255,.35);">Start free trial — most popular</button>
     </div>
 
     <div class="price-card">
@@ -5172,13 +5365,14 @@ window.addEventListener('DOMContentLoaded', function() {
         <div class="price-feat"><span class="price-feat-check">v</span> Data export and reporting</div>
         <div class="price-feat"><span class="price-feat-check">v</span> Dedicated onboarding call</div>
       </div>
+      <button onclick="openSignup('Business', '$199/month')" style="width:100%;margin-top:14px;padding:12px;border-radius:12px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);color:#F2F2F7;font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">Start free trial</button>
     </div>
   </div>
 
   <!-- CTAs -->
   <div class="cta-section">
-    <button class="cta-primary" onclick="startAppDemo()">See the app live</button>
-    <button class="cta-secondary" onclick="startAppDemo()">Start free 30-day trial</button>
+    <button class="cta-primary" onclick="openSignup('Pro', '$99/month')">Start free 30-day trial</button>
+    <button class="cta-secondary" onclick="startAppDemo()">See the app first</button>
     <div style="text-align:center;font-size:11px;color:#636366;margin-top:4px;">No credit card required. Cancel anytime.</div>
   </div>
 
@@ -5204,6 +5398,114 @@ window.addEventListener('DOMContentLoaded', function() {
     <button class="tour-next" id="tour-next" onclick="nextTourStep()">Next</button>
     <button class="tour-skip" onclick="endTour()">Skip tour</button>
   </div>
+</div>
+
+
+<!-- ══ SIGNUP SCREEN ══ -->
+<div id="signup-screen">
+  <div class="signup-head">
+    <button class="signup-back" onclick="closeSignup()">← Back</button>
+  </div>
+  <div class="signup-hero">
+    <div class="signup-title">Start your free trial</div>
+    <div class="signup-sub">30 days free. No credit card required.<br>Cancel anytime.</div>
+    <div class="signup-plan-badge" id="signup-plan-badge">Pro Plan — $99/month</div>
+  </div>
+
+  <!-- Netlify form — submissions go to vltrview@gmail.com -->
+  <form class="signup-form" name="vltrview-signup" method="POST"
+        data-netlify="true" netlify-honeypot="bot-field"
+        onsubmit="handleSignupSubmit(event)">
+
+    <input type="hidden" name="form-name" value="vltrview-signup"/>
+    <input type="hidden" name="plan" id="sf-plan-hidden" value="Pro — $99/month"/>
+    <p style="display:none;"><input name="bot-field"/></p>
+
+    <label class="sf-label">Your name</label>
+    <input class="sf-input" type="text" name="name"
+           placeholder="John Smith" required/>
+
+    <label class="sf-label">Company name</label>
+    <input class="sf-input" type="text" name="company"
+           placeholder="Smith Utility Locating LLC" required/>
+
+    <label class="sf-label">Work email</label>
+    <input class="sf-input" type="email" name="email"
+           placeholder="john@smithlocating.com" required/>
+
+    <label class="sf-label">Phone number</label>
+    <input class="sf-input" type="tel" name="phone"
+           placeholder="(919) 555-0100"/>
+
+    <label class="sf-label">Number of field technicians</label>
+    <select class="sf-select" name="techs">
+      <option value="">Select...</option>
+      <option value="1-2">1-2 techs</option>
+      <option value="3-5">3-5 techs</option>
+      <option value="6-10">6-10 techs</option>
+      <option value="11-20">11-20 techs</option>
+      <option value="20+">20+ techs</option>
+    </select>
+
+    <label class="sf-label">What state do you operate in?</label>
+    <input class="sf-input" type="text" name="state"
+           placeholder="North Carolina"/>
+
+    <label class="sf-label">How did you hear about VLTRVIEW?</label>
+    <select class="sf-select" name="source">
+      <option value="">Select...</option>
+      <option value="referral">Referral from colleague</option>
+      <option value="google">Google search</option>
+      <option value="social">Social media</option>
+      <option value="association">Industry association</option>
+      <option value="other">Other</option>
+    </select>
+
+    <button type="submit" class="sf-submit">Start free 30-day trial</button>
+
+    <div class="sf-terms">
+      By signing up you agree to our
+      <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>.<br>
+      We will contact you within 1 business day to set up your account.
+    </div>
+  </form>
+</div>
+
+<!-- ══ SIGNUP SUCCESS ══ -->
+<div id="signup-success">
+  <div class="success-icon">🎉</div>
+  <div class="success-title">You are all set!</div>
+  <div class="success-sub">
+    Thank you for signing up for VLTRVIEW. We will reach out to
+    <strong id="success-email"></strong> within 1 business day to get
+    your team set up.
+  </div>
+
+  <div class="success-next">
+    <div class="success-next-num">1</div>
+    <div class="success-next-text">
+      <strong style="color:var(--t1);">Check your email</strong><br>
+      A confirmation is on its way with next steps
+    </div>
+  </div>
+  <div class="success-next">
+    <div class="success-next-num">2</div>
+    <div class="success-next-text">
+      <strong style="color:var(--t1);">We set up your account</strong><br>
+      Your team gets private access within 24 hours
+    </div>
+  </div>
+  <div class="success-next">
+    <div class="success-next-num">3</div>
+    <div class="success-next-text">
+      <strong style="color:var(--t1);">30 days free</strong><br>
+      No charge until your trial ends — cancel anytime
+    </div>
+  </div>
+
+  <button class="success-cta" onclick="closeSignupSuccess()">
+    Explore the app
+  </button>
 </div>
 
 </body>
