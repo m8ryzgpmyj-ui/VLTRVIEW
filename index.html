@@ -22,6 +22,9 @@ try {
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <meta name="apple-mobile-web-app-title" content="VLTRVIEW"/>
 <meta name="theme-color" content="#0A0A0F"/>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
+<meta http-equiv="Pragma" content="no-cache"/>
+<meta http-equiv="Expires" content="0"/>
 <title>VLTRVIEW — Utility Locator</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -651,7 +654,7 @@ window.onunhandledrejection = function(e) {
     <div id="splash-bar" style="height:100%;width:0%;background:linear-gradient(90deg,#0A84FF,#30D158);border-radius:2px;transition:width .35s ease;"></div>
   </div>
   <div id="splash-status" style="font-size:11px;color:#636366;margin-top:10px;font-family:'JetBrains Mono',monospace;">Initializing...</div>
-  <div style="position:absolute;bottom:32px;font-size:11px;color:#2a2a3a;font-family:'JetBrains Mono',monospace;">v1.0.0-beta · © 2026 VLTRVIEW</div>
+  <div style="position:absolute;bottom:32px;font-size:11px;color:#2a2a3a;font-family:'JetBrains Mono',monospace;">v1.0.1-beta · © 2026 VLTRVIEW</div>
 </div>
 
 <div id="app">
@@ -3165,16 +3168,6 @@ window.addEventListener('DOMContentLoaded', function() {
       );
     }
   },3000);
-  } catch(fatalErr) {
-    console.error('Fatal init error:', fatalErr);
-    var el = document.getElementById('splash-status');
-    if (el) {
-      el.style.color = '#FF453A';
-      el.style.fontSize = '12px';
-      el.textContent = 'Init error: ' + fatalErr.message + ' (line ' + (fatalErr.lineNumber || '?') + ')';
-    }
-    var bar = document.getElementById('splash-bar');
-    if (bar) { bar.style.background = '#FF453A'; bar.style.width = '100%'; }
 });
 </script>
 
@@ -3222,7 +3215,7 @@ window.addEventListener('DOMContentLoaded', function() {
   <button class="ob-skip" onclick="skipOnboarding()">Skip — take me to the map</button>
 
   <div style="position:absolute;bottom:28px;font-size:11px;color:#2a2a3a;font-family:'JetBrains Mono',monospace;">
-    v1.0.0-beta · © 2026 VLTRVIEW
+    v1.0.1-beta · © 2026 VLTRVIEW
   </div>
 </div>
 
