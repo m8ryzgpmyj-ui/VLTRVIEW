@@ -2346,6 +2346,10 @@ function showAssetPopup(asset) {
 
   document.getElementById('asset-popup').classList.add('open');
   map.panTo([asset.lat, asset.lon], {animate:true, duration:.5});
+  // Pan up slightly so popup doesn't cover marker
+  setTimeout(() => {
+    try { map.panBy([0, -80], {animate:true, duration:0.3}); } catch(e) {}
+  }, 300);
 }
 
 function closeAssetPopup() {
@@ -3853,15 +3857,8 @@ function startCrewTicker() {
   }, 7000);
 }
 
-// ── SMOOTHER ASSET POPUPS — pan with offset ──
-const _origShowAssetPopup = showAssetPopup;
-function showAssetPopup(asset) {
-  _origShowAssetPopup(asset);
-  // Pan map up a bit so popup doesn't cover marker
-  setTimeout(() => {
-    map.panBy([0, -100], { animate: true, duration: 0.4 });
-  }, 100);
-}
+// ── SMOOTHER ASSET POPUPS — pan map up after popup opens ──
+// (Patched into showAssetPopup directly — no override needed)
 
 
 // ══════════════════════════════════════════════
@@ -4298,22 +4295,19 @@ function initSprint4() {
 }
 
 window.addEventListener('DOMContentLoaded', function() {
-  // ── Check onboarding state ──
-  try {
-    if (!isOnboarded()) {
-      // New user — show welcome screen (ob-welcome is already flex from HTML)
-      document.getElementById('splash').style.display = 'none';
-      const welcome = document.getElementById('ob-welcome');
-      if (welcome) welcome.style.display = 'flex';
-    } else {
-      // Returning user — hide welcome, run splash
-      const welcome = document.getElementById('ob-welcome');
-      if (welcome) welcome.style.display = 'none';
-      runSplash();
-    }
-  } catch(e) {
-    // If onboarding check fails, just run splash
-    console.warn('Onboarding check error:', e);
+  // ── Determine new vs returning user ──
+  const _newUser = !isOnboarded();
+  const _splash  = document.getElementById('splash');
+  const _welcome = document.getElementById('ob-welcome');
+
+  if (_newUser) {
+    // New user: hide splash, show welcome screen
+    if (_splash)  _splash.style.display  = 'none';
+    if (_welcome) _welcome.style.display = 'flex';
+  } else {
+    // Returning user: ensure welcome is hidden, run splash
+    if (_welcome) _welcome.style.display = 'none';
+    if (_splash)  _splash.style.display  = 'flex';
     runSplash();
   }
 
@@ -4372,7 +4366,7 @@ window.addEventListener('DOMContentLoaded', function() {
 <!-- ══════════════════════════════════════
      ONBOARDING — WELCOME SCREEN
 ══════════════════════════════════════ -->
-<div id="ob-welcome">
+<div id="ob-welcome" style="display:none;">
   <div class="ob-logo">
     <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
       <circle cx="12" cy="12" r="3.5" fill="#fff"/>
