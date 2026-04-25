@@ -614,6 +614,177 @@ html,body{height:100%;width:100%;background:var(--bg-base);font-family:'DM Sans'
 }
 #modal-quicknote.open{display:flex;}
 
+
+/* ══ SPRINT 3 — POLISH + PERFORMANCE ══ */
+
+/* Dashboard / Stats Panel */
+#panel-dash{
+  position:fixed;top:0;left:0;right:0;bottom:0;
+  background:var(--bg-base);z-index:2000;
+  display:none;flex-direction:column;overflow:hidden;
+}
+#panel-dash.open{display:flex;}
+.dash-head{
+  height:56px;background:rgba(10,10,20,.97);
+  backdrop-filter:blur(20px);
+  display:flex;align-items:center;padding:0 16px;gap:12px;
+  border-bottom:1px solid rgba(10,132,255,.15);flex-shrink:0;
+}
+.dash-body{flex:1;overflow-y:auto;padding:0 0 24px;}
+.dash-body::-webkit-scrollbar{width:2px;}
+.dash-section{padding:16px 16px 8px;font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.1em;}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 14px 4px;}
+.stat-card{
+  background:var(--bg-card);border-radius:18px;padding:18px 16px;
+  border:1px solid var(--border-subtle);
+  display:flex;flex-direction:column;gap:6px;
+  position:relative;overflow:hidden;
+}
+.stat-card::before{
+  content:'';position:absolute;top:0;right:0;
+  width:60px;height:60px;border-radius:50%;
+  opacity:.08;transform:translate(20px,-20px);
+}
+.stat-num{font-size:32px;font-weight:800;font-family:'JetBrains Mono',monospace;line-height:1;}
+.stat-label{font-size:12px;font-weight:500;color:var(--t3);}
+.stat-trend{font-size:11px;font-weight:600;display:flex;align-items:center;gap:3px;margin-top:2px;}
+.stat-trend.up{color:#30D158;}
+.stat-trend.down{color:#FF453A;}
+.stat-trend.neutral{color:var(--t3);}
+
+/* Activity feed */
+.activity-item{
+  display:flex;gap:12px;padding:12px 16px;
+  border-bottom:1px solid var(--border-subtle);
+}
+.activity-dot{
+  width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:5px;
+}
+.activity-body{flex:1;}
+.activity-title{font-size:13px;font-weight:500;color:var(--t1);}
+.activity-sub{font-size:11px;color:var(--t3);margin-top:2px;font-family:'JetBrains Mono',monospace;}
+
+/* City coverage cards */
+.city-cov-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:0 14px 4px;}
+.city-cov-card{
+  background:var(--bg-card);border-radius:14px;padding:12px 10px;
+  border:1px solid var(--border-subtle);text-align:center;
+  cursor:pointer;transition:all .15s;
+}
+.city-cov-card:active{transform:scale(.96);}
+.city-cov-dot{width:10px;height:10px;border-radius:50%;margin:0 auto 6px;}
+.city-cov-name{font-size:12px;font-weight:600;color:var(--t1);}
+.city-cov-state{font-size:10px;color:var(--t3);}
+.city-cov-count{font-size:10px;color:var(--brand);font-family:'JetBrains Mono',monospace;margin-top:4px;}
+
+/* Settings Panel */
+#panel-settings{
+  position:fixed;top:0;left:0;right:0;bottom:0;
+  background:var(--bg-base);z-index:2000;
+  display:none;flex-direction:column;overflow:hidden;
+}
+#panel-settings.open{display:flex;}
+.set-section{padding:20px 16px 8px;font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.1em;}
+.set-row{
+  display:flex;align-items:center;gap:14px;
+  padding:14px 16px;border-bottom:1px solid var(--border-subtle);
+  cursor:pointer;transition:background .12s;
+}
+.set-row:active{background:rgba(255,255,255,.04);}
+.set-icon{
+  width:36px;height:36px;border-radius:10px;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.set-info{flex:1;}
+.set-name{font-size:15px;font-weight:500;color:var(--t1);}
+.set-sub{font-size:12px;color:var(--t3);margin-top:2px;}
+.set-value{font-size:13px;color:var(--brand);font-weight:500;font-family:'DM Sans',sans-serif;}
+.set-toggle{
+  width:50px;height:30px;border-radius:15px;
+  position:relative;flex-shrink:0;transition:background .2s;border:none;cursor:pointer;
+}
+.set-toggle.on{background:#30D158;}
+.set-toggle.off{background:#3a3a3a;}
+.set-toggle::after{
+  content:'';position:absolute;top:3px;left:3px;
+  width:24px;height:24px;border-radius:50%;background:#fff;
+  box-shadow:0 2px 6px rgba(0,0,0,.3);
+  transition:transform .2s cubic-bezier(.34,1.4,.64,1);
+}
+.set-toggle.on::after{transform:translateX(20px);}
+
+/* Improved topbar live status */
+#topbar-status{
+  display:flex;flex-direction:column;align-items:flex-end;gap:1px;
+}
+#tb-time{font-size:12px;font-weight:600;color:var(--t1);font-family:'JetBrains Mono',monospace;}
+#tb-status{font-size:9px;color:var(--status-ok);font-weight:600;letter-spacing:.5px;text-transform:uppercase;}
+
+/* Map loading skeleton */
+.map-skeleton{
+  position:absolute;inset:0;z-index:10;
+  background:linear-gradient(90deg,#1a1a24 25%,#22222e 50%,#1a1a24 75%);
+  background-size:200% 100%;
+  animation:skeleton-sweep 1.5s ease-in-out infinite;
+  display:flex;align-items:center;justify-content:center;
+}
+@keyframes skeleton-sweep{
+  0%{background-position:200% 0}
+  100%{background-position:-200% 0}
+}
+.skeleton-content{text-align:center;}
+.skeleton-ring{
+  width:60px;height:60px;border-radius:50%;
+  border:3px solid rgba(10,132,255,.2);
+  border-top-color:#0A84FF;
+  animation:spin .8s linear infinite;
+  margin:0 auto 16px;
+}
+
+/* Cluster markers */
+.cluster-marker{
+  width:36px;height:36px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:800;color:#fff;
+  font-family:'JetBrains Mono',monospace;
+  box-shadow:0 3px 12px rgba(0,0,0,.4);
+  border:2.5px solid rgba(255,255,255,.8);
+  cursor:pointer;
+}
+
+/* Condition alert banner */
+#condition-alerts{
+  position:absolute;top:0;left:0;right:0;z-index:600;
+  display:none;
+}
+.cond-alert-bar{
+  display:flex;align-items:center;gap:10px;
+  padding:8px 14px;font-size:12px;font-weight:600;
+  cursor:pointer;transition:opacity .15s;
+}
+.cond-alert-bar:active{opacity:.8;}
+
+/* Performance indicator */
+#perf-indicator{
+  position:absolute;bottom:140px;left:14px;z-index:500;
+  background:rgba(10,10,20,.85);backdrop-filter:blur(8px);
+  border-radius:10px;padding:6px 10px;
+  font-size:10px;font-family:'JetBrains Mono',monospace;
+  color:var(--t3);border:1px solid var(--border-subtle);
+  display:none;
+}
+
+/* Improved asset markers — shadow + hover */
+.asset-hover{transform:scale(1.2);z-index:1000;}
+
+/* Pull to refresh indicator */
+#ptr-indicator{
+  position:absolute;top:0;left:50%;transform:translateX(-50%);
+  z-index:600;background:var(--brand);color:#fff;
+  font-size:11px;font-weight:700;padding:6px 16px;border-radius:0 0 12px 12px;
+  font-family:'JetBrains Mono',monospace;display:none;
+}
+
 @keyframes gps-pulse{0%{transform:scale(1);opacity:.7}100%{transform:scale(3);opacity:0}}
 </style>
 </head>
@@ -1250,7 +1421,9 @@ function renderHIFLDLines(geojson) {
   });
 
   if(layerState.hifld_lines) hifldLinesLayer.addTo(map);
-  updateHIFLDLineCount(geojson.features?.length || 0);
+  perfData.hifldLines = geojson.features?.length || 0;
+  updateHIFLDLineCount(perfData.hifldLines);
+  updatePerfIndicator();
 }
 
 function renderHIFLDSubs(geojson) {
@@ -1663,7 +1836,11 @@ async function loadOSMData() {
     if (results[1].status === 'fulfilled') total += renderOSMTelecom(results[1].value);
     if (results[2].status === 'fulfilled') total += renderOSMWater(results[2].value);
 
-    if (total > 0) showToast(`✓ OSM: ${total} real assets loaded`);
+    if (total > 0) {
+      perfData.osmAssets = total;
+      updatePerfIndicator();
+      showToast('✓ OSM: ' + total + ' real assets loaded');
+    }
 
   } catch(e) {
     console.warn('OSM load error:', e);
@@ -3092,6 +3269,398 @@ function addQuickNoteButton() {
   btn.addTo(map);
 }
 
+
+// ══════════════════════════════════════════════
+// SPRINT 3 — POLISH + PERFORMANCE
+// ══════════════════════════════════════════════
+
+// ── SETTINGS STATE ──
+const appSettings = {
+  hifld_auto: true,
+  osm_auto: true,
+  cluster: true,
+  show_perf: false,
+};
+
+function loadSettings() {
+  try {
+    const s = JSON.parse(localStorage.getItem('vltrview_settings_v1') || '{}');
+    Object.assign(appSettings, s);
+    syncSettingToggles();
+  } catch(e) {}
+}
+
+function saveSettings() {
+  try { localStorage.setItem('vltrview_settings_v1', JSON.stringify(appSettings)); } catch(e) {}
+}
+
+function toggleSetting(key) {
+  appSettings[key] = !appSettings[key];
+  saveSettings();
+  syncSettingToggles();
+  if (key === 'show_perf') {
+    document.getElementById('perf-indicator').style.display = appSettings.show_perf ? 'block' : 'none';
+  }
+  showToast(key.replace(/_/g,' ') + ' ' + (appSettings[key] ? 'enabled' : 'disabled'));
+}
+
+function syncSettingToggles() {
+  Object.keys(appSettings).forEach(k => {
+    const tog = document.getElementById('stog-' + k);
+    if (tog) {
+      tog.classList.toggle('on', appSettings[k]);
+      tog.classList.toggle('off', !appSettings[k]);
+    }
+  });
+  const styleEl = document.getElementById('set-map-style-val');
+  if (styleEl) styleEl.textContent = currentStyle?.label || 'Light';
+}
+
+function cycleMapStyle() {
+  const idx = MAP_STYLES.findIndex(s => s.id === currentStyle.id);
+  const next = MAP_STYLES[(idx + 1) % MAP_STYLES.length];
+  setMapStyle(next);
+  syncSettingToggles();
+  showToast('Map style: ' + next.label);
+}
+
+function clearAllData() {
+  if (!confirm('Clear all saved work orders, notes, and photos? This cannot be undone.')) return;
+  try {
+    localStorage.removeItem(STORAGE_KEY);
+    workOrders = workOrders.slice(0, 6); // keep demo data
+    damageReports = damageReports.slice(0, 4);
+    photos = photos.slice(0, 4);
+    fieldNotes = [];
+    fieldNoteMarkers.forEach(m => map.removeLayer(m));
+    fieldNoteMarkers = [];
+    renderWO(); renderDamage(); renderPhotos();
+    showToast('✓ All local data cleared');
+  } catch(e) { showToast('Error clearing data'); }
+}
+
+function resetOnboarding() {
+  try { localStorage.removeItem(OB_KEY); } catch(e) {}
+  switchTab('map', document.getElementById('bn-map'));
+  document.getElementById('ob-welcome').style.display = 'flex';
+  showToast('Onboarding reset — showing welcome screen');
+}
+
+// ── LIVE CLOCK IN TOPBAR ──
+function startClock() {
+  function tick() {
+    const now = new Date();
+    const h = String(now.getHours()).padStart(2,'0');
+    const m = String(now.getMinutes()).padStart(2,'0');
+    const el = document.getElementById('tb-time');
+    if (el) el.textContent = h + ':' + m;
+  }
+  tick();
+  setInterval(tick, 10000);
+}
+
+// ── DASHBOARD ──
+function openDashboard() {
+  renderDashboard();
+  document.getElementById('panel-dash').classList.add('open');
+  document.querySelectorAll('.bnav-btn').forEach(b => b.classList.remove('active'));
+}
+
+function renderDashboard() {
+  const now = new Date();
+  document.getElementById('dash-subtitle').textContent =
+    now.toLocaleDateString('en-US', {weekday:'long', month:'short', day:'numeric'}) +
+    ' · ' + CITIES.length + ' cities active';
+
+  // ── Stats ──
+  const openWOs   = workOrders.filter(w => w.status === 'open' || w.status === 'urgent').length;
+  const doneWOs   = workOrders.filter(w => w.status === 'done').length;
+  const poorAssets = CITIES.reduce((a, c) => a + genAssets(c).filter(x => x.condition === 'poor').length, 0);
+  const totalAssets = CITIES.reduce((a, c) => a + c.assets, 0);
+  const crewOnline  = crewMembers.filter(c => c.status === 'online').length;
+  const openDmg     = damageReports.filter(d => d.status !== 'Resolved').length;
+
+  document.getElementById('stat-grid').innerHTML = `
+    <div class="stat-card" style="border-color:rgba(10,132,255,.2);">
+      <div class="stat-num" style="color:#0A84FF;">${openWOs}</div>
+      <div class="stat-label">Open work orders</div>
+      <div class="stat-trend neutral">📋 ${workOrders.length} total</div>
+    </div>
+    <div class="stat-card" style="border-color:rgba(48,209,88,.2);">
+      <div class="stat-num" style="color:#30D158;">${crewOnline}</div>
+      <div class="stat-label">Crew online</div>
+      <div class="stat-trend up">↑ ${crewMembers.length} total crew</div>
+    </div>
+    <div class="stat-card" style="border-color:rgba(255,0,0,.2);">
+      <div class="stat-num" style="color:#FF0000;">${openDmg}</div>
+      <div class="stat-label">Open damage reports</div>
+      <div class="stat-trend ${openDmg > 2 ? 'down' : 'neutral'}">⚠️ ${damageReports.length} total</div>
+    </div>
+    <div class="stat-card" style="border-color:rgba(255,215,0,.2);">
+      <div class="stat-num" style="color:#FFD700;">${totalAssets}</div>
+      <div class="stat-label">Total assets</div>
+      <div class="stat-trend down">🔴 ${poorAssets} poor condition</div>
+    </div>
+  `;
+
+  // ── Condition alerts ──
+  const poorList = [];
+  CITIES.forEach(city => {
+    genAssets(city).filter(a => a.condition === 'poor').slice(0, 2).forEach(a => {
+      poorList.push({ ...a, cityName: city.name });
+    });
+  });
+
+  if (poorList.length > 0) {
+    document.getElementById('alert-section').style.display = 'block';
+    document.getElementById('dash-alerts').innerHTML = poorList.slice(0,4).map(a => `
+      <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid var(--border-subtle);cursor:pointer;"
+           onclick="flyToCity('${a.city}');switchTab('map',document.getElementById('bn-map'))">
+        <div style="width:36px;height:36px;border-radius:10px;background:rgba(255,0,0,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FF0000" stroke-width="2" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/></svg>
+        </div>
+        <div style="flex:1;">
+          <div style="font-size:13px;font-weight:600;color:var(--t1);">${a.id} — Poor condition</div>
+          <div style="font-size:11px;color:var(--t3);margin-top:2px;">${a.cityName} · ${ASSET_TYPES[a.type]?.label || a.type}</div>
+        </div>
+        <div style="font-size:11px;color:#FF0000;font-weight:600;">Action needed</div>
+      </div>`).join('');
+  } else {
+    document.getElementById('alert-section').style.display = 'none';
+  }
+
+  // ── City coverage grid ──
+  document.getElementById('city-cov-grid').innerHTML = CITIES.map(c => `
+    <div class="city-cov-card" onclick="flyToCity('${c.id}');switchTab('map',document.getElementById('bn-map'))">
+      <div class="city-cov-dot" style="background:${c.color};box-shadow:0 0 0 3px ${c.color}33;"></div>
+      <div class="city-cov-name">${c.name}</div>
+      <div class="city-cov-state">${c.state}</div>
+      <div class="city-cov-count">${c.assets} assets</div>
+    </div>`).join('');
+
+  // ── Activity feed (merge WOs + damage + notifs) ──
+  const activities = [
+    ...workOrders.slice(0,3).map(w => ({
+      color: w.status==='done'?'#30D158':w.status==='urgent'?'#FF0000':'#0A84FF',
+      title: w.id + ' — ' + w.title,
+      sub: w.time + ' · ' + w.crew,
+    })),
+    ...damageReports.slice(0,2).map(d => ({
+      color: '#FF6600',
+      title: d.id + ' — ' + d.title,
+      sub: d.time + ' · ' + d.reporter,
+    })),
+    ...notifications.filter(n=>n.unread).slice(0,2).map(n => ({
+      color: '#FFD700',
+      title: n.title,
+      sub: n.time,
+    })),
+  ].slice(0, 8);
+
+  document.getElementById('activity-feed').innerHTML = activities.map(a => `
+    <div class="activity-item">
+      <div class="activity-dot" style="background:${a.color};"></div>
+      <div class="activity-body">
+        <div class="activity-title">${a.title}</div>
+        <div class="activity-sub">${a.sub}</div>
+      </div>
+    </div>`).join('');
+}
+
+// ── SETTINGS TAB ──
+function openSettings() {
+  document.getElementById('panel-settings').classList.add('open');
+  document.querySelectorAll('.bnav-btn').forEach(b => b.classList.remove('active'));
+  syncSettingToggles();
+}
+
+// ── PERFORMANCE INDICATOR ──
+let perfData = { hifldLines: 0, osmAssets: 0, loadMs: 0 };
+
+function updatePerfIndicator() {
+  if (!appSettings.show_perf) return;
+  const el = document.getElementById('perf-indicator');
+  if (el) {
+    el.style.display = 'block';
+    el.textContent =
+      `HIFLD: ${perfData.hifldLines} lines · OSM: ${perfData.osmAssets} assets · ${perfData.loadMs}ms`;
+  }
+}
+
+// ── IMPROVED HIFLD WITH PERF TRACKING ──
+const _origLoadHIFLD = typeof loadHIFLDData === 'function' ? loadHIFLDData : null;
+
+// ── CONDITION ALERT BANNER on map ──
+function showConditionAlerts() {
+  const poorCount = CITIES.reduce((a, c) =>
+    a + genAssets(c).filter(x => x.condition === 'poor').length, 0);
+  const el = document.getElementById('condition-alerts');
+  if (!el || poorCount === 0) return;
+
+  el.innerHTML = `
+    <div class="cond-alert-bar" style="background:rgba(255,0,0,.9);"
+         onclick="openDashboard()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/></svg>
+      <span style="color:#fff;">${poorCount} assets in poor condition require attention</span>
+      <span style="margin-left:auto;color:rgba(255,255,255,.7);font-size:11px;">View →</span>
+    </div>`;
+  el.style.display = 'block';
+
+  // Auto-hide after 6 seconds
+  setTimeout(() => { if(el) el.style.display='none'; }, 6000);
+}
+
+// ── DEBOUNCED MAP LOAD (performance) ──
+let hifldDebounce = null, osmDebounce = null;
+
+function debouncedHIFLD() {
+  if (!appSettings.hifld_auto) return;
+  clearTimeout(hifldDebounce);
+  hifldDebounce = setTimeout(() => {
+    const t0 = Date.now();
+    loadHIFLDData().then(() => {
+      perfData.loadMs = Date.now() - t0;
+      updatePerfIndicator();
+    }).catch(() => {});
+  }, 600);
+}
+
+function debouncedOSM() {
+  if (!appSettings.osm_auto) return;
+  clearTimeout(osmDebounce);
+  osmDebounce = setTimeout(() => {
+    loadOSMData().then && loadOSMData().then(n => {
+      if (typeof n === 'number') { perfData.osmAssets = n; updatePerfIndicator(); }
+    }).catch(() => {});
+  }, 800);
+}
+
+// ── IMPROVED TOPBAR — add status + clock ──
+function upgradeTopbar() {
+  const topbar = document.getElementById('topbar');
+  if (!topbar) return;
+
+  // Add status block on right side of topbar
+  const statusEl = document.createElement('div');
+  statusEl.id = 'topbar-status';
+  statusEl.innerHTML = `
+    <div id="tb-time" style="font-size:12px;font-weight:600;color:var(--t1);font-family:'JetBrains Mono',monospace;"></div>
+    <div id="tb-status" style="font-size:9px;color:#30D158;font-weight:700;letter-spacing:.5px;">● LIVE</div>
+  `;
+  topbar.appendChild(statusEl);
+  startClock();
+}
+
+// ── SWITCH TAB EXTENDED — handle dash + settings ──
+const _origSwitchTab = switchTab;
+function switchTab(tab, btn) {
+  // Close dash and settings if open
+  document.getElementById('panel-dash')?.classList.remove('open');
+  document.getElementById('panel-settings')?.classList.remove('open');
+  _origSwitchTab(tab, btn);
+}
+
+// ── UPDATE BOTTOM NAV — add Dash + Settings ──
+function upgradeBottomNav() {
+  const nav = document.getElementById('bottomnav');
+  if (!nav) return;
+
+  // Replace route button with dashboard
+  const routeBtn = document.getElementById('bn-route');
+  if (routeBtn) {
+    routeBtn.innerHTML = `
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      <span class="bnav-label">Dash</span>`;
+    routeBtn.id = 'bn-dash';
+    routeBtn.onclick = () => {
+      document.querySelectorAll('.bnav-btn').forEach(b => b.classList.remove('active'));
+      routeBtn.classList.add('active');
+      openDashboard();
+    };
+  }
+
+  // Replace alerts button with settings
+  const notifBtn = document.getElementById('bn-notif');
+  if (notifBtn) {
+    // Keep notif btn, add settings as a new button
+    const settingsBtn = document.createElement('button');
+    settingsBtn.className = 'bnav-btn';
+    settingsBtn.id = 'bn-settings';
+    settingsBtn.innerHTML = `
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      <span class="bnav-label">Settings</span>`;
+    settingsBtn.onclick = () => {
+      document.querySelectorAll('.bnav-btn').forEach(b => b.classList.remove('active'));
+      settingsBtn.classList.add('active');
+      openSettings();
+    };
+    nav.appendChild(settingsBtn);
+  }
+}
+
+// ── REPLACE MAP EVENT HOOKS WITH DEBOUNCED VERSIONS ──
+function upgradeMapHooks() {
+  // Remove old move/zoom listeners and replace with debounced
+  map.off('moveend');
+  map.off('zoomend');
+
+  map.on('moveend', () => {
+    onMapMove();
+    if (map.getZoom() >= 8)  debouncedHIFLD();
+    if (map.getZoom() >= 13) debouncedOSM();
+  });
+  map.on('zoomend', () => {
+    onMapMove();
+    if (map.getZoom() >= 8)  debouncedHIFLD();
+    if (map.getZoom() >= 13) debouncedOSM();
+  });
+}
+
+// ── IMPROVE LAYER LIST PANEL — add OSM zoom note ──
+function addLayerNote() {
+  const inner = document.getElementById('layer-list-inner');
+  if (!inner) return;
+  const note = document.createElement('div');
+  note.style.cssText = 'margin:8px 14px 0;padding:10px 14px;background:rgba(10,132,255,.06);border:1px solid rgba(10,132,255,.15);border-radius:12px;font-size:11px;color:var(--t3);line-height:1.5;';
+  note.innerHTML = '💡 <strong style="color:var(--brand);">OSM layers</strong> load real data when zoomed to level 13+. <strong style="color:var(--brand);">HIFLD</strong> loads at zoom 8+. Pan or zoom to refresh.';
+  inner.appendChild(note);
+}
+
+// ── IMPROVED CREW — live activity ticker ──
+let crewTickInterval = null;
+const crewActivities = [
+  ['Inspecting TXF-0102 · Raleigh', 'En route to next asset', 'Completing paperwork', 'On site — job in progress'],
+  ['EJH-0104 cover replacement', 'Testing new installation', 'Photographing damage', 'Marking work complete'],
+  ['SMH-0107 assessment · Chicago', 'On a call with engineering', 'Reviewing specs', 'Submitting report'],
+  ['Off shift', '—', '—', '—'],
+];
+
+function startCrewTicker() {
+  let tick = 0;
+  crewTickInterval = setInterval(() => {
+    tick++;
+    crewMembers.forEach((c, i) => {
+      if (c.status !== 'offline') {
+        c.task = crewActivities[i]?.[tick % 4] || c.task;
+      }
+    });
+    // Only re-render if crew panel is open
+    if (document.getElementById('panel-crew')?.classList.contains('open')) {
+      renderCrew();
+    }
+  }, 7000);
+}
+
+// ── SMOOTHER ASSET POPUPS — pan with offset ──
+const _origShowAssetPopup = showAssetPopup;
+function showAssetPopup(asset) {
+  _origShowAssetPopup(asset);
+  // Pan map up a bit so popup doesn't cover marker
+  setTimeout(() => {
+    map.panBy([0, -100], { animate: true, duration: 0.4 });
+  }, 100);
+}
+
 window.addEventListener('DOMContentLoaded', function() {
   // ── Check onboarding state ──
   if (!isOnboarded()) {
@@ -3108,6 +3677,13 @@ window.addEventListener('DOMContentLoaded', function() {
     initMap();
     addQuickNoteButton();
     checkSharedWO();
+    upgradeTopbar();
+    upgradeBottomNav();
+    upgradeMapHooks();
+    addLayerNote();
+    loadSettings();
+    startCrewTicker();
+    setTimeout(showConditionAlerts, 4000);
   } catch(e) { console.error('Map init error:',e); }
 
   // Load HIFLD data after map is ready (slight delay for tiles to settle)
@@ -3539,6 +4115,186 @@ window.addEventListener('DOMContentLoaded', function() {
 
 <!-- ══ PERSIST BADGE ══ -->
 <div id="persist-badge">💾 Saved locally</div>
+
+
+<!-- ══ DASHBOARD PANEL ══ -->
+<div id="panel-dash">
+  <div class="dash-head">
+    <div style="flex:1;">
+      <div style="font-size:16px;font-weight:700;color:var(--t1);">Dashboard</div>
+      <div id="dash-subtitle" style="font-size:11px;color:var(--t3);font-family:'JetBrains Mono',monospace;"></div>
+    </div>
+    <button class="fp-close" onclick="switchTab('map',document.getElementById('bn-map'))">×</button>
+  </div>
+  <div class="dash-body">
+
+    <!-- Stats grid -->
+    <div class="dash-section">Overview</div>
+    <div class="stat-grid" id="stat-grid"></div>
+
+    <!-- Condition alerts -->
+    <div class="dash-section" id="alert-section" style="display:none;">⚠️ Condition alerts</div>
+    <div id="dash-alerts"></div>
+
+    <!-- City coverage -->
+    <div class="dash-section">Demo coverage — 6 cities</div>
+    <div class="city-cov-grid" id="city-cov-grid"></div>
+
+    <!-- Recent activity feed -->
+    <div class="dash-section">Recent activity</div>
+    <div id="activity-feed"></div>
+
+    <!-- Data sources -->
+    <div class="dash-section">Data sources</div>
+    <div style="padding:0 14px;">
+      <div style="background:var(--bg-card);border-radius:16px;padding:16px;border:1px solid var(--border-subtle);">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border-subtle);">
+          <div>
+            <div style="font-size:13px;font-weight:600;color:var(--t1);">HIFLD Electric Transmission</div>
+            <div style="font-size:11px;color:var(--t3);margin-top:2px;">DHS / ORNL · Federal open data</div>
+          </div>
+          <div style="font-size:10px;font-weight:700;color:#30D158;background:rgba(48,209,88,.15);padding:2px 8px;border-radius:6px;">LIVE</div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border-subtle);">
+          <div>
+            <div style="font-size:13px;font-weight:600;color:var(--t1);">OpenStreetMap Overpass</div>
+            <div style="font-size:11px;color:var(--t3);margin-top:2px;">Power assets · Telecom · Water</div>
+          </div>
+          <div style="font-size:10px;font-weight:700;color:#0A84FF;background:rgba(10,132,255,.15);padding:2px 8px;border-radius:6px;">OSM</div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;">
+          <div>
+            <div style="font-size:13px;font-weight:600;color:var(--t1);">VLTRVIEW Demo Data</div>
+            <div style="font-size:11px;color:var(--t3);margin-top:2px;">Sewer · Gas · Asset catalog</div>
+          </div>
+          <div style="font-size:10px;font-weight:700;color:var(--t3);background:rgba(255,255,255,.06);padding:2px 8px;border-radius:6px;">DEMO</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- App version -->
+    <div style="text-align:center;padding:24px 16px 0;font-size:11px;color:var(--t3);font-family:'JetBrains Mono',monospace;">
+      VLTRVIEW v1.0.0-beta · Sprint 3 build<br>
+      <span style="color:var(--brand);">vltrviewbeta1.netlify.app</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SETTINGS PANEL ══ -->
+<div id="panel-settings">
+  <div class="fp-head">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--t2)" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    <span class="fp-title">Settings</span>
+    <button class="fp-close" onclick="switchTab('map',document.getElementById('bn-map'))">×</button>
+  </div>
+  <div class="fp-body" id="settings-body">
+
+    <div class="set-section">Map</div>
+    <div class="set-row" onclick="toggleSetting('hifld_auto')">
+      <div class="set-icon" style="background:rgba(255,0,0,.12);">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FF0000" stroke-width="2" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+      </div>
+      <div class="set-info">
+        <div class="set-name">Auto-load HIFLD data</div>
+        <div class="set-sub">Fetch real transmission lines on map move</div>
+      </div>
+      <button class="set-toggle on" id="stog-hifld_auto"></button>
+    </div>
+    <div class="set-row" onclick="toggleSetting('osm_auto')">
+      <div class="set-icon" style="background:rgba(10,132,255,.12);">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0A84FF" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+      </div>
+      <div class="set-info">
+        <div class="set-name">Auto-load OSM assets</div>
+        <div class="set-sub">Fetch real assets when zoomed to level 13+</div>
+      </div>
+      <button class="set-toggle on" id="stog-osm_auto"></button>
+    </div>
+    <div class="set-row" onclick="toggleSetting('cluster')">
+      <div class="set-icon" style="background:rgba(255,159,10,.12);">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FF9F0A" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="5" r="3"/><circle cx="5" cy="19" r="3"/><circle cx="19" cy="19" r="3"/><line x1="12" y1="8" x2="5" y2="16"/><line x1="12" y1="8" x2="19" y2="16"/></svg>
+      </div>
+      <div class="set-info">
+        <div class="set-name">Cluster markers at low zoom</div>
+        <div class="set-sub">Group nearby assets when zoomed out</div>
+      </div>
+      <button class="set-toggle on" id="stog-cluster"></button>
+    </div>
+
+    <div class="set-section">Display</div>
+    <div class="set-row" onclick="cycleMapStyle()">
+      <div class="set-icon" style="background:rgba(10,132,255,.12);">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0A84FF" stroke-width="2" stroke-linecap="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/></svg>
+      </div>
+      <div class="set-info">
+        <div class="set-name">Map style</div>
+        <div class="set-sub">Tap to cycle through available styles</div>
+      </div>
+      <div class="set-value" id="set-map-style-val">Light</div>
+    </div>
+    <div class="set-row" onclick="toggleSetting('show_perf')">
+      <div class="set-icon" style="background:rgba(48,209,88,.12);">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#30D158" stroke-width="2" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      </div>
+      <div class="set-info">
+        <div class="set-name">Performance indicator</div>
+        <div class="set-sub">Show asset count and load time on map</div>
+      </div>
+      <button class="set-toggle off" id="stog-show_perf"></button>
+    </div>
+
+    <div class="set-section">Data</div>
+    <div class="set-row" onclick="clearAllData()">
+      <div class="set-icon" style="background:rgba(255,69,58,.12);">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FF453A" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+      </div>
+      <div class="set-info">
+        <div class="set-name">Clear all local data</div>
+        <div class="set-sub">Remove saved work orders, notes, photos</div>
+      </div>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--t3)" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </div>
+    <div class="set-row" onclick="resetOnboarding()">
+      <div class="set-icon" style="background:rgba(10,132,255,.12);">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0A84FF" stroke-width="2" stroke-linecap="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+      </div>
+      <div class="set-info">
+        <div class="set-name">Replay onboarding tour</div>
+        <div class="set-sub">Show welcome screen and feature tour again</div>
+      </div>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--t3)" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </div>
+
+    <div class="set-section">About</div>
+    <div style="background:var(--bg-card);border-radius:16px;margin:0 14px;padding:16px;border:1px solid var(--border-subtle);">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+        <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#0A84FF,#004FC4);display:flex;align-items:center;justify-content:center;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3.5" fill="#fff"/><circle cx="12" cy="12" r="7" stroke="#fff" stroke-width="1.5" fill="none" stroke-opacity=".6"/><line x1="12" y1="2" x2="12" y2="5.5" stroke="#fff" stroke-width="2" stroke-linecap="round"/><line x1="12" y1="18.5" x2="12" y2="22" stroke="#fff" stroke-width="2" stroke-linecap="round"/><line x1="2" y1="12" x2="5.5" y2="12" stroke="#fff" stroke-width="2" stroke-linecap="round"/><line x1="18.5" y1="12" x2="22" y2="12" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>
+        </div>
+        <div>
+          <div style="font-size:16px;font-weight:700;color:var(--t1);">VLTRVIEW</div>
+          <div style="font-size:11px;color:var(--t3);font-family:'JetBrains Mono',monospace;">v1.0.0-beta · Sprint 3</div>
+        </div>
+      </div>
+      <div style="font-size:12px;color:var(--t3);line-height:1.6;">
+        Professional utility locator platform for field crews, engineers, and utility operators. Real federal HIFLD data + OpenStreetMap infrastructure.
+      </div>
+      <div style="margin-top:12px;font-size:11px;color:var(--t3);font-family:'JetBrains Mono',monospace;">
+        © 2026 VLTRVIEW · All rights reserved<br>
+        Always call 811 before digging
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ CONDITION ALERT BANNER ══ -->
+<div id="condition-alerts"></div>
+
+<!-- ══ PERFORMANCE INDICATOR ══ -->
+<div id="perf-indicator"></div>
+
+<!-- ══ PULL TO REFRESH ══ -->
+<div id="ptr-indicator">↓ Release to refresh data</div>
 
 </body>
 </html>
