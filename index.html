@@ -666,6 +666,56 @@ html,body{height:100%;width:100%;background:var(--bg-base);font-family:'DM Sans'
 .cond-alert-inner{display:flex;align-items:center;gap:10px;padding:9px 14px;background:rgba(255,0,0,.92);cursor:pointer;}
 .cond-alert-text{font-size:12px;font-weight:600;color:#fff;flex:1;}
 
+
+/* ══ SPRINT 4 ══ */
+
+/* Measure tool */
+#measure-bar{
+  position:absolute;top:0;left:0;right:0;z-index:700;
+  background:rgba(10,10,20,.96);backdrop-filter:blur(16px);
+  border-bottom:1px solid rgba(10,132,255,.2);
+  padding:12px 16px;display:none;
+  align-items:center;gap:12px;
+}
+#measure-bar.open{display:flex;}
+#measure-result{font-size:16px;font-weight:700;color:var(--t1);font-family:'JetBrains Mono',monospace;flex:1;}
+#measure-sub{font-size:11px;color:var(--t3);}
+.meas-btn{padding:7px 14px;border-radius:20px;border:none;font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;}
+.meas-clear{background:rgba(255,69,58,.15);color:#FF453A;border:1px solid rgba(255,69,58,.25);}
+.meas-done{background:var(--brand);color:#fff;}
+#fab-measure{position:absolute;right:14px;bottom:360px;width:46px;height:46px;border-radius:50%;background:rgba(18,18,28,.94);backdrop-filter:blur(12px);border:none;cursor:pointer;z-index:500;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(0,0,0,.4);}
+#fab-measure svg{width:22px;height:22px;fill:none;stroke:var(--t1);stroke-width:2;stroke-linecap:round;}
+#fab-measure.active{background:rgba(10,132,255,.85);}
+#fab-measure.active svg{stroke:#fff;}
+#fab-night{position:absolute;right:14px;bottom:304px;width:46px;height:46px;border-radius:50%;background:rgba(18,18,28,.94);backdrop-filter:blur(12px);border:none;cursor:pointer;z-index:500;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(0,0,0,.4);font-size:20px;}
+
+/* 811 Panel */
+#panel-811{position:fixed;top:0;left:0;right:0;bottom:0;background:var(--bg-base);z-index:2000;display:none;flex-direction:column;}
+#panel-811.open{display:flex;}
+.p811-head{height:56px;background:rgba(255,100,0,.95);display:flex;align-items:center;padding:0 16px;gap:12px;flex-shrink:0;}
+.call-btn{width:calc(100% - 28px);margin:0 14px;padding:22px;border-radius:20px;background:linear-gradient(135deg,#FF6600,#FF4400);border:none;color:#fff;font-size:22px;font-weight:800;cursor:pointer;font-family:'DM Sans',sans-serif;box-shadow:0 8px 32px rgba(255,100,0,.5);display:flex;align-items:center;justify-content:center;gap:12px;}
+.info-card{background:var(--bg-card);border-radius:16px;margin:8px 14px;padding:16px;border:1px solid var(--border-subtle);}
+.info-row{display:flex;justify-content:space-between;font-size:13px;padding:7px 0;border-bottom:1px solid var(--border-subtle);}
+.info-row:last-child{border-bottom:none;}
+.info-key{color:var(--t3);}
+.info-val{color:var(--t1);font-weight:500;}
+
+/* Checklist */
+#panel-checklist{position:fixed;top:0;left:0;right:0;bottom:0;background:var(--bg-base);z-index:2000;display:none;flex-direction:column;}
+#panel-checklist.open{display:flex;}
+.cl-progress{padding:14px 16px;border-bottom:1px solid var(--border-subtle);flex-shrink:0;}
+.cl-stats{display:flex;justify-content:space-between;margin-bottom:8px;}
+.cl-stat-val{font-size:20px;font-weight:700;font-family:'JetBrains Mono',monospace;}
+.cl-stat-lbl{font-size:10px;color:var(--t3);margin-top:1px;}
+.cl-bar-bg{height:6px;background:rgba(255,255,255,.08);border-radius:3px;overflow:hidden;}
+.cl-bar-fill{height:100%;background:linear-gradient(90deg,#0A84FF,#30D158);border-radius:3px;transition:width .4s ease;}
+.check-cat{padding:10px 16px 4px;font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.1em;}
+.check-item{display:flex;align-items:flex-start;gap:14px;padding:14px 16px;border-bottom:1px solid var(--border-subtle);cursor:pointer;}
+.check-box{width:26px;height:26px;border-radius:8px;border:2px solid var(--border-mid);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .2s;margin-top:1px;font-size:14px;font-weight:700;color:#fff;}
+.check-box.done{background:#30D158;border-color:#30D158;}
+.check-label{font-size:14px;font-weight:500;color:var(--t1);line-height:1.4;}
+.check-sub{font-size:12px;color:var(--t3);margin-top:3px;line-height:1.4;}
+
 @keyframes gps-pulse{0%{transform:scale(1);opacity:.7}100%{transform:scale(3);opacity:0}}
 </style>
 </head>
@@ -3562,6 +3612,390 @@ function initSprint3() {
   setTimeout(showConditionAlerts, 5000);
 }
 
+
+// ══════════════════════════════════════════════
+// SPRINT 4 — FIELD TOOLS
+// Safari-safe: no optional chaining, no contractions in strings,
+// DOM methods instead of HTML string building
+// ══════════════════════════════════════════════
+
+// ── MEASURE TOOL ──
+var measureMode = false;
+var measurePoints = [];
+var measureMarkers = [];
+var measureLine = null;
+
+function toggleMeasure() {
+  if (measureMode) { exitMeasure(); return; }
+  measureMode = true;
+  measurePoints = [];
+  document.getElementById('fab-measure').classList.add('active');
+  document.getElementById('measure-bar').classList.add('open');
+  document.getElementById('measure-result').textContent = 'Tap first point';
+  document.getElementById('measure-sub').textContent = 'Tap any location on the map';
+  map.on('click', onMeasureClick);
+  map.getContainer().style.cursor = 'crosshair';
+  showToast('Tap two points to measure distance');
+}
+
+function onMeasureClick(e) {
+  if (!measureMode) return;
+  measurePoints.push(e.latlng);
+
+  var dotIcon = L.divIcon({
+    className: '',
+    html: '<div style="width:14px;height:14px;border-radius:50%;background:#0A84FF;border:3px solid #fff;box-shadow:0 2px 8px rgba(10,132,255,.6);"></div>',
+    iconSize: [14, 14],
+    iconAnchor: [7, 7],
+  });
+  var m = L.marker(e.latlng, {icon: dotIcon}).addTo(map);
+  measureMarkers.push(m);
+
+  if (measurePoints.length === 1) {
+    document.getElementById('measure-result').textContent = 'Tap second point';
+    document.getElementById('measure-sub').textContent = 'First point set';
+  }
+
+  if (measurePoints.length === 2) {
+    if (measureLine) map.removeLayer(measureLine);
+    measureLine = L.polyline(measurePoints, {
+      color: '#0A84FF', weight: 2.5, dashArray: '8 5', opacity: .9
+    }).addTo(map);
+
+    var meters = measurePoints[0].distanceTo(measurePoints[1]);
+    var ft = (meters * 3.28084).toFixed(1);
+    var mi = (meters / 1609.344).toFixed(3);
+    var km = (meters / 1000).toFixed(3);
+
+    document.getElementById('measure-result').textContent = ft + ' ft';
+    document.getElementById('measure-sub').textContent = mi + ' mi  |  ' + km + ' km  |  ' + Math.round(meters) + ' m';
+
+    map.off('click', onMeasureClick);
+    map.getContainer().style.cursor = '';
+  }
+}
+
+function clearMeasure() {
+  measurePoints = [];
+  for (var i = 0; i < measureMarkers.length; i++) {
+    map.removeLayer(measureMarkers[i]);
+  }
+  measureMarkers = [];
+  if (measureLine) { map.removeLayer(measureLine); measureLine = null; }
+  document.getElementById('measure-result').textContent = 'Tap first point';
+  document.getElementById('measure-sub').textContent = 'Tap any location on the map';
+  map.off('click', onMeasureClick);
+  map.on('click', onMeasureClick);
+  map.getContainer().style.cursor = 'crosshair';
+}
+
+function exitMeasure() {
+  measureMode = false;
+  map.off('click', onMeasureClick);
+  map.getContainer().style.cursor = '';
+  for (var i = 0; i < measureMarkers.length; i++) {
+    map.removeLayer(measureMarkers[i]);
+  }
+  measureMarkers = [];
+  if (measureLine) { map.removeLayer(measureLine); measureLine = null; }
+  document.getElementById('fab-measure').classList.remove('active');
+  document.getElementById('measure-bar').classList.remove('open');
+}
+
+// ── NIGHT MODE ──
+var nightMode = false;
+var NIGHT_STYLE = {
+  id: 'dark', label: 'Night',
+  url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+  attr: 'CARTO',
+  preview: '#1a1a2a',
+};
+var dayStyleBeforeNight = null;
+
+function toggleNight() {
+  var btn = document.getElementById('fab-night');
+  nightMode = !nightMode;
+  if (nightMode) {
+    dayStyleBeforeNight = currentStyle;
+    setMapStyle(NIGHT_STYLE);
+    btn.textContent = '☀️';
+    showToast('Night mode on');
+  } else {
+    setMapStyle(dayStyleBeforeNight || MAP_STYLES[3]);
+    btn.textContent = '🌙';
+    showToast('Day mode restored');
+  }
+}
+
+// ── 811 PANEL ──
+function open811() {
+  // Build other centers using DOM
+  var centersEl = document.getElementById('other-811-centers');
+  if (centersEl && centersEl.children.length === 0) {
+    var centers = [
+      ['Georgia', 'Georgia 811'],
+      ['Illinois', 'JULIE — 811'],
+      ['Texas', 'Texas 811'],
+      ['Arizona', 'Blue Stake 811'],
+    ];
+    for (var i = 0; i < centers.length; i++) {
+      var row = document.createElement('div');
+      row.className = 'info-row';
+      var key = document.createElement('span');
+      key.className = 'info-key';
+      key.textContent = centers[i][0];
+      var val = document.createElement('a');
+      val.href = 'tel:811';
+      val.style.cssText = 'color:var(--brand);font-size:13px;font-weight:600;text-decoration:none;';
+      val.textContent = 'Call 811';
+      row.appendChild(key);
+      row.appendChild(val);
+      centersEl.appendChild(row);
+    }
+  }
+
+  // Build steps using DOM
+  var stepsEl = document.getElementById('steps-811');
+  if (stepsEl && stepsEl.children.length === 0) {
+    var steps = [
+      ['1', 'Call or submit online', '811 takes your excavation details'],
+      ['2', 'Utilities notified', 'One call notifies all member utilities'],
+      ['3', 'Lines marked', 'Field techs mark lines within 3 days'],
+      ['4', 'Safe to dig', 'Only dig once all lines are marked'],
+    ];
+    for (var si = 0; si < steps.length; si++) {
+      var s = steps[si];
+      var stepRow = document.createElement('div');
+      stepRow.style.cssText = 'display:flex;gap:12px;padding:8px 0;border-bottom:1px solid var(--border-subtle);';
+      if (si === steps.length - 1) stepRow.style.borderBottom = 'none';
+      var numEl = document.createElement('div');
+      numEl.style.cssText = 'width:24px;height:24px;border-radius:50%;background:var(--brand);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0;';
+      numEl.textContent = s[0];
+      var textEl = document.createElement('div');
+      var titleEl = document.createElement('div');
+      titleEl.style.cssText = 'font-size:13px;font-weight:500;color:var(--t1);';
+      titleEl.textContent = s[1];
+      var subEl = document.createElement('div');
+      subEl.style.cssText = 'font-size:11px;color:var(--t3);margin-top:2px;';
+      subEl.textContent = s[2];
+      textEl.appendChild(titleEl);
+      textEl.appendChild(subEl);
+      stepRow.appendChild(numEl);
+      stepRow.appendChild(textEl);
+      stepsEl.appendChild(stepRow);
+    }
+  }
+
+  document.getElementById('panel-811').classList.add('open');
+  document.querySelectorAll('.bnav-btn').forEach(function(b) { b.classList.remove('active'); });
+}
+
+function close811() {
+  document.getElementById('panel-811').classList.remove('open');
+}
+
+function call811() {
+  if (confirm('Call 811 now?')) {
+    window.location.href = 'tel:811';
+  }
+}
+
+// ── PRE-DIG SAFETY CHECKLIST ──
+var CHECKLIST = [
+  {id:'c01', cat:'Pre-planning', label:'811 ticket submitted', sub:'Call made or online ticket filed at least 3 business days before dig'},
+  {id:'c02', cat:'Pre-planning', label:'Ticket number documented', sub:'Record the 811 ticket number for your records'},
+  {id:'c03', cat:'Pre-planning', label:'All utilities responded', sub:'Confirm all member utilities have marked or cleared the area'},
+  {id:'c04', cat:'Pre-planning', label:'Dig site survey complete', sub:'Physical walk-through of excavation area performed'},
+  {id:'c05', cat:'Pre-planning', label:'Weather conditions acceptable', sub:'No severe weather forecast during excavation window'},
+  {id:'c06', cat:'On-site setup', label:'Work zone marked and barricaded', sub:'Traffic control and safety barriers in place'},
+  {id:'c07', cat:'On-site setup', label:'PPE issued to all crew', sub:'Hard hats, hi-vis vests, gloves, safety glasses'},
+  {id:'c08', cat:'On-site setup', label:'Utility marks visible and clear', sub:'Color-coded marks are legible and within tolerance zone'},
+  {id:'c09', cat:'On-site setup', label:'Hand digging zone identified', sub:'18 inch tolerance zone on each side of marked utilities'},
+  {id:'c10', cat:'On-site setup', label:'Emergency contacts posted', sub:'911, utility emergency numbers, supervisor contact visible'},
+  {id:'c11', cat:'Excavation', label:'Hand dig within tolerance zone', sub:'No mechanical equipment within 18 inches of marked utilities'},
+  {id:'c12', cat:'Excavation', label:'Spotter assigned', sub:'Dedicated spotter watching for utility contact at all times'},
+  {id:'c13', cat:'Excavation', label:'Depth verified before digging', sub:'Confirm utility depths from records or potholing'},
+  {id:'c14', cat:'Excavation', label:'VLTRVIEW map active', sub:'Real-time utility map visible on device during excavation'},
+  {id:'c15', cat:'Post-excavation', label:'No damage observed', sub:'All utilities intact — no nicks, scrapes, or breaks'},
+  {id:'c16', cat:'Post-excavation', label:'Site restored and marked', sub:'Excavation area restored, hazards marked if work continues'},
+  {id:'c17', cat:'Post-excavation', label:'Work order updated', sub:'VLTRVIEW work order marked complete with notes'},
+];
+var checkState = {};
+
+function openChecklist() {
+  try {
+    checkState = JSON.parse(localStorage.getItem('vltrview_checklist_v1') || '{}');
+  } catch(e) { checkState = {}; }
+  document.getElementById('panel-checklist').classList.add('open');
+  document.querySelectorAll('.bnav-btn').forEach(function(b) { b.classList.remove('active'); });
+  renderChecklist();
+}
+
+function closeChecklist() {
+  document.getElementById('panel-checklist').classList.remove('open');
+}
+
+function renderChecklist() {
+  var done = 0;
+  for (var i = 0; i < CHECKLIST.length; i++) {
+    if (checkState[CHECKLIST[i].id]) done++;
+  }
+  var total = CHECKLIST.length;
+  var pct = Math.round((done / total) * 100);
+
+  document.getElementById('cl-done').textContent = done;
+  document.getElementById('cl-total').textContent = total;
+  document.getElementById('cl-pct').textContent = pct + '%';
+  document.getElementById('cl-bar').style.width = pct + '%';
+
+  // Build list using DOM — no HTML string concat
+  var body = document.getElementById('cl-body');
+  body.innerHTML = '';
+
+  var cats = [];
+  for (var ci = 0; ci < CHECKLIST.length; ci++) {
+    if (cats.indexOf(CHECKLIST[ci].cat) === -1) cats.push(CHECKLIST[ci].cat);
+  }
+
+  for (var cati = 0; cati < cats.length; cati++) {
+    var cat = cats[cati];
+    var catDone = 0;
+    var catItems = [];
+    for (var ii = 0; ii < CHECKLIST.length; ii++) {
+      if (CHECKLIST[ii].cat === cat) {
+        catItems.push(CHECKLIST[ii]);
+        if (checkState[CHECKLIST[ii].id]) catDone++;
+      }
+    }
+
+    var catEl = document.createElement('div');
+    catEl.className = 'check-cat';
+    catEl.textContent = cat + ' (' + catDone + '/' + catItems.length + ')';
+    body.appendChild(catEl);
+
+    for (var iti = 0; iti < catItems.length; iti++) {
+      (function(item) {
+        var row = document.createElement('div');
+        row.className = 'check-item';
+        row.onclick = function() {
+          checkState[item.id] = !checkState[item.id];
+          renderChecklist();
+        };
+        var box = document.createElement('div');
+        box.className = 'check-box' + (checkState[item.id] ? ' done' : '');
+        box.textContent = checkState[item.id] ? 'v' : '';
+        var textWrap = document.createElement('div');
+        var lbl = document.createElement('div');
+        lbl.className = 'check-label';
+        lbl.style.textDecoration = checkState[item.id] ? 'line-through' : 'none';
+        lbl.style.color = checkState[item.id] ? 'var(--t3)' : 'var(--t1)';
+        lbl.textContent = item.label;
+        var sub = document.createElement('div');
+        sub.className = 'check-sub';
+        sub.textContent = item.sub;
+        textWrap.appendChild(lbl);
+        textWrap.appendChild(sub);
+        row.appendChild(box);
+        row.appendChild(textWrap);
+        body.appendChild(row);
+      })(catItems[iti]);
+    }
+  }
+
+  // Show complete banner if all done
+  if (done === total && total > 0) {
+    var banner = document.createElement('div');
+    banner.style.cssText = 'margin:14px;padding:16px;border-radius:16px;background:rgba(48,209,88,.1);border:1px solid rgba(48,209,88,.25);text-align:center;';
+    banner.innerHTML = '<div style="font-size:28px;margin-bottom:6px;">&#x2705;</div><div style="font-size:15px;font-weight:700;color:#30D158;margin-bottom:4px;">All checks complete</div><div style="font-size:12px;color:var(--t3);">Safe to proceed with excavation</div>';
+    body.insertBefore(banner, body.firstChild);
+  }
+}
+
+function resetChecklist() {
+  if (!confirm('Reset all checklist items?')) return;
+  checkState = {};
+  renderChecklist();
+}
+
+function saveChecklist() {
+  try { localStorage.setItem('vltrview_checklist_v1', JSON.stringify(checkState)); } catch(e) {}
+  var done = 0;
+  for (var i = 0; i < CHECKLIST.length; i++) {
+    if (checkState[CHECKLIST[i].id]) done++;
+  }
+  showToast('Checklist saved: ' + done + '/' + CHECKLIST.length + ' complete');
+  closeChecklist();
+}
+
+// ── ADD 811 BUTTON TO TOPBAR ──
+function add811ToTopbar() {
+  var topbar = document.getElementById('topbar');
+  if (!topbar) return;
+  var btn = document.createElement('button');
+  btn.className = 'ti';
+  btn.title = '811 Call Before You Dig';
+  btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="var(--t2)" stroke-width="2" stroke-linecap="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12.21 19.79 19.79 0 0 1 1.64 3.59 2 2 0 0 1 3.61 1.39h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9.09a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>';
+  btn.onclick = function() { open811(); };
+  var clockEl = document.getElementById('tb-time');
+  if (clockEl && clockEl.parentNode) {
+    topbar.insertBefore(btn, clockEl.parentNode);
+  } else {
+    topbar.appendChild(btn);
+  }
+}
+
+// ── ADD CHECKLIST TO SETTINGS ──
+function addChecklistToSettings() {
+  var settingsBody = document.querySelector('#panel-settings .fp-body');
+  if (!settingsBody) return;
+
+  var section = document.createElement('div');
+  section.className = 'set-section';
+  section.textContent = 'Field tools';
+
+  var row811 = document.createElement('div');
+  row811.className = 'set-row';
+  row811.onclick = function() { closeSettings(); open811(); };
+  row811.innerHTML = '<div class="set-icon" style="background:rgba(255,100,0,.12);"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FF6600" stroke-width="2" stroke-linecap="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12.21 19.79 19.79 0 0 1 1.64 3.59 2 2 0 0 1 3.61 1.39h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9.09a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg></div><div class="set-info"><div class="set-name">811 Call Before You Dig</div><div class="set-sub">Federal dig safety — NC811 info</div></div><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--t3)" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>';
+
+  var rowCL = document.createElement('div');
+  rowCL.className = 'set-row';
+  rowCL.onclick = function() { closeSettings(); openChecklist(); };
+  rowCL.innerHTML = '<div class="set-icon" style="background:rgba(48,209,88,.12);"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#30D158" stroke-width="2" stroke-linecap="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div><div class="set-info"><div class="set-name">Pre-dig safety checklist</div><div class="set-sub">17-point excavation safety verification</div></div><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--t3)" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>';
+
+  var rowMeas = document.createElement('div');
+  rowMeas.className = 'set-row';
+  rowMeas.onclick = function() { closeSettings(); toggleMeasure(); };
+  rowMeas.innerHTML = '<div class="set-icon" style="background:rgba(10,132,255,.12);"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0A84FF" stroke-width="2" stroke-linecap="round"><line x1="2" y1="12" x2="22" y2="12"/><polyline points="16 6 22 12 16 18"/><polyline points="8 6 2 12 8 18"/></svg></div><div class="set-info"><div class="set-name">Measure distance</div><div class="set-sub">Tap two map points to measure footage</div></div><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--t3)" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>';
+
+  // Insert before the data section
+  var dataSectionEl = null;
+  var allSections = settingsBody.querySelectorAll('.set-section');
+  for (var si = 0; si < allSections.length; si++) {
+    if (allSections[si].textContent.trim() === 'Data') {
+      dataSectionEl = allSections[si];
+      break;
+    }
+  }
+  if (dataSectionEl) {
+    settingsBody.insertBefore(rowMeas, dataSectionEl);
+    settingsBody.insertBefore(rowCL, dataSectionEl);
+    settingsBody.insertBefore(row811, dataSectionEl);
+    settingsBody.insertBefore(section, dataSectionEl);
+  } else {
+    settingsBody.appendChild(section);
+    settingsBody.appendChild(row811);
+    settingsBody.appendChild(rowCL);
+    settingsBody.appendChild(rowMeas);
+  }
+}
+
+// ── INIT SPRINT 4 ──
+function initSprint4() {
+  try { add811ToTopbar(); } catch(e) { console.warn('811btn:', e); }
+  try { addChecklistToSettings(); } catch(e) { console.warn('clSettings:', e); }
+}
+
 window.addEventListener('DOMContentLoaded', function() {
   // ── Check onboarding state ──
   if (!isOnboarded()) {
@@ -3619,6 +4053,7 @@ window.addEventListener('DOMContentLoaded', function() {
 
   // Sprint 3 init
   try { initSprint3(); } catch(e) { console.warn('s3:', e); }
+  try { initSprint4(); } catch(e) { console.warn('s4:', e); }
 });
 </script>
 
@@ -4132,6 +4567,76 @@ window.addEventListener('DOMContentLoaded', function() {
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/></svg>
     <span class="cond-alert-text" id="cond-alert-text">Assets in poor condition require attention</span>
     <span style="color:rgba(255,255,255,.7);font-size:11px;">View</span>
+  </div>
+</div>
+
+
+<!-- MEASURE BAR -->
+<div id="measure-bar">
+  <div style="flex:1;">
+    <div id="measure-result">Tap first point</div>
+    <div id="measure-sub">Tap any two points on the map to measure</div>
+  </div>
+  <button class="meas-btn meas-clear" onclick="clearMeasure()">Clear</button>
+  <button class="meas-btn meas-done" onclick="exitMeasure()">Done</button>
+</div>
+
+<!-- MAP FABs -->
+<button id="fab-measure" onclick="toggleMeasure()" title="Measure distance">
+  <svg viewBox="0 0 24 24"><line x1="2" y1="12" x2="22" y2="12"/><polyline points="16 6 22 12 16 18"/><polyline points="8 6 2 12 8 18"/></svg>
+</button>
+<button id="fab-night" onclick="toggleNight()" title="Night mode">🌙</button>
+
+<!-- 811 PANEL -->
+<div id="panel-811">
+  <div class="p811-head">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12.21 19.79 19.79 0 0 1 1.64 3.59 2 2 0 0 1 3.61 1.39h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9.09a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+    <span style="font-size:17px;font-weight:700;color:#fff;flex:1;">Call Before You Dig</span>
+    <button class="fp-close" style="background:rgba(255,255,255,.2);" onclick="close811()">x</button>
+  </div>
+  <div class="fp-body">
+    <div style="padding:20px 14px 16px;">
+      <button class="call-btn" onclick="call811()">
+        <span style="font-size:24px;">📞</span> Call 811 — Free — 24/7
+      </button>
+      <div style="text-align:center;font-size:12px;color:var(--t3);margin-top:10px;line-height:1.5;">Federal law requires calling 811 before any excavation.<br>Lines are marked free within 3 business days.</div>
+    </div>
+
+    <div style="padding:0 14px 8px;font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.1em;">North Carolina — NC811</div>
+    <div class="info-card">
+      <div class="info-row"><span class="info-key">Phone</span><span class="info-val">1-800-632-4949</span></div>
+      <div class="info-row"><span class="info-key">Website</span><span class="info-val" style="color:var(--brand);">nc811.org</span></div>
+      <div class="info-row"><span class="info-key">Notice required</span><span class="info-val">3 business days</span></div>
+      <div class="info-row"><span class="info-key">Ticket valid</span><span class="info-val">15 business days</span></div>
+    </div>
+
+    <div style="padding:12px 14px 8px;font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.1em;">Other 811 centers</div>
+    <div class="info-card" id="other-811-centers"></div>
+
+    <div style="padding:12px 14px 8px;font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.1em;">What happens next</div>
+    <div class="info-card" id="steps-811"></div>
+  </div>
+</div>
+
+<!-- CHECKLIST PANEL -->
+<div id="panel-checklist">
+  <div class="fp-head">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#30D158" stroke-width="2" stroke-linecap="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+    <span class="fp-title">Pre-dig safety checklist</span>
+    <button class="fp-close" onclick="closeChecklist()">x</button>
+  </div>
+  <div class="cl-progress">
+    <div class="cl-stats">
+      <div><div class="cl-stat-val" id="cl-done" style="color:#30D158;">0</div><div class="cl-stat-lbl">Complete</div></div>
+      <div style="text-align:center;"><div class="cl-stat-val" id="cl-pct" style="color:var(--brand);">0%</div><div class="cl-stat-lbl">Progress</div></div>
+      <div style="text-align:right;"><div class="cl-stat-val" id="cl-total" style="color:var(--t1);">0</div><div class="cl-stat-lbl">Total</div></div>
+    </div>
+    <div class="cl-bar-bg"><div class="cl-bar-fill" id="cl-bar" style="width:0%"></div></div>
+  </div>
+  <div style="flex:1;overflow-y:auto;" id="cl-body"></div>
+  <div style="padding:12px 14px 24px;display:flex;gap:8px;flex-shrink:0;">
+    <button onclick="resetChecklist()" style="flex:1;padding:13px;border-radius:12px;background:rgba(255,255,255,.08);border:none;color:var(--t2);font-size:14px;cursor:pointer;font-family:'DM Sans',sans-serif;">Reset</button>
+    <button onclick="saveChecklist()" style="flex:2;padding:13px;border-radius:12px;background:var(--brand);border:none;color:#fff;font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">Save and close</button>
   </div>
 </div>
 
