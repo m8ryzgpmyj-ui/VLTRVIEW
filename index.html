@@ -614,369 +614,6 @@ html,body{height:100%;width:100%;background:var(--bg-base);font-family:'DM Sans'
 }
 #modal-quicknote.open{display:flex;}
 
-
-/* ══ SPRINT 3 — POLISH + PERFORMANCE ══ */
-
-/* Dashboard / Stats Panel */
-#panel-dash{
-  position:fixed;top:0;left:0;right:0;bottom:0;
-  background:var(--bg-base);z-index:2000;
-  display:none;flex-direction:column;overflow:hidden;
-}
-#panel-dash.open{display:flex;}
-.dash-head{
-  height:56px;background:rgba(10,10,20,.97);
-  backdrop-filter:blur(20px);
-  display:flex;align-items:center;padding:0 16px;gap:12px;
-  border-bottom:1px solid rgba(10,132,255,.15);flex-shrink:0;
-}
-.dash-body{flex:1;overflow-y:auto;padding:0 0 24px;}
-.dash-body::-webkit-scrollbar{width:2px;}
-.dash-section{padding:16px 16px 8px;font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.1em;}
-.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 14px 4px;}
-.stat-card{
-  background:var(--bg-card);border-radius:18px;padding:18px 16px;
-  border:1px solid var(--border-subtle);
-  display:flex;flex-direction:column;gap:6px;
-  position:relative;overflow:hidden;
-}
-.stat-card::before{
-  content:'';position:absolute;top:0;right:0;
-  width:60px;height:60px;border-radius:50%;
-  opacity:.08;transform:translate(20px,-20px);
-}
-.stat-num{font-size:32px;font-weight:800;font-family:'JetBrains Mono',monospace;line-height:1;}
-.stat-label{font-size:12px;font-weight:500;color:var(--t3);}
-.stat-trend{font-size:11px;font-weight:600;display:flex;align-items:center;gap:3px;margin-top:2px;}
-.stat-trend.up{color:#30D158;}
-.stat-trend.down{color:#FF453A;}
-.stat-trend.neutral{color:var(--t3);}
-
-/* Activity feed */
-.activity-item{
-  display:flex;gap:12px;padding:12px 16px;
-  border-bottom:1px solid var(--border-subtle);
-}
-.activity-dot{
-  width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:5px;
-}
-.activity-body{flex:1;}
-.activity-title{font-size:13px;font-weight:500;color:var(--t1);}
-.activity-sub{font-size:11px;color:var(--t3);margin-top:2px;font-family:'JetBrains Mono',monospace;}
-
-/* City coverage cards */
-.city-cov-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:0 14px 4px;}
-.city-cov-card{
-  background:var(--bg-card);border-radius:14px;padding:12px 10px;
-  border:1px solid var(--border-subtle);text-align:center;
-  cursor:pointer;transition:all .15s;
-}
-.city-cov-card:active{transform:scale(.96);}
-.city-cov-dot{width:10px;height:10px;border-radius:50%;margin:0 auto 6px;}
-.city-cov-name{font-size:12px;font-weight:600;color:var(--t1);}
-.city-cov-state{font-size:10px;color:var(--t3);}
-.city-cov-count{font-size:10px;color:var(--brand);font-family:'JetBrains Mono',monospace;margin-top:4px;}
-
-/* Settings Panel */
-#panel-settings{
-  position:fixed;top:0;left:0;right:0;bottom:0;
-  background:var(--bg-base);z-index:2000;
-  display:none;flex-direction:column;overflow:hidden;
-}
-#panel-settings.open{display:flex;}
-.set-section{padding:20px 16px 8px;font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.1em;}
-.set-row{
-  display:flex;align-items:center;gap:14px;
-  padding:14px 16px;border-bottom:1px solid var(--border-subtle);
-  cursor:pointer;transition:background .12s;
-}
-.set-row:active{background:rgba(255,255,255,.04);}
-.set-icon{
-  width:36px;height:36px;border-radius:10px;
-  display:flex;align-items:center;justify-content:center;flex-shrink:0;
-}
-.set-info{flex:1;}
-.set-name{font-size:15px;font-weight:500;color:var(--t1);}
-.set-sub{font-size:12px;color:var(--t3);margin-top:2px;}
-.set-value{font-size:13px;color:var(--brand);font-weight:500;font-family:'DM Sans',sans-serif;}
-.set-toggle{
-  width:50px;height:30px;border-radius:15px;
-  position:relative;flex-shrink:0;transition:background .2s;border:none;cursor:pointer;
-}
-.set-toggle.on{background:#30D158;}
-.set-toggle.off{background:#3a3a3a;}
-.set-toggle::after{
-  content:'';position:absolute;top:3px;left:3px;
-  width:24px;height:24px;border-radius:50%;background:#fff;
-  box-shadow:0 2px 6px rgba(0,0,0,.3);
-  transition:transform .2s cubic-bezier(.34,1.4,.64,1);
-}
-.set-toggle.on::after{transform:translateX(20px);}
-
-/* Improved topbar live status */
-#topbar-status{
-  display:flex;flex-direction:column;align-items:flex-end;gap:1px;
-}
-#tb-time{font-size:12px;font-weight:600;color:var(--t1);font-family:'JetBrains Mono',monospace;}
-#tb-status{font-size:9px;color:var(--status-ok);font-weight:600;letter-spacing:.5px;text-transform:uppercase;}
-
-/* Map loading skeleton */
-.map-skeleton{
-  position:absolute;inset:0;z-index:10;
-  background:linear-gradient(90deg,#1a1a24 25%,#22222e 50%,#1a1a24 75%);
-  background-size:200% 100%;
-  animation:skeleton-sweep 1.5s ease-in-out infinite;
-  display:flex;align-items:center;justify-content:center;
-}
-@keyframes skeleton-sweep{
-  0%{background-position:200% 0}
-  100%{background-position:-200% 0}
-}
-.skeleton-content{text-align:center;}
-.skeleton-ring{
-  width:60px;height:60px;border-radius:50%;
-  border:3px solid rgba(10,132,255,.2);
-  border-top-color:#0A84FF;
-  animation:spin .8s linear infinite;
-  margin:0 auto 16px;
-}
-
-/* Cluster markers */
-.cluster-marker{
-  width:36px;height:36px;border-radius:50%;
-  display:flex;align-items:center;justify-content:center;
-  font-size:12px;font-weight:800;color:#fff;
-  font-family:'JetBrains Mono',monospace;
-  box-shadow:0 3px 12px rgba(0,0,0,.4);
-  border:2.5px solid rgba(255,255,255,.8);
-  cursor:pointer;
-}
-
-/* Condition alert banner */
-#condition-alerts{
-  position:absolute;top:0;left:0;right:0;z-index:600;
-  display:none;
-}
-.cond-alert-bar{
-  display:flex;align-items:center;gap:10px;
-  padding:8px 14px;font-size:12px;font-weight:600;
-  cursor:pointer;transition:opacity .15s;
-}
-.cond-alert-bar:active{opacity:.8;}
-
-/* Performance indicator */
-#perf-indicator{
-  position:absolute;bottom:140px;left:14px;z-index:500;
-  background:rgba(10,10,20,.85);backdrop-filter:blur(8px);
-  border-radius:10px;padding:6px 10px;
-  font-size:10px;font-family:'JetBrains Mono',monospace;
-  color:var(--t3);border:1px solid var(--border-subtle);
-  display:none;
-}
-
-/* Improved asset markers — shadow + hover */
-.asset-hover{transform:scale(1.2);z-index:1000;}
-
-/* Pull to refresh indicator */
-#ptr-indicator{
-  position:absolute;top:0;left:50%;transform:translateX(-50%);
-  z-index:600;background:var(--brand);color:#fff;
-  font-size:11px;font-weight:700;padding:6px 16px;border-radius:0 0 12px 12px;
-  font-family:'JetBrains Mono',monospace;display:none;
-}
-
-
-/* ══ SPRINT 4 — PWA + FIELD TOOLS + PERFORMANCE ══ */
-
-/* ── MEASURE TOOL ── */
-#measure-panel{
-  position:absolute;top:0;left:0;right:0;z-index:700;
-  background:rgba(10,10,20,.96);backdrop-filter:blur(16px);
-  border-bottom:1px solid rgba(10,132,255,.2);
-  display:none;padding:12px 16px;
-  box-shadow:0 4px 20px rgba(0,0,0,.4);
-}
-#measure-panel.open{display:flex;align-items:center;gap:12px;}
-#measure-result{
-  flex:1;font-size:16px;font-weight:700;
-  color:var(--t1);font-family:'JetBrains Mono',monospace;
-}
-#measure-sub{font-size:11px;color:var(--t3);margin-top:2px;}
-.measure-btn{
-  padding:7px 14px;border-radius:20px;border:none;
-  font-size:12px;font-weight:600;cursor:pointer;
-  font-family:'DM Sans',sans-serif;
-}
-.measure-clear{background:rgba(255,69,58,.15);color:#FF453A;border:1px solid rgba(255,69,58,.25);}
-.measure-done{background:var(--brand);color:#fff;}
-.measure-tap-hint{
-  position:absolute;bottom:80px;left:50%;transform:translateX(-50%);
-  background:rgba(10,132,255,.92);color:#fff;
-  font-size:12px;font-weight:600;padding:8px 18px;
-  border-radius:20px;white-space:nowrap;z-index:600;
-  display:none;pointer-events:none;
-  box-shadow:0 4px 16px rgba(10,132,255,.4);
-  font-family:'DM Sans',sans-serif;
-}
-#measure-tap-hint.show{display:block;}
-
-/* ── 811 PANEL ── */
-#panel-811{
-  position:fixed;inset:0;z-index:2000;
-  background:var(--bg-base);display:none;flex-direction:column;
-}
-#panel-811.open{display:flex;}
-.panel-811-head{
-  height:56px;background:rgba(255,100,0,.95);
-  display:flex;align-items:center;padding:0 16px;gap:12px;
-  box-shadow:0 2px 20px rgba(255,100,0,.4);flex-shrink:0;
-}
-.call-811-btn{
-  width:calc(100% - 28px);margin:0 14px;
-  padding:22px;border-radius:20px;
-  background:linear-gradient(135deg,#FF6600,#FF4400);
-  border:none;color:#fff;font-size:22px;font-weight:800;
-  cursor:pointer;font-family:'DM Sans',sans-serif;
-  box-shadow:0 8px 32px rgba(255,100,0,.5);
-  letter-spacing:.5px;display:flex;align-items:center;
-  justify-content:center;gap:12px;
-  transition:transform .15s,box-shadow .15s;
-}
-.call-811-btn:active{transform:scale(.97);box-shadow:0 4px 16px rgba(255,100,0,.4);}
-.ticket-card{
-  background:var(--bg-card);border-radius:16px;
-  margin:8px 14px;padding:16px;
-  border:1px solid var(--border-subtle);
-}
-
-/* ── SAFETY CHECKLIST ── */
-#panel-checklist{
-  position:fixed;inset:0;z-index:2000;
-  background:var(--bg-base);display:none;flex-direction:column;
-}
-#panel-checklist.open{display:flex;}
-.check-item{
-  display:flex;align-items:flex-start;gap:14px;
-  padding:14px 16px;border-bottom:1px solid var(--border-subtle);
-  cursor:pointer;transition:background .12s;
-}
-.check-item:active{background:rgba(255,255,255,.04);}
-.check-box{
-  width:26px;height:26px;border-radius:8px;
-  border:2px solid var(--border-mid);flex-shrink:0;
-  display:flex;align-items:center;justify-content:center;
-  transition:all .2s;margin-top:1px;
-}
-.check-box.checked{background:#30D158;border-color:#30D158;}
-.check-box.checked::after{
-  content:'✓';color:#fff;font-size:14px;font-weight:700;
-}
-.check-label{font-size:14px;font-weight:500;color:var(--t1);line-height:1.4;}
-.check-sub{font-size:12px;color:var(--t3);margin-top:3px;line-height:1.4;}
-.check-category{
-  padding:10px 16px 4px;font-size:10px;font-weight:700;
-  color:var(--t3);text-transform:uppercase;letter-spacing:.1em;
-}
-.checklist-progress{
-  padding:14px 16px;border-bottom:1px solid var(--border-subtle);
-  flex-shrink:0;
-}
-.cl-bar-bg{height:6px;background:rgba(255,255,255,.08);border-radius:3px;overflow:hidden;}
-.cl-bar-fill{height:100%;background:linear-gradient(90deg,#0A84FF,#30D158);border-radius:3px;transition:width .4s ease;}
-.cl-stats{display:flex;justify-content:space-between;margin-bottom:8px;}
-.cl-stat-val{font-size:20px;font-weight:700;font-family:'JetBrains Mono',monospace;}
-.cl-stat-lbl{font-size:10px;color:var(--t3);margin-top:1px;}
-.checklist-complete{
-  margin:14px;padding:16px;border-radius:16px;
-  background:rgba(48,209,88,.1);border:1px solid rgba(48,209,88,.25);
-  text-align:center;display:none;
-}
-
-/* ── NIGHT MODE FAB ── */
-#fab-night{
-  position:absolute;right:14px;bottom:248px;
-  width:46px;height:46px;border-radius:50%;
-  background:rgba(18,18,28,.94);backdrop-filter:blur(12px);
-  border:none;cursor:pointer;z-index:500;
-  display:flex;align-items:center;justify-content:center;
-  box-shadow:0 4px 16px rgba(0,0,0,.4);
-  font-size:20px;transition:transform .15s;
-}
-#fab-night:active{transform:scale(.92);}
-#fab-measure{
-  position:absolute;right:14px;bottom:304px;
-  width:46px;height:46px;border-radius:50%;
-  background:rgba(18,18,28,.94);backdrop-filter:blur(12px);
-  border:none;cursor:pointer;z-index:500;
-  display:flex;align-items:center;justify-content:center;
-  box-shadow:0 4px 16px rgba(0,0,0,.4);
-  transition:transform .15s;
-}
-#fab-measure svg{width:22px;height:22px;fill:none;stroke:var(--t1);stroke-width:2;stroke-linecap:round;}
-#fab-measure:active{transform:scale(.92);}
-#fab-measure.active{background:rgba(10,132,255,.8);}
-#fab-measure.active svg{stroke:#fff;}
-
-/* ── PWA INSTALL BANNER ── */
-#pwa-install-bar{
-  position:fixed;bottom:62px;left:0;right:0;z-index:1200;
-  background:linear-gradient(135deg,#0A84FF,#0060CC);
-  display:none;align-items:center;gap:12px;padding:12px 16px;
-  box-shadow:0 -4px 24px rgba(10,132,255,.4);
-}
-#pwa-install-bar.show{display:flex;}
-.pwa-install-text{flex:1;font-size:13px;color:#fff;font-weight:500;}
-.pwa-install-text strong{display:block;font-size:14px;font-weight:700;margin-bottom:1px;}
-.pwa-install-btn{
-  padding:9px 18px;border-radius:20px;
-  background:#fff;border:none;color:#0A84FF;
-  font-size:13px;font-weight:700;cursor:pointer;
-  font-family:'DM Sans',sans-serif;white-space:nowrap;
-}
-.pwa-install-dismiss{
-  background:none;border:none;color:rgba(255,255,255,.6);
-  font-size:20px;cursor:pointer;padding:0;line-height:1;
-}
-
-/* ── NOTIFICATION PERMISSION BANNER ── */
-#notif-permission-bar{
-  position:fixed;top:56px;left:0;right:0;z-index:900;
-  background:linear-gradient(135deg,#FF9F0A,#FF6B00);
-  display:none;align-items:center;gap:10px;
-  padding:10px 14px;
-}
-#notif-permission-bar.show{display:flex;}
-.npb-text{flex:1;font-size:12px;color:#fff;font-weight:500;}
-.npb-btn{
-  padding:6px 14px;border-radius:20px;
-  background:#fff;border:none;color:#FF6B00;
-  font-size:12px;font-weight:700;cursor:pointer;
-  font-family:'DM Sans',sans-serif;
-}
-.npb-dismiss{background:none;border:none;color:rgba(255,255,255,.7);font-size:18px;cursor:pointer;}
-
-/* ── OFFLINE TILE CACHE INDICATOR ── */
-#cache-status{
-  position:absolute;top:8px;right:60px;z-index:500;
-  font-size:9px;font-weight:700;padding:3px 8px;
-  border-radius:6px;font-family:'JetBrains Mono',monospace;
-  display:none;
-}
-#cache-status.offline{background:rgba(255,159,10,.9);color:#fff;display:block;}
-#cache-status.cached{background:rgba(48,209,88,.9);color:#fff;display:block;}
-
-/* ── MEASURE LINE ON MAP ── */
-.measure-line{stroke:#0A84FF;stroke-width:2.5;stroke-dasharray:8 4;fill:none;}
-.measure-point{fill:#0A84FF;stroke:#fff;stroke-width:2;}
-
-/* ── PERFORMANCE: skeleton loading ── */
-.data-skeleton{
-  background:linear-gradient(90deg,var(--bg-card) 25%,var(--bg-elevated) 50%,var(--bg-card) 75%);
-  background-size:200% 100%;
-  animation:skeleton-sweep 1.5s ease-in-out infinite;
-  border-radius:8px;height:16px;
-}
-
 @keyframes gps-pulse{0%{transform:scale(1);opacity:.7}100%{transform:scale(3);opacity:0}}
 </style>
 </head>
@@ -1593,7 +1230,7 @@ function renderHIFLDLines(geojson) {
 
   hifldLinesLayer = L.geoJSON(geojson, {
     style: feature => {
-      const v = feature.(properties && properties.VOLTAGE);
+      const v = (feature.properties && feature.properties.VOLTAGE);
       return {
         color: voltageColor(v),
         weight: voltageWeight(v),
@@ -1613,9 +1250,7 @@ function renderHIFLDLines(geojson) {
   });
 
   if(layerState.hifld_lines) hifldLinesLayer.addTo(map);
-  perfData.hifldLines = geojson.(features && features.length) || 0;
-  updateHIFLDLineCount(perfData.hifldLines);
-  updatePerfIndicator();
+  updateHIFLDLineCount((geojson.features ? geojson.features.length : 0));
 }
 
 function renderHIFLDSubs(geojson) {
@@ -1624,7 +1259,7 @@ function renderHIFLDSubs(geojson) {
 
   (geojson.features || []).forEach(f => {
     const p = f.properties || {};
-    const coords = f.(geometry && geometry.coordinates);
+    const coords = (f.geometry && f.geometry.coordinates);
     if(!coords) return;
 
     const maxV = p.MAX_VOLT || '?';
@@ -1651,7 +1286,7 @@ function renderHIFLDSubs(geojson) {
   });
 
   if(layerState.hifld_sub) hifldSubsLayer.addTo(map);
-  updateHIFLDSubCount(geojson.(features && features.length) || 0);
+  updateHIFLDSubCount((geojson.features ? geojson.features.length : 0));
 }
 
 function showTransmissionPopup(voltage, owner, type, latlng) {
@@ -1725,7 +1360,7 @@ async function loadHIFLDData() {
 
     renderHIFLDLines(linesData);
     renderHIFLDSubs(subsData);
-    showHIFLDStatus('loaded', (linesData.(features && features.length)||0), (subsData.(features && features.length)||0));
+    showHIFLDStatus('loaded', ((linesData.features ? linesData.features.length : 0)), ((subsData.features ? subsData.features.length : 0)));
 
   } catch(err) {
     console.warn('HIFLD fetch error:', err);
@@ -1860,13 +1495,13 @@ function renderOSMPower(data) {
   (data.elements || []).forEach(el => {
     const pt = osmCenter(el);
     if (!pt) return;
-    const pwr = el.(tags && tags.power) || 'transformer';
+    const pwr = (el.tags ? el.tags.power : null) || 'transformer';
     const cfg = icons[pwr] || icons.transformer;
     const sz = cfg.size;
 
     const voltRaw = (el.tags && el.tags.voltage) || (el.tags && el.tags['voltage:primary']) || '';
     const voltStr = voltRaw ? ' · ' + voltRaw + 'V' : '';
-    const name = el.(tags && tags.name) || el.(tags && tags.ref) || cfg.label;
+    const name = (el.tags && el.tags.name) || (el.tags && el.tags.ref) || cfg.label;
 
     const icon = L.divIcon({
       className: '',
@@ -1940,8 +1575,8 @@ function renderOSMWater(data) {
   (data.elements || []).forEach(el => {
     const pt = osmCenter(el);
     if (!pt) return;
-    const wtype = el.(tags && tags.emergency) === 'fire_hydrant' ? 'fire_hydrant'
-      : el.(tags && tags.man_made) || el.(tags && tags.waterway) || 'fire_hydrant';
+    const wtype = (el.tags && el.tags.emergency) === 'fire_hydrant' ? 'fire_hydrant'
+      : (el.tags && el.tags.man_made) || (el.tags && el.tags.waterway) || 'fire_hydrant';
     const cfg = waterIcons[wtype] || waterIcons.fire_hydrant;
     const sz = 18;
 
@@ -2028,11 +1663,7 @@ async function loadOSMData() {
     if (results[1].status === 'fulfilled') total += renderOSMTelecom(results[1].value);
     if (results[2].status === 'fulfilled') total += renderOSMWater(results[2].value);
 
-    if (total > 0) {
-      perfData.osmAssets = total;
-      updatePerfIndicator();
-      showToast('✓ OSM: ' + total + ' real assets loaded');
-    }
+    if (total > 0) showToast(`✓ OSM: ${total} real assets loaded`);
 
   } catch(e) {
     console.warn('OSM load error:', e);
@@ -2305,7 +1936,7 @@ function showAssetPopup(asset) {
   const city = CITIES.find(c=>c.id===asset.city);
 
   document.getElementById('ap-title').textContent = asset.id + ' — ' + def.label;
-  document.getElementById('ap-sub').textContent = ((city && city.name)||asset.city) + ', USA · ' + asset.owner;
+  document.getElementById('ap-sub').textContent = ((city ? city.name : asset.city)) + ', USA · ' + asset.owner;
 
   // Next inspection date (simulate: 1 year after last)
   const lastDate = new Date(asset.lastInsp);
@@ -2339,17 +1970,13 @@ function showAssetPopup(asset) {
       <span class="ap-k">Next inspection</span>
       <span class="ap-v" style="color:${overdue?'#FF0000':'var(--t1)'};">${nextStr}${overdue?' ⚠️ OVERDUE':''}</span>
     </div>
-    <div class="ap-row"><span class="ap-k">City</span><span class="ap-v">${(city && city.name)||asset.city}, ${(city && city.state)||'USA'}</span></div>
+    <div class="ap-row"><span class="ap-k">City</span><span class="ap-v">${(city ? city.name : asset.city)}, ${(city ? city.state : 'USA')}</span></div>
     <div class="ap-row"><span class="ap-k">GPS</span><span class="ap-v" style="font-family:'JetBrains Mono',monospace;font-size:11px;">${asset.lat.toFixed(5)}°N ${Math.abs(asset.lon).toFixed(5)}°W</span></div>
     <div class="ap-row"><span class="ap-k">Source</span><span class="ap-v">VLTRVIEW Demo Data</span></div>
   `;
 
   document.getElementById('asset-popup').classList.add('open');
   map.panTo([asset.lat, asset.lon], {animate:true, duration:.5});
-  // Pan up slightly so popup doesn't cover marker
-  setTimeout(() => {
-    try { map.panBy([0, -80], {animate:true, duration:0.3}); } catch(e) {}
-  }, 300);
 }
 
 function closeAssetPopup() {
@@ -2496,9 +2123,9 @@ const allPanels=['orders','crew','route','notif','photos','damage'];
 function switchTab(tab, btn) {
   document.querySelectorAll('.bnav-btn').forEach(b=>b.classList.remove('active'));
   if(btn) btn.classList.add('active');
-  allPanels.forEach(function(p){var _pe=document.getElementById('panel-'+p);if(_pe)_pe.classList.remove('open');});
+  allPanels.forEach(function(p){var _e=document.getElementById('panel-'+p);if(_e)_e.classList.remove('open');});
   if(tab==='map'){ closeAssetPopup(); }
-  else { (document.getElementById('panel-'+tab) && document.getElementById('panel-'+tab).classList).add('open'); }
+  else { (function(){var _e=document.getElementById('panel-'+tab);if(_e)_e.classList.add('open');})(); }
 }
 
 // ── TOAST ──
@@ -2992,8 +2619,7 @@ function syncLayerToggles() {
 // ══════════════════════════════════════════════
 function runSplash() {
   const splash = document.getElementById('splash');
-  if (!splash) return;
-  splash.style.display = 'flex'; // ensure visible
+  if (!splash || splash.style.display === 'none') return;
 
   const steps = [
     [20,'Loading map...'],
@@ -3058,10 +2684,10 @@ function loadFromStorage() {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return false;
     const data = JSON.parse(raw);
-    if (data.(workOrders && workOrders.length))   workOrders   = data.workOrders;
-    if (data.(damageReports && damageReports.length)) damageReports = data.damageReports;
-    if (data.(photos && photos.length))       photos        = data.photos;
-    if (data.(fieldNotes && fieldNotes.length))   fieldNotes    = data.fieldNotes;
+    if ((data.workOrders && data.workOrders.length))   workOrders   = data.workOrders;
+    if ((data.damageReports && data.damageReports.length)) damageReports = data.damageReports;
+    if ((data.photos && data.photos.length))       photos        = data.photos;
+    if ((data.fieldNotes && data.fieldNotes.length))   fieldNotes    = data.fieldNotes;
     return true;
   } catch(e) {
     console.warn('Storage load failed:', e);
@@ -3211,10 +2837,10 @@ async function shareViaSystem() {
   if (navigator.share) {
     try {
       await navigator.share({
-        title: 'VLTRVIEW Work Order — ' + ((wo && wo.id) || ''),
-        text: ((wo && wo.title) || '') + '
-Asset: ' + ((wo && wo.asset) || '') + '
-Assigned: ' + ((wo && wo.crew) || ''),
+        title: 'VLTRVIEW Work Order — ' + ((wo ? wo.id : '')),
+        text: ((wo ? wo.title : '')) + '
+Asset: ' + ((wo ? wo.asset : '')) + '
+Assigned: ' + ((wo ? wo.crew : '')),
         url: link,
       });
     } catch(e) {
@@ -3466,863 +3092,23 @@ function addQuickNoteButton() {
   btn.addTo(map);
 }
 
-
-// ══════════════════════════════════════════════
-// SPRINT 3 — POLISH + PERFORMANCE
-// ══════════════════════════════════════════════
-
-// ── SETTINGS STATE ──
-const appSettings = {
-  hifld_auto: true,
-  osm_auto: true,
-  cluster: true,
-  show_perf: false,
-};
-
-function loadSettings() {
-  try {
-    const s = JSON.parse(localStorage.getItem('vltrview_settings_v1') || '{}');
-    Object.assign(appSettings, s);
-    syncSettingToggles();
-  } catch(e) {}
-}
-
-function saveSettings() {
-  try { localStorage.setItem('vltrview_settings_v1', JSON.stringify(appSettings)); } catch(e) {}
-}
-
-function toggleSetting(key) {
-  appSettings[key] = !appSettings[key];
-  saveSettings();
-  syncSettingToggles();
-  if (key === 'show_perf') {
-    document.getElementById('perf-indicator').style.display = appSettings.show_perf ? 'block' : 'none';
-  }
-  showToast(key.replace(/_/g,' ') + ' ' + (appSettings[key] ? 'enabled' : 'disabled'));
-}
-
-function syncSettingToggles() {
-  Object.keys(appSettings).forEach(k => {
-    const tog = document.getElementById('stog-' + k);
-    if (tog) {
-      tog.classList.toggle('on', appSettings[k]);
-      tog.classList.toggle('off', !appSettings[k]);
-    }
-  });
-  const styleEl = document.getElementById('set-map-style-val');
-  if (styleEl) styleEl.textContent = (currentStyle && currentStyle.label) || 'Light';
-}
-
-function cycleMapStyle() {
-  const idx = MAP_STYLES.findIndex(s => s.id === currentStyle.id);
-  const next = MAP_STYLES[(idx + 1) % MAP_STYLES.length];
-  setMapStyle(next);
-  syncSettingToggles();
-  showToast('Map style: ' + next.label);
-}
-
-function clearAllData() {
-  if (!confirm('Clear all saved work orders, notes, and photos? This cannot be undone.')) return;
-  try {
-    localStorage.removeItem(STORAGE_KEY);
-    workOrders = workOrders.slice(0, 6); // keep demo data
-    damageReports = damageReports.slice(0, 4);
-    photos = photos.slice(0, 4);
-    fieldNotes = [];
-    fieldNoteMarkers.forEach(m => map.removeLayer(m));
-    fieldNoteMarkers = [];
-    renderWO(); renderDamage(); renderPhotos();
-    showToast('✓ All local data cleared');
-  } catch(e) { showToast('Error clearing data'); }
-}
-
-function resetOnboarding() {
-  try { localStorage.removeItem(OB_KEY); } catch(e) {}
-  switchTab('map', document.getElementById('bn-map'));
-  document.getElementById('ob-welcome').style.display = 'flex';
-  showToast('Onboarding reset — showing welcome screen');
-}
-
-// ── LIVE CLOCK IN TOPBAR ──
-function startClock() {
-  function tick() {
-    const now = new Date();
-    const h = String(now.getHours()).padStart(2,'0');
-    const m = String(now.getMinutes()).padStart(2,'0');
-    const el = document.getElementById('tb-time');
-    if (el) el.textContent = h + ':' + m;
-  }
-  tick();
-  setInterval(tick, 10000);
-}
-
-// ── DASHBOARD ──
-function openDashboard() {
-  try { renderDashboard(); } catch(e) { console.warn('renderDashboard:',e); }
-  (function(){var _e=document.getElementById('panel-dash');if(_e)_e.classList.add('open');})();
-  (function(){var _e=document.getElementById('panel-settings');if(_e)_e.classList.remove('open');})();
-  allPanels.forEach(function(p){var _pe=document.getElementById('panel-'+p);if(_pe)_pe.classList.remove('open');});
-  document.querySelectorAll('.bnav-btn').forEach(b => b.classList.remove('active'));
-}
-
-function renderDashboard() {
-  const now = new Date();
-  document.getElementById('dash-subtitle').textContent =
-    now.toLocaleDateString('en-US', {weekday:'long', month:'short', day:'numeric'}) +
-    ' · ' + CITIES.length + ' cities active';
-
-  // ── Stats ──
-  const openWOs   = workOrders.filter(w => w.status === 'open' || w.status === 'urgent').length;
-  const doneWOs   = workOrders.filter(w => w.status === 'done').length;
-  const poorAssets = CITIES.reduce((a, c) => a + genAssets(c).filter(x => x.condition === 'poor').length, 0);
-  const totalAssets = CITIES.reduce((a, c) => a + c.assets, 0);
-  const crewOnline  = crewMembers.filter(c => c.status === 'online').length;
-  const openDmg     = damageReports.filter(d => d.status !== 'Resolved').length;
-
-  document.getElementById('stat-grid').innerHTML = `
-    <div class="stat-card" style="border-color:rgba(10,132,255,.2);">
-      <div class="stat-num" style="color:#0A84FF;">${openWOs}</div>
-      <div class="stat-label">Open work orders</div>
-      <div class="stat-trend neutral">📋 ${workOrders.length} total</div>
-    </div>
-    <div class="stat-card" style="border-color:rgba(48,209,88,.2);">
-      <div class="stat-num" style="color:#30D158;">${crewOnline}</div>
-      <div class="stat-label">Crew online</div>
-      <div class="stat-trend up">↑ ${crewMembers.length} total crew</div>
-    </div>
-    <div class="stat-card" style="border-color:rgba(255,0,0,.2);">
-      <div class="stat-num" style="color:#FF0000;">${openDmg}</div>
-      <div class="stat-label">Open damage reports</div>
-      <div class="stat-trend ${openDmg > 2 ? 'down' : 'neutral'}">⚠️ ${damageReports.length} total</div>
-    </div>
-    <div class="stat-card" style="border-color:rgba(255,215,0,.2);">
-      <div class="stat-num" style="color:#FFD700;">${totalAssets}</div>
-      <div class="stat-label">Total assets</div>
-      <div class="stat-trend down">🔴 ${poorAssets} poor condition</div>
-    </div>
-  `;
-
-  // ── Condition alerts ──
-  const poorList = [];
-  CITIES.forEach(city => {
-    genAssets(city).filter(a => a.condition === 'poor').slice(0, 2).forEach(a => {
-      poorList.push({ ...a, cityName: city.name });
-    });
-  });
-
-  if (poorList.length > 0) {
-    document.getElementById('alert-section').style.display = 'block';
-    document.getElementById('dash-alerts').innerHTML = poorList.slice(0,4).map(a => `
-      <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid var(--border-subtle);cursor:pointer;"
-           onclick="flyToCity('${a.city}');switchTab('map',document.getElementById('bn-map'))">
-        <div style="width:36px;height:36px;border-radius:10px;background:rgba(255,0,0,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FF0000" stroke-width="2" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/></svg>
-        </div>
-        <div style="flex:1;">
-          <div style="font-size:13px;font-weight:600;color:var(--t1);">${a.id} — Poor condition</div>
-          <div style="font-size:11px;color:var(--t3);margin-top:2px;">${a.cityName} · ${(ASSET_TYPES[a.type] && ASSET_TYPES[a.type].label) || a.type}</div>
-        </div>
-        <div style="font-size:11px;color:#FF0000;font-weight:600;">Action needed</div>
-      </div>`).join('');
-  } else {
-    document.getElementById('alert-section').style.display = 'none';
-  }
-
-  // ── City coverage grid ──
-  document.getElementById('city-cov-grid').innerHTML = CITIES.map(c => `
-    <div class="city-cov-card" onclick="flyToCity('${c.id}');switchTab('map',document.getElementById('bn-map'))">
-      <div class="city-cov-dot" style="background:${c.color};box-shadow:0 0 0 3px ${c.color}33;"></div>
-      <div class="city-cov-name">${c.name}</div>
-      <div class="city-cov-state">${c.state}</div>
-      <div class="city-cov-count">${c.assets} assets</div>
-    </div>`).join('');
-
-  // ── Activity feed (merge WOs + damage + notifs) ──
-  const activities = [
-    ...workOrders.slice(0,3).map(w => ({
-      color: w.status==='done'?'#30D158':w.status==='urgent'?'#FF0000':'#0A84FF',
-      title: w.id + ' — ' + w.title,
-      sub: w.time + ' · ' + w.crew,
-    })),
-    ...damageReports.slice(0,2).map(d => ({
-      color: '#FF6600',
-      title: d.id + ' — ' + d.title,
-      sub: d.time + ' · ' + d.reporter,
-    })),
-    ...notifications.filter(n=>n.unread).slice(0,2).map(n => ({
-      color: '#FFD700',
-      title: n.title,
-      sub: n.time,
-    })),
-  ].slice(0, 8);
-
-  document.getElementById('activity-feed').innerHTML = activities.map(a => `
-    <div class="activity-item">
-      <div class="activity-dot" style="background:${a.color};"></div>
-      <div class="activity-body">
-        <div class="activity-title">${a.title}</div>
-        <div class="activity-sub">${a.sub}</div>
-      </div>
-    </div>`).join('');
-}
-
-// ── SETTINGS TAB ──
-function openSettings() {
-  (function(){var _e=document.getElementById('panel-settings');if(_e)_e.classList.add('open');})();
-  (function(){var _e=document.getElementById('panel-dash');if(_e)_e.classList.remove('open');})();
-  allPanels.forEach(function(p){var _pe=document.getElementById('panel-'+p);if(_pe)_pe.classList.remove('open');});
-  document.querySelectorAll('.bnav-btn').forEach(b => b.classList.remove('active'));
-  try { syncSettingToggles(); } catch(e) {}
-}
-
-// ── PERFORMANCE INDICATOR ──
-let perfData = { hifldLines: 0, osmAssets: 0, loadMs: 0 };
-
-function updatePerfIndicator() {
-  if (!appSettings.show_perf) return;
-  const el = document.getElementById('perf-indicator');
-  if (el) {
-    el.style.display = 'block';
-    el.textContent =
-      `HIFLD: ${perfData.hifldLines} lines · OSM: ${perfData.osmAssets} assets · ${perfData.loadMs}ms`;
-  }
-}
-
-// ── IMPROVED HIFLD WITH PERF TRACKING ──
-const _origLoadHIFLD = typeof loadHIFLDData === 'function' ? loadHIFLDData : null;
-
-// ── CONDITION ALERT BANNER on map ──
-function showConditionAlerts() {
-  const poorCount = CITIES.reduce((a, c) =>
-    a + genAssets(c).filter(x => x.condition === 'poor').length, 0);
-  const el = document.getElementById('condition-alerts');
-  if (!el || poorCount === 0) return;
-
-  el.innerHTML = `
-    <div class="cond-alert-bar" style="background:rgba(255,0,0,.9);"
-         onclick="openDashboard()">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/></svg>
-      <span style="color:#fff;">${poorCount} assets in poor condition require attention</span>
-      <span style="margin-left:auto;color:rgba(255,255,255,.7);font-size:11px;">View →</span>
-    </div>`;
-  el.style.display = 'block';
-
-  // Auto-hide after 6 seconds
-  setTimeout(() => { if(el) el.style.display='none'; }, 6000);
-}
-
-// ── DEBOUNCED MAP LOAD (performance) ──
-let hifldDebounce = null, osmDebounce = null;
-
-function debouncedHIFLD() {
-  if (!appSettings.hifld_auto) return;
-  clearTimeout(hifldDebounce);
-  hifldDebounce = setTimeout(() => {
-    const t0 = Date.now();
-    loadHIFLDData().then(() => {
-      perfData.loadMs = Date.now() - t0;
-      updatePerfIndicator();
-    }).catch(() => {});
-  }, 600);
-}
-
-function debouncedOSM() {
-  if (!appSettings.osm_auto) return;
-  clearTimeout(osmDebounce);
-  osmDebounce = setTimeout(() => {
-    loadOSMData().then && loadOSMData().then(n => {
-      if (typeof n === 'number') { perfData.osmAssets = n; updatePerfIndicator(); }
-    }).catch(() => {});
-  }, 800);
-}
-
-// ── IMPROVED TOPBAR — add status + clock ──
-function upgradeTopbar() {
-  const topbar = document.getElementById('topbar');
-  if (!topbar) return;
-
-  // Add status block on right side of topbar
-  const statusEl = document.createElement('div');
-  statusEl.id = 'topbar-status';
-  statusEl.innerHTML = `
-    <div id="tb-time" style="font-size:12px;font-weight:600;color:var(--t1);font-family:'JetBrains Mono',monospace;"></div>
-    <div id="tb-status" style="font-size:9px;color:#30D158;font-weight:700;letter-spacing:.5px;">● LIVE</div>
-  `;
-  topbar.appendChild(statusEl);
-  startClock();
-}
-
-// ── SWITCH TAB EXTENDED — handle dash + settings ──
-// Note: we extend switchTab after it's defined, using a wrapper approach
-const _sprint3SwitchTab = function(tab, btn) {
-  (function(){var _e=document.getElementById('panel-dash');if(_e)_e.classList.remove('open');})();
-  (function(){var _e=document.getElementById('panel-settings');if(_e)_e.classList.remove('open');})();
-  // Call the original switchTab logic inline
-  document.querySelectorAll('.bnav-btn').forEach(b=>b.classList.remove('active'));
-  if(btn) btn.classList.add('active');
-  allPanels.forEach(function(p){var _pe=document.getElementById('panel-'+p);if(_pe)_pe.classList.remove('open');});
-  if(tab==='map'){ (typeof closeAssetPopup === 'function' && closeAssetPopup()); }
-  else { (document.getElementById('panel-'+tab) && document.getElementById('panel-'+tab).classList).add('open'); }
-};
-
-// ── UPDATE BOTTOM NAV — add Dash + Settings ──
-function upgradeBottomNav() {
-  const nav = document.getElementById('bottomnav');
-  if (!nav) return;
-
-  // Replace route button with dashboard (keep id for safety)
-  const routeBtn = document.getElementById('bn-route');
-  if (routeBtn) {
-    routeBtn.innerHTML = `
-      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-      <span class="bnav-label">Dash</span>`;
-    routeBtn.setAttribute('data-tab','dash');
-    routeBtn.onclick = function() {
-      document.querySelectorAll('.bnav-btn').forEach(b => b.classList.remove('active'));
-      this.classList.add('active');
-      openDashboard();
-    };
-  }
-
-  // Replace alerts button with settings
-  const notifBtn = document.getElementById('bn-notif');
-  if (notifBtn) {
-    // Keep notif btn, add settings as a new button
-    const settingsBtn = document.createElement('button');
-    settingsBtn.className = 'bnav-btn';
-    settingsBtn.id = 'bn-settings';
-    settingsBtn.innerHTML = `
-      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-      <span class="bnav-label">Settings</span>`;
-    settingsBtn.onclick = () => {
-      document.querySelectorAll('.bnav-btn').forEach(b => b.classList.remove('active'));
-      settingsBtn.classList.add('active');
-      openSettings();
-    };
-    nav.appendChild(settingsBtn);
-  }
-}
-
-// ── REPLACE MAP EVENT HOOKS WITH DEBOUNCED VERSIONS ──
-function upgradeMapHooks() {
-  if (!map) return;
-  // Remove old move/zoom listeners and replace with debounced
-  map.off('moveend');
-  map.off('zoomend');
-
-  map.on('moveend', () => {
-    onMapMove();
-    if (map.getZoom() >= 8)  debouncedHIFLD();
-    if (map.getZoom() >= 13) debouncedOSM();
-  });
-  map.on('zoomend', () => {
-    onMapMove();
-    if (map.getZoom() >= 8)  debouncedHIFLD();
-    if (map.getZoom() >= 13) debouncedOSM();
-  });
-}
-
-// ── IMPROVE LAYER LIST PANEL — add OSM zoom note ──
-function addLayerNote() {
-  const inner = document.getElementById('layer-list-inner');
-  if (!inner) return;
-  const note = document.createElement('div');
-  note.style.cssText = 'margin:8px 14px 0;padding:10px 14px;background:rgba(10,132,255,.06);border:1px solid rgba(10,132,255,.15);border-radius:12px;font-size:11px;color:var(--t3);line-height:1.5;';
-  note.innerHTML = '💡 <strong style="color:var(--brand);">OSM layers</strong> load real data when zoomed to level 13+. <strong style="color:var(--brand);">HIFLD</strong> loads at zoom 8+. Pan or zoom to refresh.';
-  inner.appendChild(note);
-}
-
-// ── IMPROVED CREW — live activity ticker ──
-let crewTickInterval = null;
-const crewActivities = [
-  ['Inspecting TXF-0102 · Raleigh', 'En route to next asset', 'Completing paperwork', 'On site — job in progress'],
-  ['EJH-0104 cover replacement', 'Testing new installation', 'Photographing damage', 'Marking work complete'],
-  ['SMH-0107 assessment · Chicago', 'On a call with engineering', 'Reviewing specs', 'Submitting report'],
-  ['Off shift', '—', '—', '—'],
-];
-
-function startCrewTicker() {
-  let tick = 0;
-  crewTickInterval = setInterval(() => {
-    tick++;
-    crewMembers.forEach((c, i) => {
-      if (c.status !== 'offline') {
-        c.task = (crewActivities[i] && crewActivities[i][tick % 4]) || c.task;
-      }
-    });
-    // Only re-render if crew panel is open
-    if ((document.getElementById('panel-crew') && document.getElementById('panel-crew').classList).contains('open')) {
-      renderCrew();
-    }
-  }, 7000);
-}
-
-// ── SMOOTHER ASSET POPUPS — pan map up after popup opens ──
-// (Patched into showAssetPopup directly — no override needed)
-
-
-// ══════════════════════════════════════════════
-// SPRINT 4 — PWA + FIELD TOOLS + PERFORMANCE
-// ══════════════════════════════════════════════
-
-// ── MEASURE DISTANCE TOOL ──
-let measureMode   = false;
-let measurePoints = [];
-let measureMarkers= [];
-let measureLine   = null;
-
-function toggleMeasure() {
-  if (measureMode) { exitMeasure(); return; }
-  measureMode = true;
-  measurePoints = [];
-  document.getElementById('fab-measure').classList.add('active');
-  document.getElementById('measure-panel').classList.add('open');
-  document.getElementById('measure-tap-hint').classList.add('show');
-  document.getElementById('measure-result').textContent = 'Tap first point';
-  document.getElementById('measure-sub').textContent = 'Tap any location on the map';
-  map.on('click', onMeasureClick);
-  map.getContainer().style.cursor = 'crosshair';
-}
-
-function onMeasureClick(e) {
-  if (!measureMode) return;
-  measurePoints.push(e.latlng);
-
-  // Drop marker
-  const icon = L.divIcon({
-    className: '',
-    html: `<div style="width:14px;height:14px;border-radius:50%;background:#0A84FF;border:3px solid #fff;box-shadow:0 2px 8px rgba(10,132,255,.6);"></div>`,
-    iconSize:[14,14], iconAnchor:[7,7],
-  });
-  measureMarkers.push(L.marker(e.latlng, {icon}).addTo(map));
-
-  if (measurePoints.length === 1) {
-    document.getElementById('measure-result').textContent = 'Tap second point';
-    document.getElementById('measure-sub').textContent = 'First point set · tap to complete';
-    document.getElementById('measure-tap-hint').classList.remove('show');
-  }
-
-  if (measurePoints.length === 2) {
-    // Draw line
-    if (measureLine) map.removeLayer(measureLine);
-    measureLine = L.polyline(measurePoints, {
-      color:'#0A84FF', weight:2.5, dashArray:'8 5', opacity:.9
-    }).addTo(map);
-
-    // Calculate distance
-    const m   = measurePoints[0].distanceTo(measurePoints[1]);
-    const ft  = (m * 3.28084).toFixed(1);
-    const mi  = (m / 1609.344).toFixed(3);
-    const km  = (m / 1000).toFixed(3);
-
-    document.getElementById('measure-result').textContent = ft + ' ft';
-    document.getElementById('measure-sub').textContent =
-      mi + ' mi · ' + km + ' km · ' + Math.round(m) + ' m';
-
-    // Remove click listener — done
-    map.off('click', onMeasureClick);
-    map.getContainer().style.cursor = '';
-  }
-}
-
-function clearMeasure() {
-  measurePoints = [];
-  measureMarkers.forEach(m => map.removeLayer(m));
-  measureMarkers = [];
-  if (measureLine) { map.removeLayer(measureLine); measureLine = null; }
-  document.getElementById('measure-result').textContent = 'Tap first point';
-  document.getElementById('measure-sub').textContent = 'Tap any location on the map';
-  map.off('click', onMeasureClick);
-  map.on('click', onMeasureClick);
-  map.getContainer().style.cursor = 'crosshair';
-}
-
-function exitMeasure() {
-  measureMode = false;
-  clearMeasure();
-  map.off('click', onMeasureClick);
-  map.getContainer().style.cursor = '';
-  document.getElementById('fab-measure').classList.remove('active');
-  document.getElementById('measure-panel').classList.remove('open');
-  document.getElementById('measure-tap-hint').classList.remove('show');
-}
-
-// ── 811 PANEL ──
-function open811() {
-  document.getElementById('panel-811').classList.add('open');
-  document.querySelectorAll('.bnav-btn').forEach(b => b.classList.remove('active'));
-}
-function close811() {
-  document.getElementById('panel-811').classList.remove('open');
-}
-function call811() {
-  if (confirm('Call 811 (Call Before You Dig) now?')) {
-    window.location.href = 'tel:811';
-  }
-}
-
-// ── PRE-DIG SAFETY CHECKLIST ──
-const CHECKLIST_ITEMS = [
-  // Pre-planning
-  { id:'c01', cat:'Pre-planning',     label:'811 ticket submitted',          sub:'Call made or online ticket filed at least 3 business days before dig' },
-  { id:'c02', cat:'Pre-planning',     label:'Ticket number documented',      sub:'Record the 811 ticket number for your records' },
-  { id:'c03', cat:'Pre-planning',     label:'All utilities responded',       sub:'Confirm all member utilities have marked or cleared the area' },
-  { id:'c04', cat:'Pre-planning',     label:'Dig site survey complete',      sub:'Physical walk-through of excavation area performed' },
-  { id:'c05', cat:'Pre-planning',     label:'Weather conditions acceptable', sub:'No severe weather forecast during excavation window' },
-  // On site
-  { id:'c06', cat:'On-site setup',    label:'Work zone marked and barricaded', sub:'Traffic control and safety barriers in place' },
-  { id:'c07', cat:'On-site setup',    label:'PPE issued to all crew',        sub:'Hard hats, hi-vis vests, gloves, safety glasses' },
-  { id:'c08', cat:'On-site setup',    label:'Utility marks visible and clear', sub:'Color-coded marks are legible and within tolerance zone' },
-  { id:'c09', cat:'On-site setup',    label:'Hand digging zone identified',  sub:'18" tolerance zone on each side of marked utilities' },
-  { id:'c10', cat:'On-site setup',    label:'Emergency contacts posted',     sub:'911, utility emergency numbers, supervisor contact visible' },
-  // Excavation
-  { id:'c11', cat:'Excavation',       label:'Hand dig within tolerance zone', sub:'No mechanical equipment within 18" of marked utilities' },
-  { id:'c12', cat:'Excavation',       label:'Spotter assigned',              sub:'Dedicated spotter watching for utility contact at all times' },
-  { id:'c13', cat:'Excavation',       label:'Depth verified before digging', sub:'Confirm utility depths from records or potholing' },
-  { id:'c14', cat:'Excavation',       label:'VLTRVIEW map active',          sub:'Real-time utility map visible on device during excavation' },
-  // Post-dig
-  { id:'c15', cat:'Post-excavation',  label:'No damage observed',            sub:'All utilities intact — no nicks, scrapes, or breaks' },
-  { id:'c16', cat:'Post-excavation',  label:'Site restored and marked',      sub:'Excavation area restored, hazards marked if work continues' },
-  { id:'c17', cat:'Post-excavation',  label:'Work order updated',            sub:'VLTRVIEW work order marked complete with notes' },
-];
-
-let checklistState = {};
-
-function openChecklist() {
-  // Load saved state
-  try {
-    const saved = JSON.parse(localStorage.getItem('vltrview_checklist_v1') || '{}');
-    checklistState = saved;
-  } catch(e) { checklistState = {}; }
-  document.getElementById('panel-checklist').classList.add('open');
-  renderChecklist();
-  document.querySelectorAll('.bnav-btn').forEach(b => b.classList.remove('active'));
-}
-
-function closeChecklist() {
-  document.getElementById('panel-checklist').classList.remove('open');
-}
-
-function renderChecklist() {
-  const categories = [...new Set(CHECKLIST_ITEMS.map(i => i.cat))];
-  const doneCount  = CHECKLIST_ITEMS.filter(i => checklistState[i.id]).length;
-  const total      = CHECKLIST_ITEMS.length;
-  const pct        = Math.round((doneCount / total) * 100);
-
-  document.getElementById('cl-done-count').textContent  = doneCount;
-  document.getElementById('cl-total-count').textContent = total;
-  document.getElementById('cl-pct').textContent = pct + '%';
-  document.getElementById('cl-bar').style.width = pct + '%';
-
-  const complete = document.getElementById('checklist-complete');
-  complete.style.display = doneCount === total ? 'block' : 'none';
-
-  document.getElementById('checklist-body').innerHTML = categories.map(cat => {
-    const items = CHECKLIST_ITEMS.filter(i => i.cat === cat);
-    const catDone = items.filter(i => checklistState[i.id]).length;
-    return `
-      <div class="check-category">${cat} <span style="color:var(--brand);font-family:'JetBrains Mono',monospace;">${catDone}/${items.length}</span></div>
-      ${items.map(item => `
-        <div class="check-item" onclick="toggleCheck('${item.id}')">
-          <div class="check-box ${checklistState[item.id] ? 'checked' : ''}" id="cb-${item.id}"></div>
-          <div>
-            <div class="check-label" style="text-decoration:${checklistState[item.id]?'line-through':'none'};color:${checklistState[item.id]?'var(--t3)':'var(--t1)'};">${item.label}</div>
-            <div class="check-sub">${item.sub}</div>
-          </div>
-        </div>`).join('')}`;
-  }).join('');
-}
-
-function toggleCheck(id) {
-  checklistState[id] = !checklistState[id];
-  renderChecklist();
-}
-
-function resetChecklist() {
-  if (!confirm('Reset all checklist items?')) return;
-  checklistState = {};
-  renderChecklist();
-}
-
-function saveChecklist() {
-  try { localStorage.setItem('vltrview_checklist_v1', JSON.stringify(checklistState)); } catch(e) {}
-  const done = CHECKLIST_ITEMS.filter(i => checklistState[i.id]).length;
-  showToast('✓ Checklist saved — ' + done + '/' + CHECKLIST_ITEMS.length + ' complete');
-  closeChecklist();
-}
-
-// ── NIGHT MODE ──
-let nightMode = false;
-const NIGHT_STYLE = {
-  id:'dark', label:'Night',
-  url:'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
-  attr:'© CARTO',
-};
-
-function toggleNightMode() {
-  nightMode = !nightMode;
-  const btn = document.getElementById('fab-night');
-  if (nightMode) {
-    setMapStyle(NIGHT_STYLE);
-    btn.textContent = '☀️';
-    btn.style.background = 'rgba(10,0,40,.94)';
-    showToast('🌙 Night mode on — satellite dark tiles');
-  } else {
-    setMapStyle(currentStyle.id === 'dark' ? MAP_STYLES[3] : currentStyle);
-    btn.textContent = '🌙';
-    btn.style.background = 'rgba(18,18,28,.94)';
-    showToast('☀️ Day mode restored');
-  }
-}
-
-// ── PWA INSTALL ──
-let deferredInstallPrompt = null;
-
-window.addEventListener('beforeinstallprompt', e => {
-  e.preventDefault();
-  deferredInstallPrompt = e;
-  setTimeout(() => {
-    if (deferredInstallPrompt && !localStorage.getItem('vltrview_install_dismissed')) {
-      document.getElementById('pwa-install-bar').classList.add('show');
-    }
-  }, 15000);
-});
-
-async function triggerInstall() {
-  if (!deferredInstallPrompt) {
-    showToast('On iPhone: tap Share → Add to Home Screen');
-    return;
-  }
-  document.getElementById('pwa-install-bar').classList.remove('show');
-  deferredInstallPrompt.prompt();
-  const { outcome } = await deferredInstallPrompt.userChoice;
-  if (outcome === 'accepted') showToast('✓ VLTRVIEW installed!');
-  deferredInstallPrompt = null;
-}
-
-function dismissInstall() {
-  document.getElementById('pwa-install-bar').classList.remove('show');
-  try { localStorage.setItem('vltrview_install_dismissed', '1'); } catch(e) {}
-}
-
-window.addEventListener('appinstalled', () => {
-  document.getElementById('pwa-install-bar').classList.remove('show');
-  showToast('✓ VLTRVIEW installed successfully');
-});
-
-// ── PUSH NOTIFICATIONS ──
-async function requestNotifPermission() {
-  dismissNotifBar();
-  if (!('Notification' in window)) { showToast('Notifications not supported on this browser'); return; }
-  const perm = await Notification.requestPermission();
-  if (perm === 'granted') {
-    showToast('✓ Notifications enabled — you'll be alerted about urgent orders');
-    scheduleTestNotif();
-  } else {
-    showToast('Notifications blocked — enable in browser settings');
-  }
-}
-
-function dismissNotifBar() {
-  document.getElementById('notif-permission-bar').classList.remove('show');
-  try { localStorage.setItem('vltrview_notif_asked', '1'); } catch(e) {}
-}
-
-function scheduleTestNotif() {
-  setTimeout(() => {
-    if (Notification.permission === 'granted' && document.hidden) {
-      new Notification('VLTRVIEW Alert', {
-        body: 'WO-2847 — TXF-0102 inspection is overdue. Tap to view.',
-        icon: '/icons/icon-192.png',
-        badge: '/icons/icon-96.png',
-        tag: 'vltrview-test',
-      });
-    }
-  }, 30000);
-}
-
-function sendUrgentNotif(wo) {
-  if (Notification.permission !== 'granted') return;
-  new Notification('VLTRVIEW — Urgent work order', {
-    body: wo.id + ' · ' + wo.title + '
-Assigned: ' + wo.crew,
-    icon: '/icons/icon-192.png',
-    tag: 'urgent-' + wo.id,
-  });
-}
-
-// ── OFFLINE / CACHE STATUS ──
-function updateCacheStatus() {
-  const el = document.getElementById('cache-status');
-  if (!el) return;
-  if (!navigator.onLine) {
-    el.textContent = '📵 OFFLINE';
-    el.className = 'offline';
-    document.getElementById('offline-bar').classList.add('show');
-  } else {
-    el.className = '';
-    document.getElementById('offline-bar').classList.remove('show');
-  }
-}
-window.addEventListener('online',  updateCacheStatus);
-window.addEventListener('offline', updateCacheStatus);
-
-// ── ADD 811 + CHECKLIST TO SETTINGS PANEL ──
-function addFieldToolsToSettings() {
-  const body = document.getElementById('settings-body');
-  if (!body) return;
-  const section = document.createElement('div');
-  section.innerHTML = `
-    <div class="set-section">Field tools</div>
-    <div class="set-row" onclick="close811();openSettings();open811();" style="cursor:pointer;">
-      <div class="set-icon" style="background:rgba(255,100,0,.12);">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FF6600" stroke-width="2" stroke-linecap="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12.21 19.79 19.79 0 0 1 1.64 3.59 2 2 0 0 1 3.61 1.39h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9.09a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-      </div>
-      <div class="set-info">
-        <div class="set-name">811 — Call before you dig</div>
-        <div class="set-sub">Federal dig safety · NC811 info</div>
-      </div>
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--t3)" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
-    </div>
-    <div class="set-row" onclick="switchTab('map',document.getElementById('bn-map'));setTimeout(openChecklist,200);" style="cursor:pointer;">
-      <div class="set-icon" style="background:rgba(48,209,88,.12);">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#30D158" stroke-width="2" stroke-linecap="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-      </div>
-      <div class="set-info">
-        <div class="set-name">Pre-dig safety checklist</div>
-        <div class="set-sub">17-point excavation safety verification</div>
-      </div>
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--t3)" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
-    </div>
-    <div class="set-row" onclick="toggleMeasure();switchTab('map',document.getElementById('bn-map'));" style="cursor:pointer;">
-      <div class="set-icon" style="background:rgba(10,132,255,.12);">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0A84FF" stroke-width="2" stroke-linecap="round"><line x1="2" y1="12" x2="22" y2="12"/><polyline points="16 6 22 12 16 18"/><polyline points="8 6 2 12 8 18"/></svg>
-      </div>
-      <div class="set-info">
-        <div class="set-name">Measure distance</div>
-        <div class="set-sub">Tap two map points to measure footage</div>
-      </div>
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--t3)" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
-    </div>
-  `;
-  // Insert before the about section
-  const aboutSection = body.querySelector('.set-section:last-of-type');
-  if (aboutSection) body.insertBefore(section, aboutSection);
-  else body.appendChild(section);
-}
-
-// ── ADD 811 BUTTON TO TOPBAR ──
-function add811ToTopbar() {
-  const topbar = document.getElementById('topbar');
-  if (!topbar) return;
-  const btn = document.createElement('button');
-  btn.className = 'ti';
-  btn.title = '811 Call Before You Dig';
-  btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="var(--t2)" stroke-width="2" stroke-linecap="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12.21 19.79 19.79 0 0 1 1.64 3.59 2 2 0 0 1 3.61 1.39h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9.09a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>`;
-  btn.onclick = () => {
-    switchTab('map', document.getElementById('bn-map'));
-    setTimeout(open811, 100);
-  };
-  // Insert before the clock status element
-  try {
-    const statusEl = document.getElementById('topbar-status');
-    if (statusEl) topbar.insertBefore(btn, statusEl);
-    else topbar.appendChild(btn);
-  } catch(e) { try { topbar.appendChild(btn); } catch(e2) {} }
-}
-
-// ── PERFORMANCE: preload critical assets ──
-function preloadCriticalAssets() {
-  // Preload Leaflet icons
-  const imgs = [
-    'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-    'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-  ];
-  imgs.forEach(src => { const img = new Image(); img.src = src; });
-}
-
-// ── PERFORMANCE: lazy render panels ──
-const panelRenderQueue = {};
-function lazyRenderPanel(panelId, renderFn) {
-  const panel = document.getElementById(panelId);
-  if (!panel) return;
-  const observer = new IntersectionObserver(entries => {
-    if (entries[0].isIntersecting && !panelRenderQueue[panelId]) {
-      panelRenderQueue[panelId] = true;
-      renderFn();
-      observer.disconnect();
-    }
-  });
-  observer.observe(panel);
-}
-
-// ── SPRINT 4 INIT ──
-function initSprint4() {
-  // Field tools
-  addFieldToolsToSettings();
-  add811ToTopbar();
-
-  // Check if should show notif bar
-  setTimeout(() => {
-    if (!localStorage.getItem('vltrview_notif_asked') &&
-        'Notification' in window &&
-        Notification.permission === 'default') {
-      document.getElementById('notif-permission-bar').classList.add('show');
-    }
-  }, 8000);
-
-  // Offline status
-  updateCacheStatus();
-
-  // Preload assets
-  preloadCriticalAssets();
-
-  // Hook urgent WO notification
-  const origSaveNewWO = saveNewWO;
-  // Patch markWODone to send completion notif
-  const origMarkDone = markWODone;
-  window.markWODone = function(id) {
-    origMarkDone(id);
-    const wo = workOrders.find(w => w.id === id);
-    if (wo && Notification.permission === 'granted') {
-      new Notification('VLTRVIEW — Work order complete', {
-        body: wo.id + ' · ' + wo.title,
-        icon: '/icons/icon-192.png',
-        tag: 'done-' + wo.id,
-      });
-    }
-  };
-}
-
 window.addEventListener('DOMContentLoaded', function() {
-  // ── Determine new vs returning user ──
-  const _newUser = !isOnboarded();
-  const _splash  = document.getElementById('splash');
-  const _welcome = document.getElementById('ob-welcome');
-
-  if (_newUser) {
-    // New user: hide splash, show welcome screen
-    if (_splash)  _splash.style.display  = 'none';
-    if (_welcome) _welcome.style.display = 'flex';
+  // ── Check onboarding state ──
+  if (!isOnboarded()) {
+    // New user — show welcome screen, skip splash
+    document.getElementById('splash').style.display = 'none';
+    document.getElementById('ob-welcome').style.display = 'flex';
   } else {
-    // Returning user: ensure welcome is hidden, run splash
-    if (_welcome) _welcome.style.display = 'none';
-    if (_splash)  _splash.style.display  = 'flex';
+    // Returning user — run splash normally
     runSplash();
   }
 
-  // Init map — each step isolated so one failure doesn't block others
-  try { initMap(); } catch(e) { console.error('initMap failed:',e); }
-  try { addQuickNoteButton(); } catch(e) { console.warn('quickNote:',e); }
-  try { checkSharedWO(); } catch(e) { console.warn('sharedWO:',e); }
-  try { upgradeTopbar(); } catch(e) { console.warn('topbar:',e); }
-  try { upgradeBottomNav(); } catch(e) { console.warn('bottomNav:',e); }
-  try { if(typeof map !== 'undefined' && map) upgradeMapHooks(); } catch(e) { console.warn('mapHooks:',e); }
-  try { addLayerNote(); } catch(e) { console.warn('layerNote:',e); }
-  try { loadSettings(); } catch(e) { console.warn('settings:',e); }
-  try { startCrewTicker(); } catch(e) { console.warn('crewTicker:',e); }
-  try { setTimeout(showConditionAlerts, 4000); } catch(e) {}
-  try { initSprint4(); } catch(e) { console.warn('sprint4:',e); }
+  // Init map
+  try {
+    initMap();
+    addQuickNoteButton();
+    checkSharedWO();
+  } catch(e) { console.error('Map init error:',e); }
 
   // Load HIFLD data after map is ready (slight delay for tiles to settle)
   setTimeout(() => {
@@ -4366,7 +3152,7 @@ window.addEventListener('DOMContentLoaded', function() {
 <!-- ══════════════════════════════════════
      ONBOARDING — WELCOME SCREEN
 ══════════════════════════════════════ -->
-<div id="ob-welcome" style="display:none;">
+<div id="ob-welcome">
   <div class="ob-logo">
     <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
       <circle cx="12" cy="12" r="3.5" fill="#fff"/>
@@ -4642,7 +3428,7 @@ window.addEventListener('DOMContentLoaded', function() {
       <div id="wod-id" style="font-size:11px;color:var(--brand);font-family:'JetBrains Mono',monospace;"></div>
       <div id="wod-title-small" style="font-size:14px;font-weight:600;color:var(--t1);"></div>
     </div>
-    <button onclick="printWO((currentWO && currentWO.id))" style="background:none;border:none;color:var(--t2);cursor:pointer;padding:8px;">
+    <button onclick="printWO((currentWO ? currentWO.id : null))" style="background:none;border:none;color:var(--t2);cursor:pointer;padding:8px;">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
     </button>
   </div>
@@ -4657,12 +3443,12 @@ window.addEventListener('DOMContentLoaded', function() {
       <div id="wod-notes" style="font-size:13px;color:var(--t2);line-height:1.6;"></div>
     </div>
     <div class="wod-actions">
-      <button class="wod-btn wod-btn-share" onclick="shareWO((currentWO && currentWO.id))">Share</button>
-      <button class="wod-btn wod-btn-pri" onclick="markWODone((currentWO && currentWO.id));closeWODetail()">Mark done</button>
+      <button class="wod-btn wod-btn-share" onclick="shareWO((currentWO ? currentWO.id : null))">Share</button>
+      <button class="wod-btn wod-btn-pri" onclick="markWODone((currentWO ? currentWO.id : null));closeWODetail()">Mark done</button>
     </div>
     <div class="wod-actions" style="margin-top:8px;">
-      <button class="wod-btn wod-btn-print" onclick="printWO((currentWO && currentWO.id))">Print / PDF</button>
-      <button class="wod-btn wod-btn-danger" onclick="deleteWO((currentWO && currentWO.id))">Delete</button>
+      <button class="wod-btn wod-btn-print" onclick="printWO((currentWO ? currentWO.id : null))">Print / PDF</button>
+      <button class="wod-btn wod-btn-danger" onclick="deleteWO((currentWO ? currentWO.id : null))">Delete</button>
     </div>
   </div>
 </div>
@@ -4753,342 +3539,6 @@ window.addEventListener('DOMContentLoaded', function() {
 
 <!-- ══ PERSIST BADGE ══ -->
 <div id="persist-badge">💾 Saved locally</div>
-
-
-<!-- ══ DASHBOARD PANEL ══ -->
-<div id="panel-dash">
-  <div class="dash-head">
-    <div style="flex:1;">
-      <div style="font-size:16px;font-weight:700;color:var(--t1);">Dashboard</div>
-      <div id="dash-subtitle" style="font-size:11px;color:var(--t3);font-family:'JetBrains Mono',monospace;"></div>
-    </div>
-    <button class="fp-close" onclick="switchTab('map',document.getElementById('bn-map'))">×</button>
-  </div>
-  <div class="dash-body">
-
-    <!-- Stats grid -->
-    <div class="dash-section">Overview</div>
-    <div class="stat-grid" id="stat-grid"></div>
-
-    <!-- Condition alerts -->
-    <div class="dash-section" id="alert-section" style="display:none;">⚠️ Condition alerts</div>
-    <div id="dash-alerts"></div>
-
-    <!-- City coverage -->
-    <div class="dash-section">Demo coverage — 6 cities</div>
-    <div class="city-cov-grid" id="city-cov-grid"></div>
-
-    <!-- Recent activity feed -->
-    <div class="dash-section">Recent activity</div>
-    <div id="activity-feed"></div>
-
-    <!-- Data sources -->
-    <div class="dash-section">Data sources</div>
-    <div style="padding:0 14px;">
-      <div style="background:var(--bg-card);border-radius:16px;padding:16px;border:1px solid var(--border-subtle);">
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border-subtle);">
-          <div>
-            <div style="font-size:13px;font-weight:600;color:var(--t1);">HIFLD Electric Transmission</div>
-            <div style="font-size:11px;color:var(--t3);margin-top:2px;">DHS / ORNL · Federal open data</div>
-          </div>
-          <div style="font-size:10px;font-weight:700;color:#30D158;background:rgba(48,209,88,.15);padding:2px 8px;border-radius:6px;">LIVE</div>
-        </div>
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border-subtle);">
-          <div>
-            <div style="font-size:13px;font-weight:600;color:var(--t1);">OpenStreetMap Overpass</div>
-            <div style="font-size:11px;color:var(--t3);margin-top:2px;">Power assets · Telecom · Water</div>
-          </div>
-          <div style="font-size:10px;font-weight:700;color:#0A84FF;background:rgba(10,132,255,.15);padding:2px 8px;border-radius:6px;">OSM</div>
-        </div>
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;">
-          <div>
-            <div style="font-size:13px;font-weight:600;color:var(--t1);">VLTRVIEW Demo Data</div>
-            <div style="font-size:11px;color:var(--t3);margin-top:2px;">Sewer · Gas · Asset catalog</div>
-          </div>
-          <div style="font-size:10px;font-weight:700;color:var(--t3);background:rgba(255,255,255,.06);padding:2px 8px;border-radius:6px;">DEMO</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- App version -->
-    <div style="text-align:center;padding:24px 16px 0;font-size:11px;color:var(--t3);font-family:'JetBrains Mono',monospace;">
-      VLTRVIEW v1.0.0-beta · Sprint 3 build<br>
-      <span style="color:var(--brand);">vltrviewbeta1.netlify.app</span>
-    </div>
-  </div>
-</div>
-
-<!-- ══ SETTINGS PANEL ══ -->
-<div id="panel-settings">
-  <div class="fp-head">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--t2)" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-    <span class="fp-title">Settings</span>
-    <button class="fp-close" onclick="switchTab('map',document.getElementById('bn-map'))">×</button>
-  </div>
-  <div class="fp-body" id="settings-body">
-
-    <div class="set-section">Map</div>
-    <div class="set-row" onclick="toggleSetting('hifld_auto')">
-      <div class="set-icon" style="background:rgba(255,0,0,.12);">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FF0000" stroke-width="2" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-      </div>
-      <div class="set-info">
-        <div class="set-name">Auto-load HIFLD data</div>
-        <div class="set-sub">Fetch real transmission lines on map move</div>
-      </div>
-      <button class="set-toggle on" id="stog-hifld_auto"></button>
-    </div>
-    <div class="set-row" onclick="toggleSetting('osm_auto')">
-      <div class="set-icon" style="background:rgba(10,132,255,.12);">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0A84FF" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-      </div>
-      <div class="set-info">
-        <div class="set-name">Auto-load OSM assets</div>
-        <div class="set-sub">Fetch real assets when zoomed to level 13+</div>
-      </div>
-      <button class="set-toggle on" id="stog-osm_auto"></button>
-    </div>
-    <div class="set-row" onclick="toggleSetting('cluster')">
-      <div class="set-icon" style="background:rgba(255,159,10,.12);">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FF9F0A" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="5" r="3"/><circle cx="5" cy="19" r="3"/><circle cx="19" cy="19" r="3"/><line x1="12" y1="8" x2="5" y2="16"/><line x1="12" y1="8" x2="19" y2="16"/></svg>
-      </div>
-      <div class="set-info">
-        <div class="set-name">Cluster markers at low zoom</div>
-        <div class="set-sub">Group nearby assets when zoomed out</div>
-      </div>
-      <button class="set-toggle on" id="stog-cluster"></button>
-    </div>
-
-    <div class="set-section">Display</div>
-    <div class="set-row" onclick="cycleMapStyle()">
-      <div class="set-icon" style="background:rgba(10,132,255,.12);">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0A84FF" stroke-width="2" stroke-linecap="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/></svg>
-      </div>
-      <div class="set-info">
-        <div class="set-name">Map style</div>
-        <div class="set-sub">Tap to cycle through available styles</div>
-      </div>
-      <div class="set-value" id="set-map-style-val">Light</div>
-    </div>
-    <div class="set-row" onclick="toggleSetting('show_perf')">
-      <div class="set-icon" style="background:rgba(48,209,88,.12);">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#30D158" stroke-width="2" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-      </div>
-      <div class="set-info">
-        <div class="set-name">Performance indicator</div>
-        <div class="set-sub">Show asset count and load time on map</div>
-      </div>
-      <button class="set-toggle off" id="stog-show_perf"></button>
-    </div>
-
-    <div class="set-section">Data</div>
-    <div class="set-row" onclick="clearAllData()">
-      <div class="set-icon" style="background:rgba(255,69,58,.12);">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FF453A" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-      </div>
-      <div class="set-info">
-        <div class="set-name">Clear all local data</div>
-        <div class="set-sub">Remove saved work orders, notes, photos</div>
-      </div>
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--t3)" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
-    </div>
-    <div class="set-row" onclick="resetOnboarding()">
-      <div class="set-icon" style="background:rgba(10,132,255,.12);">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0A84FF" stroke-width="2" stroke-linecap="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-      </div>
-      <div class="set-info">
-        <div class="set-name">Replay onboarding tour</div>
-        <div class="set-sub">Show welcome screen and feature tour again</div>
-      </div>
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--t3)" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
-    </div>
-
-    <div class="set-section">About</div>
-    <div style="background:var(--bg-card);border-radius:16px;margin:0 14px;padding:16px;border:1px solid var(--border-subtle);">
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
-        <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#0A84FF,#004FC4);display:flex;align-items:center;justify-content:center;">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3.5" fill="#fff"/><circle cx="12" cy="12" r="7" stroke="#fff" stroke-width="1.5" fill="none" stroke-opacity=".6"/><line x1="12" y1="2" x2="12" y2="5.5" stroke="#fff" stroke-width="2" stroke-linecap="round"/><line x1="12" y1="18.5" x2="12" y2="22" stroke="#fff" stroke-width="2" stroke-linecap="round"/><line x1="2" y1="12" x2="5.5" y2="12" stroke="#fff" stroke-width="2" stroke-linecap="round"/><line x1="18.5" y1="12" x2="22" y2="12" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>
-        </div>
-        <div>
-          <div style="font-size:16px;font-weight:700;color:var(--t1);">VLTRVIEW</div>
-          <div style="font-size:11px;color:var(--t3);font-family:'JetBrains Mono',monospace;">v1.0.0-beta · Sprint 3</div>
-        </div>
-      </div>
-      <div style="font-size:12px;color:var(--t3);line-height:1.6;">
-        Professional utility locator platform for field crews, engineers, and utility operators. Real federal HIFLD data + OpenStreetMap infrastructure.
-      </div>
-      <div style="margin-top:12px;font-size:11px;color:var(--t3);font-family:'JetBrains Mono',monospace;">
-        © 2026 VLTRVIEW · All rights reserved<br>
-        Always call 811 before digging
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ══ CONDITION ALERT BANNER ══ -->
-<div id="condition-alerts"></div>
-
-<!-- ══ PERFORMANCE INDICATOR ══ -->
-<div id="perf-indicator"></div>
-
-<!-- ══ PULL TO REFRESH ══ -->
-<div id="ptr-indicator">↓ Release to refresh data</div>
-
-
-<!-- ══ MEASURE PANEL ══ -->
-<div id="measure-panel">
-  <div>
-    <div id="measure-result" style="font-size:16px;font-weight:700;color:var(--t1);font-family:'JetBrains Mono',monospace;">Tap two points</div>
-    <div id="measure-sub" style="font-size:11px;color:var(--t3);margin-top:2px;">Tap first point on map</div>
-  </div>
-  <button class="measure-btn measure-clear" onclick="clearMeasure()">Clear</button>
-  <button class="measure-btn measure-done" onclick="exitMeasure()">Done</button>
-</div>
-<div class="measure-tap-hint" id="measure-tap-hint">📏 Tap any two points to measure</div>
-
-<!-- ══ FAB BUTTONS ══ -->
-<div id="fab-measure" onclick="toggleMeasure()" title="Measure distance">
-  <svg viewBox="0 0 24 24"><line x1="2" y1="12" x2="22" y2="12"/><polyline points="16 6 22 12 16 18"/><polyline points="8 6 2 12 8 18"/></svg>
-</div>
-<div id="fab-night" onclick="toggleNightMode()" title="Night mode">🌙</div>
-
-<!-- ══ PWA INSTALL BAR ══ -->
-<div id="pwa-install-bar">
-  <div style="width:40px;height:40px;border-radius:10px;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3.5" fill="#fff"/><circle cx="12" cy="12" r="7" fill="none" stroke-opacity=".6"/><line x1="12" y1="2" x2="12" y2="5.5"/><line x1="12" y1="18.5" x2="12" y2="22"/><line x1="2" y1="12" x2="5.5" y2="12"/><line x1="18.5" y1="12" x2="22" y2="12"/></svg>
-  </div>
-  <div class="pwa-install-text">
-    <strong>Install VLTRVIEW</strong>
-    Add to home screen for offline field use
-  </div>
-  <button class="pwa-install-btn" onclick="triggerInstall()">Install</button>
-  <button class="pwa-install-dismiss" onclick="dismissInstall()">×</button>
-</div>
-
-<!-- ══ NOTIFICATION PERMISSION BAR ══ -->
-<div id="notif-permission-bar">
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-  <div class="npb-text">Enable notifications for urgent work order alerts</div>
-  <button class="npb-btn" onclick="requestNotifPermission()">Enable</button>
-  <button class="npb-dismiss" onclick="dismissNotifBar()">×</button>
-</div>
-
-<!-- ══ 811 PANEL ══ -->
-<div id="panel-811">
-  <div class="panel-811-head">
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12.21 19.79 19.79 0 0 1 1.64 3.59 2 2 0 0 1 3.61 1.39h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9.09a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-    <span style="font-size:17px;font-weight:700;color:#fff;flex:1;">Call Before You Dig</span>
-    <button class="fp-close" style="background:rgba(255,255,255,.2);" onclick="close811()">×</button>
-  </div>
-  <div style="flex:1;overflow-y:auto;padding:0 0 32px;">
-
-    <!-- Big 811 call button -->
-    <div style="padding:20px 14px 16px;">
-      <button class="call-811-btn" onclick="call811()">
-        📞 Call 811 — Free · 24/7
-      </button>
-      <div style="text-align:center;font-size:12px;color:var(--t3);margin-top:10px;line-height:1.5;">
-        Federal law requires calling 811 before any excavation.<br>
-        Lines are marked free within 3 business days.
-      </div>
-    </div>
-
-    <!-- State info -->
-    <div class="ticket-card">
-      <div style="font-size:13px;font-weight:700;color:var(--t1);margin-bottom:10px;">North Carolina — NC811</div>
-      <div style="display:flex;flex-direction:column;gap:8px;">
-        <div style="display:flex;justify-content:space-between;font-size:13px;">
-          <span style="color:var(--t3);">Phone</span><span style="color:var(--t1);font-weight:500;">1-800-632-4949</span>
-        </div>
-        <div style="display:flex;justify-content:space-between;font-size:13px;">
-          <span style="color:var(--t3);">Website</span><span style="color:var(--brand);">nc811.org</span>
-        </div>
-        <div style="display:flex;justify-content:space-between;font-size:13px;">
-          <span style="color:var(--t3);">Notice required</span><span style="color:var(--t1);">3 business days</span>
-        </div>
-        <div style="display:flex;justify-content:space-between;font-size:13px;">
-          <span style="color:var(--t3);">Ticket valid</span><span style="color:var(--t1);">15 business days</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- Other states quick reference -->
-    <div style="padding:0 14px;">
-      <div style="font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">Other 811 centers</div>
-      <div style="background:var(--bg-card);border-radius:14px;border:1px solid var(--border-subtle);overflow:hidden;">
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border-subtle);">
-          <span style="font-size:13px;font-weight:500;color:var(--t1);">Georgia — 811</span>
-          <a href="tel:811" style="color:var(--brand);font-size:13px;font-weight:600;text-decoration:none;">Call 811</a>
-        </div>
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border-subtle);">
-          <span style="font-size:13px;font-weight:500;color:var(--t1);">Illinois — JULIE</span>
-          <a href="tel:811" style="color:var(--brand);font-size:13px;font-weight:600;text-decoration:none;">Call 811</a>
-        </div>
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border-subtle);">
-          <span style="font-size:13px;font-weight:500;color:var(--t1);">Texas — Texas 811</span>
-          <a href="tel:811" style="color:var(--brand);font-size:13px;font-weight:600;text-decoration:none;">Call 811</a>
-        </div>
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;">
-          <span style="font-size:13px;font-weight:500;color:var(--t1);">Arizona — Blue Stake 811</span>
-          <a href="tel:811" style="color:var(--brand);font-size:13px;font-weight:600;text-decoration:none;">Call 811</a>
-        </div>
-      </div>
-    </div>
-
-    <!-- What happens after you call -->
-    <div style="margin:12px 14px 0;">
-      <div style="font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">What happens next</div>
-      <div style="background:var(--bg-card);border-radius:14px;padding:14px;border:1px solid var(--border-subtle);">
-        <div style="display:flex;gap:12px;padding:8px 0;border-bottom:1px solid var(--border-subtle);">
-          <div style="width:24px;height:24px;border-radius:50%;background:var(--brand);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0;">1</div>
-          <div><div style="font-size:13px;font-weight:500;color:var(--t1);">Call or submit online</div><div style="font-size:11px;color:var(--t3);margin-top:2px;">811 takes your excavation details</div></div>
-        </div>
-        <div style="display:flex;gap:12px;padding:8px 0;border-bottom:1px solid var(--border-subtle);">
-          <div style="width:24px;height:24px;border-radius:50%;background:var(--brand);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0;">2</div>
-          <div><div style="font-size:13px;font-weight:500;color:var(--t1);">Utilities notified</div><div style="font-size:11px;color:var(--t3);margin-top:2px;">One call notifies all member utilities</div></div>
-        </div>
-        <div style="display:flex;gap:12px;padding:8px 0;border-bottom:1px solid var(--border-subtle);">
-          <div style="width:24px;height:24px;border-radius:50%;background:var(--brand);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0;">3</div>
-          <div><div style="font-size:13px;font-weight:500;color:var(--t1);">Lines marked</div><div style="font-size:11px;color:var(--t3);margin-top:2px;">Field techs mark lines within 3 days</div></div>
-        </div>
-        <div style="display:flex;gap:12px;padding:8px 0;">
-          <div style="width:24px;height:24px;border-radius:50%;background:var(--brand);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0;">4</div>
-          <div><div style="font-size:13px;font-weight:500;color:var(--t1);">Safe to dig</div><div style="font-size:11px;color:var(--t3);margin-top:2px;">Only dig once all lines are marked</div></div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ══ SAFETY CHECKLIST ══ -->
-<div id="panel-checklist">
-  <div class="fp-head">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#30D158" stroke-width="2" stroke-linecap="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-    <span class="fp-title">Pre-dig safety checklist</span>
-    <button class="fp-close" onclick="closeChecklist()">×</button>
-  </div>
-  <div class="checklist-progress">
-    <div class="cl-stats">
-      <div><div class="cl-stat-val" id="cl-done-count" style="color:#30D158;">0</div><div class="cl-stat-lbl">Complete</div></div>
-      <div style="text-align:center;"><div class="cl-stat-val" id="cl-total-count" style="color:var(--t1);">0</div><div class="cl-stat-lbl">Total items</div></div>
-      <div style="text-align:right;"><div class="cl-stat-val" id="cl-pct" style="color:var(--brand);">0%</div><div class="cl-stat-lbl">Complete</div></div>
-    </div>
-    <div class="cl-bar-bg"><div class="cl-bar-fill" id="cl-bar" style="width:0%"></div></div>
-  </div>
-  <div class="checklist-complete" id="checklist-complete">
-    <div style="font-size:32px;margin-bottom:8px;">✅</div>
-    <div style="font-size:16px;font-weight:700;color:#30D158;margin-bottom:4px;">All checks complete</div>
-    <div style="font-size:13px;color:var(--t3);">Safe to proceed with excavation</div>
-  </div>
-  <div style="flex:1;overflow-y:auto;" id="checklist-body"></div>
-  <div style="padding:12px 14px 20px;display:flex;gap:8px;flex-shrink:0;">
-    <button onclick="resetChecklist()" style="flex:1;padding:13px;border-radius:12px;background:rgba(255,255,255,.08);border:none;color:var(--t2);font-size:14px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;">Reset</button>
-    <button onclick="saveChecklist()" style="flex:2;padding:13px;border-radius:12px;background:var(--brand);border:none;color:#fff;font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">Save &amp; close</button>
-  </div>
-</div>
-
-<!-- ══ CACHE STATUS BADGE ══ -->
-<div id="cache-status"></div>
 
 </body>
 </html>
