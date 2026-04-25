@@ -2010,8 +2010,8 @@ function setMapStyle(style) {
 }
 
 function plotCity(city) {
-  const assets = genAssets(city);
-  const lines = genLines(city);
+  var assets = genAssets(city);
+  var lines = genLines(city);
 
   // Draw utility lines
   for (var li2 = 0; li2 < lines.length; li2++) {
@@ -2045,7 +2045,7 @@ function plotCity(city) {
       iconAnchor: [sz/2, sz/2],
     });
 
-    var marker = L.marker([asset.lat, asset.lon], {icon});
+    var marker = L.marker([asset.lat, asset.lon], {icon: icon});
     marker.assetData = asset;
     marker.on('click', function(e) {
       L.DomEvent.stopPropagation(e);
@@ -2058,7 +2058,7 @@ function plotCity(city) {
       if (el) el.style.display = 'none';
     }
     assetMarkers.push({marker: marker, asset: asset, layerType: asset.type});
-  });
+  }
 }
 
 function onMapMove() {
