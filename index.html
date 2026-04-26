@@ -4406,6 +4406,11 @@ function startAppDemo() {
     if (banner) banner.classList.add('show');
   }, 800);
 
+  // Show floating Stripe CTA after 30 seconds of exploring
+  setTimeout(function() {
+    showStripeCTA();
+  }, 30000);
+
   // Fly to Raleigh and load HIFLD data
   setTimeout(function() {
     if (typeof map !== 'undefined' && map) {
@@ -4489,6 +4494,15 @@ function endTour() {
   if (overlay) overlay.classList.remove('active');
   var pulse = document.getElementById('tour-pulse');
   if (pulse) pulse.style.display = 'none';
+  // Show Stripe CTA after tour ends
+  setTimeout(showStripeCTA, 2000);
+}
+
+function showStripeCTA() {
+  var el = document.getElementById('stripe-float');
+  if (el && demoMode) {
+    el.style.display = 'flex';
+  }
 }
 
 // ── CHECK URL FOR DEMO MODE ──
@@ -4548,10 +4562,24 @@ function initDemo() {
 var currentSignupPlan = 'Pro';
 var currentSignupPrice = '$99/month';
 
+var STRIPE_LINKS = {
+  'Starter':  'https://buy.stripe.com/test_8x2aEZ0GVfjS50y5i193y01',
+  'Pro':      'https://buy.stripe.com/test_14AcN7dtH7RqeB839T93y02',
+  'Business': 'https://buy.stripe.com/test_bJeeVfblzb3C64C4dX93y03',
+};
+
 function openSignup(plan, price) {
   currentSignupPlan = plan || 'Pro';
   currentSignupPrice = price || '$99/month';
 
+  // Open Stripe payment link directly
+  var stripeUrl = STRIPE_LINKS[currentSignupPlan];
+  if (stripeUrl) {
+    window.open(stripeUrl, '_blank');
+    return;
+  }
+
+  // Fallback — show signup form if no Stripe link
   var badge = document.getElementById('signup-plan-badge');
   if (badge) badge.textContent = currentSignupPlan + ' Plan — ' + currentSignupPrice;
 
@@ -4560,9 +4588,7 @@ function openSignup(plan, price) {
 
   var screen = document.getElementById('signup-screen');
   if (screen) screen.classList.add('open');
-
-  // Scroll to top of signup
-  screen.scrollTop = 0;
+  if (screen) screen.scrollTop = 0;
 }
 
 function closeSignup() {
@@ -5360,7 +5386,10 @@ window.addEventListener('DOMContentLoaded', function() {
         <div class="price-feat"><span class="price-feat-check">v</span> 811 call integration</div>
         <div class="price-feat"><span class="price-feat-check">v</span> Pre-dig safety checklist</div>
       </div>
-      <button onclick="openSignup('Starter', '$49/month')" style="width:100%;margin-top:14px;padding:12px;border-radius:12px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);color:#F2F2F7;font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">Start free trial</button>
+      <button onclick="openSignup('Starter', '$49/month')" style="width:100%;margin-top:14px;padding:12px;border-radius:12px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);color:#F2F2F7;font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">
+        Start free trial
+        <span style="display:block;font-size:11px;color:#636366;font-weight:400;margin-top:2px;">Powered by Stripe</span>
+      </button>
     </div>
 
     <div class="price-card featured">
@@ -5375,7 +5404,10 @@ window.addEventListener('DOMContentLoaded', function() {
         <div class="price-feat"><span class="price-feat-check">v</span> Measure distance tool</div>
         <div class="price-feat"><span class="price-feat-check">v</span> Priority support</div>
       </div>
-      <button onclick="openSignup('Pro', '$99/month')" style="width:100%;margin-top:14px;padding:12px;border-radius:12px;background:linear-gradient(135deg,#0A84FF,#0060CC);border:none;color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;box-shadow:0 4px 16px rgba(10,132,255,.35);">Start free trial — most popular</button>
+      <button onclick="openSignup('Pro', '$99/month')" style="width:100%;margin-top:14px;padding:12px;border-radius:12px;background:linear-gradient(135deg,#0A84FF,#0060CC);border:none;color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;box-shadow:0 4px 16px rgba(10,132,255,.35);">
+        Start free trial — most popular
+        <span style="display:block;font-size:11px;color:rgba(255,255,255,.6);font-weight:400;margin-top:2px;">Powered by Stripe · No card required</span>
+      </button>
     </div>
 
     <div class="price-card">
@@ -5388,13 +5420,16 @@ window.addEventListener('DOMContentLoaded', function() {
         <div class="price-feat"><span class="price-feat-check">v</span> Data export and reporting</div>
         <div class="price-feat"><span class="price-feat-check">v</span> Dedicated onboarding call</div>
       </div>
-      <button onclick="openSignup('Business', '$199/month')" style="width:100%;margin-top:14px;padding:12px;border-radius:12px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);color:#F2F2F7;font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">Start free trial</button>
+      <button onclick="openSignup('Business', '$199/month')" style="width:100%;margin-top:14px;padding:12px;border-radius:12px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);color:#F2F2F7;font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">
+        Start free trial
+        <span style="display:block;font-size:11px;color:#636366;font-weight:400;margin-top:2px;">Powered by Stripe</span>
+      </button>
     </div>
   </div>
 
   <!-- CTAs -->
   <div class="cta-section">
-    <button class="cta-primary" onclick="openSignup('Pro', '$99/month')">Start free 30-day trial</button>
+    <button class="cta-primary" onclick="openSignup('Pro', '$99/month')">Start free trial — Pro $99/mo</button>
     <button class="cta-secondary" onclick="startAppDemo()">See the app first</button>
     <div style="text-align:center;font-size:11px;color:#636366;margin-top:4px;">No credit card required. Cancel anytime.</div>
   </div>
@@ -5529,6 +5564,24 @@ window.addEventListener('DOMContentLoaded', function() {
   <button class="success-cta" onclick="closeSignupSuccess()">
     Explore the app
   </button>
+</div>
+
+
+<!-- FLOATING STRIPE CTA (appears after 30s in demo) -->
+<div id="stripe-float" style="
+  position:fixed;bottom:76px;left:14px;right:14px;z-index:1100;
+  background:linear-gradient(135deg,#0A84FF,#0060CC);
+  border-radius:18px;padding:14px 16px;
+  display:none;align-items:center;gap:12px;
+  box-shadow:0 8px 32px rgba(10,132,255,.5);
+  animation:slide-up .3s ease-out;
+">
+  <div style="flex:1;">
+    <div style="font-size:14px;font-weight:700;color:#fff;">Ready to get started?</div>
+    <div style="font-size:12px;color:rgba(255,255,255,.75);margin-top:2px;">30 days free — no credit card required</div>
+  </div>
+  <button onclick="openSignup('Pro','$99/month')" style="padding:10px 16px;border-radius:12px;background:#fff;border:none;color:#0A84FF;font-size:13px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap;">Start free trial</button>
+  <button onclick="document.getElementById('stripe-float').style.display='none'" style="background:none;border:none;color:rgba(255,255,255,.6);font-size:20px;cursor:pointer;padding:0;line-height:1;">x</button>
 </div>
 
 </body>
