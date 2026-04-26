@@ -4772,9 +4772,22 @@ function endTour() {
   setTimeout(showStripeCTA, 2000);
 }
 
+function dismissStripeCTA() {
+  var el = document.getElementById('stripe-float');
+  if (el) el.style.display = 'none';
+  // Restore demo banner
+  if (demoMode) {
+    var banner = document.getElementById('demo-banner');
+    if (banner) banner.classList.add('show');
+  }
+}
+
 function showStripeCTA() {
   var el = document.getElementById('stripe-float');
   if (el && demoMode) {
+    // Hide demo banner first
+    var banner = document.getElementById('demo-banner');
+    if (banner) banner.classList.remove('show');
     el.style.display = 'flex';
   }
 }
@@ -6202,7 +6215,7 @@ window.addEventListener('DOMContentLoaded', function() {
 
 <!-- FLOATING STRIPE CTA (appears after 30s in demo) -->
 <div id="stripe-float" style="
-  position:fixed;bottom:76px;left:14px;right:14px;z-index:1100;
+  position:fixed;bottom:70px;left:14px;right:14px;z-index:900;
   background:linear-gradient(135deg,#0A84FF,#0060CC);
   border-radius:18px;padding:14px 16px;
   display:none;align-items:center;gap:12px;
@@ -6217,7 +6230,7 @@ window.addEventListener('DOMContentLoaded', function() {
     <button onclick="openSignup('Pro','$99/month')" style="padding:8px 14px;border-radius:10px;background:#fff;border:none;color:#0A84FF;font-size:13px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap;">Start free trial</button>
     <button onclick="showPitchScreen()" style="padding:4px 14px;border-radius:10px;background:rgba(255,255,255,.15);border:none;color:#fff;font-size:11px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap;">View all plans</button>
   </div>
-  <button onclick="document.getElementById('stripe-float').style.display='none'" style="background:none;border:none;color:rgba(255,255,255,.6);font-size:20px;cursor:pointer;padding:0;line-height:1;align-self:flex-start;">x</button>
+  <button onclick="dismissStripeCTA()" style="background:none;border:none;color:rgba(255,255,255,.6);font-size:20px;cursor:pointer;padding:0;line-height:1;align-self:flex-start;">x</button>
 </div>
 
 
