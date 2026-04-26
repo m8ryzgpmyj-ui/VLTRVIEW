@@ -998,6 +998,11 @@ html,body{height:100%;width:100%;background:var(--bg-base);font-family:'DM Sans'
 }
 
 @keyframes gps-pulse{0%{transform:scale(1);opacity:.7}100%{transform:scale(3);opacity:0}}
+
+.leaflet-control-attribution{display:none!important;visibility:hidden!important;opacity:0!important;height:0!important;overflow:hidden!important;}
+.leaflet-control-container .leaflet-bottom{display:none!important;}
+.leaflet-bottom.leaflet-left{display:none!important;}
+.leaflet-bottom.leaflet-right{display:none!important;}
 </style>
 </head>
 <body>
@@ -2119,6 +2124,8 @@ function initMap() {
   // Force map to fill container after render
   setTimeout(function() { map.invalidateSize(); }, 300);
   setTimeout(function() { map.invalidateSize(); }, 1000);
+  // Remove attribution completely
+  if (map.attributionControl) map.attributionControl.remove();
   map.on('moveend', () => {
     if(map.getZoom()>=8)  loadHIFLDData();
     if(map.getZoom()>=13) loadOSMData();
