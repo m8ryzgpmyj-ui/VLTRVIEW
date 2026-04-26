@@ -994,6 +994,21 @@ html,body{height:100%;width:100%;background:var(--bg-base);font-family:'DM Sans'
 </style>
 </head>
 <body>
+
+<!-- NETLIFY FORM DETECTION -->
+<form name="vltrview-signup" data-netlify="true" netlify-honeypot="bot-field" hidden>
+  <input type="text" name="form-name"/>
+  <input type="text" name="name"/>
+  <input type="text" name="company"/>
+  <input type="email" name="email"/>
+  <input type="tel" name="phone"/>
+  <input type="text" name="techs"/>
+  <input type="text" name="state"/>
+  <input type="text" name="source"/>
+  <input type="text" name="plan"/>
+  <input name="bot-field"/>
+</form>
+
 <script>
 window.onerror = function(msg, src, line, col, err) {
   var el = document.getElementById('splash-status');
@@ -4563,19 +4578,27 @@ function handleSignupSubmit(e) {
   var emailInput = form.querySelector('[name="email"]');
   var emailVal = emailInput ? emailInput.value : '';
 
-  // Submit to Netlify
+  // Build form data for Netlify
   var formData = new FormData(form);
+  var encoded = new URLSearchParams(formData).toString();
 
+  // Submit to Netlify Forms endpoint
   fetch('/', {
     method: 'POST',
     headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-    body: new URLSearchParams(formData).toString(),
-  }).then(function() {
+    body: encoded,
+  }).then(function(response) {
+    console.log('Form submitted, status:', response.status);
     showSignupSuccess(emailVal);
   }).catch(function(err) {
-    // Even if fetch fails, show success — Netlify may still process it
-    console.warn('Form submit error:', err);
-    showSignupSuccess(emailVal);
+    console.warn('Fetch error:', err);
+    // Fallback: try XMLHttpRequest
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', '/');
+    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+    xhr.onload = function() { showSignupSuccess(emailVal); };
+    xhr.onerror = function() { showSignupSuccess(emailVal); };
+    xhr.send(encoded);
   });
 }
 
