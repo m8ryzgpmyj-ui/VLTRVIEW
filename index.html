@@ -65,7 +65,7 @@ html,body{height:100%;width:100%;background:var(--bg-base);font-family:'DM Sans'
 .leaflet-container a{border-bottom:none!important;text-decoration:none!important;}
 #topbar *{border-bottom:none!important;box-shadow:none!important;}
 #topbar{box-shadow:0 1px 12px rgba(0,0,0,.4)!important;}
-.leaflet-control-attribution{background:rgba(255,255,255,.75)!important;font-size:9px!important;border-radius:6px 0 0 0!important;backdrop-filter:blur(4px);}
+.leaflet-control-attribution{display:none!important;}
 .leaflet-popup-content-wrapper{background:var(--bg-elevated)!important;border:1px solid rgba(10,132,255,.2)!important;border-radius:14px!important;box-shadow:0 8px 30px rgba(0,0,0,.5)!important;color:var(--t1)!important;font-family:'DM Sans',sans-serif!important;}
 .leaflet-popup-tip{background:var(--bg-elevated)!important;}
 .leaflet-popup-close-button{color:var(--t2)!important;font-size:18px!important;}
@@ -2094,7 +2094,7 @@ function initMap() {
     center: [35.7796, -78.6382],
     zoom: 11,
     zoomControl: false,
-    attributionControl: true,
+    attributionControl: false,
     preferCanvas: true,
     renderer: L.canvas({padding: 0.5, tolerance: 5}),
   });
