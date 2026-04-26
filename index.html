@@ -4634,7 +4634,10 @@ function startAppDemo() {
     if (banner) banner.classList.add('show');
   }, 800);
 
-  // Stripe CTA shown after tour ends (manual trigger only)
+  // Show floating Stripe CTA after 60 seconds of exploring
+  setTimeout(function() {
+    showStripeCTA();
+  }, 60000);
 
   // Fly to Raleigh and load HIFLD data
   setTimeout(function() {
@@ -4653,6 +4656,52 @@ function exitDemo() {
   if (banner) banner.classList.remove('show');
   demoMode = false;
   endTour();
+}
+
+function showPitchScreen() {
+  // Close any open panels
+  var banner = document.getElementById('demo-banner');
+  if (banner) banner.classList.remove('show');
+  var floatEl = document.getElementById('stripe-float');
+  if (floatEl) floatEl.style.display = 'none';
+  document.getElementById('panel-settings') && document.getElementById('panel-settings').classList.remove('open');
+
+  // Show pitch screen with back button
+  var pitch = document.getElementById('pitch-screen');
+  var backBar = document.getElementById('pitch-back-bar');
+  if (backBar) backBar.style.display = 'block';
+  if (pitch) {
+    pitch.style.display = 'flex';
+    pitch.style.opacity = '0';
+    pitch.style.transform = 'scale(.98)';
+    pitch.style.transition = 'opacity .3s ease, transform .3s ease';
+    setTimeout(function() {
+      pitch.style.opacity = '1';
+      pitch.style.transform = 'scale(1)';
+    }, 20);
+    // Scroll to pricing section
+    setTimeout(function() {
+      var pricingEl = pitch.querySelector('.pricing-section');
+      if (pricingEl) pricingEl.scrollIntoView({behavior: 'smooth'});
+    }, 350);
+  }
+}
+
+function hidePitchScreen() {
+  var pitch = document.getElementById('pitch-screen');
+  if (pitch) {
+    pitch.style.opacity = '0';
+    pitch.style.transform = 'scale(1.02)';
+    pitch.style.transition = 'opacity .3s ease, transform .3s ease';
+    setTimeout(function() { pitch.style.display = 'none'; }, 320);
+  }
+  // Restore demo banner if in demo mode
+  if (demoMode) {
+    setTimeout(function() {
+      var banner = document.getElementById('demo-banner');
+      if (banner) banner.classList.add('show');
+    }, 350);
+  }
 }
 
 // ── AUTO TOUR ──
@@ -5748,6 +5797,18 @@ window.addEventListener('DOMContentLoaded', function() {
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--t3)" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
     </div>
 
+    <div class="set-section">Subscription</div>
+    <div class="set-row" onclick="showPitchScreen()">
+      <div class="set-icon" style="background:rgba(10,132,255,.12);">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0A84FF" stroke-width="2" stroke-linecap="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+      </div>
+      <div class="set-info">
+        <div class="set-name">View plans and pricing</div>
+        <div class="set-sub">Field Reports $29 — Starter $49 — Pro $99</div>
+      </div>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--t3)" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </div>
+
     <div class="set-section">About</div>
     <div style="background:var(--bg-card);border-radius:16px;margin:0 14px 14px;padding:16px;border:1px solid var(--border-subtle);">
       <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
@@ -5858,6 +5919,9 @@ window.addEventListener('DOMContentLoaded', function() {
 <div id="pitch-screen">
 
   <!-- Hero -->
+  <div id="pitch-back-bar" style="display:none;padding:12px 20px 0;">
+    <button onclick="hidePitchScreen()" style="background:rgba(255,255,255,.08);border:none;color:#AEAEB2;font-size:13px;cursor:pointer;padding:8px 16px;border-radius:20px;font-family:'DM Sans',sans-serif;">← Back to app</button>
+  </div>
   <div class="pitch-hero">
     <div class="pitch-logo-wrap">
       <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
@@ -6011,7 +6075,7 @@ window.addEventListener('DOMContentLoaded', function() {
     <strong>Demo mode active</strong>
     Tap the map, explore features
   </div>
-  <button class="demo-tour-btn" onclick="startAutoTour()">Auto tour</button>
+  <button class="demo-tour-btn" onclick="showPitchScreen()">View pricing</button>
   <button class="demo-exit-btn" onclick="exitDemo()">x</button>
 </div>
 
@@ -6149,8 +6213,11 @@ window.addEventListener('DOMContentLoaded', function() {
     <div style="font-size:14px;font-weight:700;color:#fff;">Ready to get started?</div>
     <div style="font-size:12px;color:rgba(255,255,255,.75);margin-top:2px;">30 days free — no credit card required</div>
   </div>
-  <button onclick="openSignup('Pro','$99/month')" style="padding:10px 16px;border-radius:12px;background:#fff;border:none;color:#0A84FF;font-size:13px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap;">Start free trial</button>
-  <button onclick="document.getElementById('stripe-float').style.display='none'" style="background:none;border:none;color:rgba(255,255,255,.6);font-size:20px;cursor:pointer;padding:0;line-height:1;">x</button>
+  <div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0;">
+    <button onclick="openSignup('Pro','$99/month')" style="padding:8px 14px;border-radius:10px;background:#fff;border:none;color:#0A84FF;font-size:13px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap;">Start free trial</button>
+    <button onclick="showPitchScreen()" style="padding:4px 14px;border-radius:10px;background:rgba(255,255,255,.15);border:none;color:#fff;font-size:11px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap;">View all plans</button>
+  </div>
+  <button onclick="document.getElementById('stripe-float').style.display='none'" style="background:none;border:none;color:rgba(255,255,255,.6);font-size:20px;cursor:pointer;padding:0;line-height:1;align-self:flex-start;">x</button>
 </div>
 
 
