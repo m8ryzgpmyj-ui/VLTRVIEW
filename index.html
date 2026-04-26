@@ -4856,6 +4856,32 @@ function initDemo() {
 var currentSignupPlan = 'Pro';
 var currentSignupPrice = '$99/month';
 
+function contactEnterprise() {
+  var subject = encodeURIComponent('VLTRVIEW Enterprise Inquiry');
+  var body = encodeURIComponent(
+    'Hello,' +
+    '
+
+I am interested in discussing the enterprise licensing or acquisition of the VLTRVIEW platform.' +
+    '
+
+Company: ' +
+    '
+Name: ' +
+    '
+Phone: ' +
+    '
+Best time to reach me: ' +
+    '
+
+Please contact me to discuss pricing and options.' +
+    '
+
+Thank you'
+  );
+  window.location.href = 'mailto:vltrview@gmail.com?subject=' + subject + '&body=' + body;
+}
+
 var STRIPE_LINKS = {
   'Field Reports': 'https://buy.stripe.com/test_bJefZjdtHfjS3WuaCl93y04',
   'Starter':  'https://buy.stripe.com/test_8x2aEZ0GVfjS50y5i193y01',
@@ -6078,6 +6104,42 @@ window.addEventListener('DOMContentLoaded', function() {
         Start free trial
         <span style="display:block;font-size:11px;color:#636366;font-weight:400;margin-top:2px;">Powered by Stripe</span>
       </button>
+    </div>
+  </div>
+
+  <!-- Enterprise card -->
+  <div class="pricing-section">
+    <div style="background:linear-gradient(135deg,rgba(255,255,255,.04),rgba(255,255,255,.02));border:1px solid rgba(255,255,255,.12);border-radius:18px;padding:24px 20px;margin-bottom:10px;position:relative;overflow:hidden;">
+      <div style="position:absolute;top:0;right:0;width:120px;height:120px;background:radial-gradient(circle,rgba(255,215,0,.08),transparent);border-radius:50%;transform:translate(30px,-30px);"></div>
+      <div style="font-size:11px;font-weight:700;color:#FFD700;text-transform:uppercase;letter-spacing:.12em;margin-bottom:8px;">Enterprise</div>
+      <div style="font-size:24px;font-weight:800;color:#F2F2F7;margin-bottom:6px;">White label and buyout</div>
+      <div style="font-size:13px;color:#AEAEB2;line-height:1.6;margin-bottom:16px;">Own the entire VLTRVIEW platform outright. Full source code, brand, and all future development. License it to your own clients or deploy across your entire operation.</div>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:18px;">
+        <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:#AEAEB2;">
+          <span style="color:#FFD700;font-weight:700;">v</span> Full source code ownership
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:#AEAEB2;">
+          <span style="color:#FFD700;font-weight:700;">v</span> White label with your branding
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:#AEAEB2;">
+          <span style="color:#FFD700;font-weight:700;">v</span> Deploy across unlimited locations
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:#AEAEB2;">
+          <span style="color:#FFD700;font-weight:700;">v</span> Dedicated onboarding and training
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:#AEAEB2;">
+          <span style="color:#FFD700;font-weight:700;">v</span> Custom feature development available
+        </div>
+      </div>
+      <div style="background:rgba(255,215,0,.08);border:1px solid rgba(255,215,0,.2);border-radius:12px;padding:12px 14px;margin-bottom:16px;text-align:center;">
+        <div style="font-size:11px;color:#FFD700;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:2px;">Starting from</div>
+        <div style="font-size:28px;font-weight:800;color:#FFD700;">$250,000</div>
+        <div style="font-size:12px;color:#AEAEB2;margin-top:2px;">One-time acquisition price</div>
+      </div>
+      <button onclick="contactEnterprise()" style="width:100%;padding:16px;border-radius:16px;background:linear-gradient(135deg,#FFD700,#FFA500);border:none;color:#1a1a2e;font-size:16px;font-weight:800;cursor:pointer;font-family:'DM Sans',sans-serif;letter-spacing:.3px;">
+        Contact us to discuss
+      </button>
+      <div style="text-align:center;font-size:11px;color:#636366;margin-top:10px;">Response within 1 business day</div>
     </div>
   </div>
 
