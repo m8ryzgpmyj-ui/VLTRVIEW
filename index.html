@@ -2976,9 +2976,9 @@ function tourNext() {
   if (obTourSlide < 3) {
     showTourSlide(obTourSlide + 1);
   } else {
-    // Tour done — start hotspots
+    // Tour done — go straight to app
     document.getElementById('ob-tour').classList.remove('active');
-    startHotspots();
+    finishOnboarding();
   }
 }
 
@@ -3052,11 +3052,14 @@ function nextHotspot() {
 }
 
 function finishOnboarding() {
-  document.getElementById('ob-hotspot').classList.remove('active');
-  document.getElementById('ob-welcome').style.display = 'none';
-  document.getElementById('ob-tour').classList.remove('active');
+  var hotspot = document.getElementById('ob-hotspot');
+  if (hotspot) hotspot.classList.remove('active');
+  var welcome = document.getElementById('ob-welcome');
+  if (welcome) welcome.style.display = 'none';
+  var tour = document.getElementById('ob-tour');
+  if (tour) tour.classList.remove('active');
   markOnboarded();
-  showToast('Welcome to VLTRVIEW 👋');
+  showToast('Welcome to VLTRVIEW');
 }
 
 function skipOnboarding() {
