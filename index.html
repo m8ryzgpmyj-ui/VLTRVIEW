@@ -45,7 +45,7 @@ html,body{height:100%;width:100%;background:var(--bg-base);font-family:'DM Sans'
 #app{width:100%;height:100%;display:flex;flex-direction:column;}
 
 /* TOPBAR */
-#topbar{height:56px;flex-shrink:0;background:rgba(10,10,20,.97);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);display:flex;align-items:center;padding:0 12px;gap:4px;border-bottom:1px solid rgba(10,132,255,.2);box-shadow:0 1px 0 rgba(10,132,255,.1),0 2px 20px rgba(0,0,0,.4);z-index:1000;position:relative;}
+#topbar{height:56px;flex-shrink:0;background:rgba(10,10,20,.97);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);display:flex;align-items:center;padding:0 12px;gap:4px;border-bottom:none;box-shadow:0 1px 12px rgba(0,0,0,.4);z-index:1000;position:relative;}
 .ti{width:44px;height:44px;display:flex;align-items:center;justify-content:center;cursor:pointer;border-radius:50%;border:none;background:none;transition:background .15s;}
 .ti:hover,.ti:active{background:rgba(255,255,255,.1);}
 .ti svg{width:22px;height:22px;fill:none;stroke:var(--t2);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
@@ -4455,10 +4455,7 @@ function startAppDemo() {
     if (banner) banner.classList.add('show');
   }, 800);
 
-  // Show floating Stripe CTA after 30 seconds of exploring
-  setTimeout(function() {
-    showStripeCTA();
-  }, 30000);
+  // Stripe CTA shown after tour ends (manual trigger only)
 
   // Fly to Raleigh and load HIFLD data
   setTimeout(function() {
