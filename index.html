@@ -22,6 +22,8 @@ try {
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <meta name="apple-mobile-web-app-title" content="VLTRVIEW"/>
 <meta name="theme-color" content="#0A0A0F"/>
+<link rel="manifest" href="/manifest.json"/>
+<link rel="apple-touch-icon" href="/icon-192.png"/>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
 <meta http-equiv="Pragma" content="no-cache"/>
 <meta http-equiv="Expires" content="0"/>
@@ -4258,17 +4260,46 @@ var NIGHT_STYLE = {
 };
 var dayStyleBeforeNight = null;
 
+var satelliteMode = false;
+
+function toggleSatellite() {
+  var btn = document.getElementById('fab-satellite');
+  satelliteMode = !satelliteMode;
+  if (satelliteMode) {
+    // Find satellite style
+    for (var i = 0; i < MAP_STYLES.length; i++) {
+      if (MAP_STYLES[i].id === 'satellite') {
+        setMapStyle(MAP_STYLES[i]);
+        break;
+      }
+    }
+    if (btn) btn.style.background = 'rgba(10,132,255,.85)';
+    showToast('Satellite view on');
+    nightMode = false;
+    var nightBtn = document.getElementById('fab-night');
+    if (nightBtn) { nightBtn.textContent = '🌙'; nightBtn.style.background = 'rgba(18,18,28,.94)'; }
+  } else {
+    setMapStyle(MAP_STYLES[3]); // back to light
+    if (btn) btn.style.background = 'rgba(18,18,28,.94)';
+    showToast('Standard view restored');
+  }
+}
+
 function toggleNight() {
   var btn = document.getElementById('fab-night');
   nightMode = !nightMode;
   if (nightMode) {
     dayStyleBeforeNight = currentStyle;
     setMapStyle(NIGHT_STYLE);
-    btn.textContent = '☀️';
+    if (btn) btn.textContent = '☀️';
+    // Turn off satellite if on
+    satelliteMode = false;
+    var satBtn = document.getElementById('fab-satellite');
+    if (satBtn) satBtn.style.background = 'rgba(18,18,28,.94)';
     showToast('Night mode on');
   } else {
     setMapStyle(dayStyleBeforeNight || MAP_STYLES[3]);
-    btn.textContent = '🌙';
+    if (btn) btn.textContent = '🌙';
     showToast('Day mode restored');
   }
 }
@@ -6016,6 +6047,14 @@ window.addEventListener('DOMContentLoaded', function() {
   <svg viewBox="0 0 24 24"><line x1="2" y1="12" x2="22" y2="12"/><polyline points="16 6 22 12 16 18"/><polyline points="8 6 2 12 8 18"/></svg>
 </button>
 <button id="fab-night" onclick="toggleNight()" title="Night mode">🌙</button>
+<button id="fab-satellite" onclick="toggleSatellite()" title="Satellite view" style="
+  position:absolute;right:14px;bottom:468px;
+  width:46px;height:46px;border-radius:50%;
+  background:rgba(18,18,28,.94);backdrop-filter:blur(12px);
+  border:none;cursor:pointer;z-index:500;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 4px 16px rgba(0,0,0,.4);font-size:20px;
+">🛰️</button>
 <button id="fab-cert" onclick="openCertBuilder({})" title="Generate locate certificate" style="
   position:absolute;right:14px;bottom:414px;
   width:46px;height:46px;border-radius:50%;
