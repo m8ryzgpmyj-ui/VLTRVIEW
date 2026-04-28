@@ -4651,14 +4651,27 @@ function startAppDemo() {
     showStripeCTA();
   }, 60000);
 
-  // Fly to Raleigh and load HIFLD data
+  // Fly to user location, fallback to Raleigh
   setTimeout(function() {
     if (typeof map !== 'undefined' && map) {
-      map.setView([35.7796, -78.6382], 11);
-      showToast('Welcome to VLTRVIEW — tap any asset to inspect it');
-      setTimeout(function() {
-        if (typeof loadHIFLDData === 'function') loadHIFLDData();
-      }, 1500);
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          function(pos) {
+            map.flyTo([pos.coords.latitude, pos.coords.longitude], 12, {duration: 1.5});
+            showToast('Welcome to VLTRVIEW');
+            setTimeout(function() { if (typeof loadHIFLDData === 'function') loadHIFLDData(); }, 2000);
+          },
+          function() {
+            map.setView([35.7796, -78.6382], 11);
+            showToast('Welcome to VLTRVIEW — tap any asset to inspect it');
+            setTimeout(function() { if (typeof loadHIFLDData === 'function') loadHIFLDData(); }, 1500);
+          },
+          {enableHighAccuracy: false, timeout: 5000}
+        );
+      } else {
+        map.setView([35.7796, -78.6382], 11);
+        setTimeout(function() { if (typeof loadHIFLDData === 'function') loadHIFLDData(); }, 1500);
+      }
     }
   }, 500);
 }
@@ -5276,6 +5289,33 @@ window.openWODetail = function(id) {
   }
 };
 
+
+// ══════════════════════════════════════════════
+// FLY TO USER LOCATION ON LOAD
+// ══════════════════════════════════════════════
+function flyToUserLocation() {
+  if (!navigator.geolocation) return;
+  navigator.geolocation.getCurrentPosition(
+    function(pos) {
+      var lat = pos.coords.latitude;
+      var lon = pos.coords.longitude;
+      if (map) {
+        map.flyTo([lat, lon], 13, {duration: 1.5, easeLinearity: 0.3});
+        // Update topbar subtitle
+        updateLocationLabel(lat, lon);
+        showToast('Centered on your location');
+        // Load HIFLD for this area
+        setTimeout(function() { loadHIFLDData(); }, 2000);
+      }
+    },
+    function(err) {
+      // Permission denied or unavailable — stay on Raleigh default
+      console.log('Geolocation unavailable, using default location');
+      if (map) loadHIFLDData();
+    },
+    {enableHighAccuracy: false, timeout: 6000, maximumAge: 30000}
+  );
+}
 
 // ══════════════════════════════════════════════
 // OFFLINE MODE
