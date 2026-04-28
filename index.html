@@ -2253,6 +2253,11 @@ async function loadOSMData() {
 }
 
 function initMap() {
+  if (typeof L === 'undefined') {
+    console.error('Leaflet not loaded');
+    setTimeout(initMap, 500);
+    return;
+  }
   map = L.map('map', {
     center: [35.7796, -78.6382],
     zoom: 11,
@@ -5271,6 +5276,83 @@ window.openWODetail = function(id) {
   }
 };
 
+
+// ══════════════════════════════════════════════
+// OFFLINE MODE
+// ══════════════════════════════════════════════
+var isOffline = !navigator.onLine;
+
+function updateOfflineStatus() {
+  isOffline = !navigator.onLine;
+  var bar = document.getElementById('offline-bar');
+  var badge = document.getElementById('cache-status');
+
+  if (!navigator.onLine) {
+    if (bar) bar.classList.add('show');
+    if (badge) {
+      badge.textContent = 'OFFLINE';
+      badge.className = 'offline';
+    }
+    showToast('You are offline — cached map tiles still available');
+  } else {
+    if (bar) bar.classList.remove('show');
+    if (badge) badge.className = '';
+    // Reload data when back online
+    if (map && map.getZoom() >= 8) {
+      setTimeout(function() { loadHIFLDData(); }, 1000);
+    }
+  }
+}
+
+window.addEventListener('online',  updateOfflineStatus);
+window.addEventListener('offline', updateOfflineStatus);
+
+// ── CACHE STATUS INDICATOR ──
+function updateCacheInfo() {
+  if (!('caches' in window)) return;
+  caches.open('vltrview-tiles-v1').then(function(cache) {
+    return cache.keys();
+  }).then(function(keys) {
+    var count = keys.length;
+    if (count > 0) {
+      var el = document.getElementById('cache-tile-count');
+      if (el) el.textContent = count + ' tiles cached';
+    }
+  }).catch(function() {});
+}
+
+// ── CACHE CURRENT AREA ──
+function cacheCurrentArea() {
+  if (!map) return;
+  var zoom = map.getZoom();
+  var center = map.getCenter();
+
+  // Pre-load tiles for current view + surrounding area
+  showToast('Caching map tiles for offline use...');
+
+  // Force Leaflet to load adjacent tiles by panning slightly
+  var offsets = [
+    [0.05, 0], [-0.05, 0], [0, 0.05], [0, -0.05],
+    [0.05, 0.05], [-0.05, -0.05]
+  ];
+
+  var idx = 0;
+  function panNext() {
+    if (idx >= offsets.length) {
+      map.setView(center, zoom);
+      setTimeout(function() {
+        updateCacheInfo();
+        showToast('Map area cached for offline use');
+      }, 1500);
+      return;
+    }
+    var off = offsets[idx++];
+    map.panTo([center.lat + off[0], center.lng + off[1]], {animate: false});
+    setTimeout(panNext, 600);
+  }
+  panNext();
+}
+
 window.addEventListener('DOMContentLoaded', function() {
   // ── Check onboarding state ──
   if (!isOnboarded()) {
@@ -5328,6 +5410,16 @@ window.addEventListener('DOMContentLoaded', function() {
 
   // Sprint 3 init
   try { initSprint3(); } catch(e) { console.warn('s3:', e); }
+  try { updateOfflineStatus(); updateCacheInfo(); } catch(e) {}
+
+  // Register service worker for offline caching
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js').then(function(reg) {
+      console.log('VLTRVIEW SW registered:', reg.scope);
+    }).catch(function(err) {
+      console.log('SW registration failed:', err);
+    });
+  }
   try { initSprint4(); } catch(e) { console.warn('s4:', e); }
 });
 </script>
@@ -5780,6 +5872,16 @@ window.addEventListener('DOMContentLoaded', function() {
   </div>
   <div class="fp-body">
     <div class="set-section">Map</div>
+    <div class="set-row" onclick="cacheCurrentArea()">
+      <div class="set-icon" style="background:rgba(48,209,88,.12);">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#30D158" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      </div>
+      <div class="set-info">
+        <div class="set-name">Cache map for offline use</div>
+        <div class="set-sub" id="cache-tile-count">Saves current area for no-signal field use</div>
+      </div>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--t3)" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </div>
     <div class="set-row" onclick="toggleSetting('hifld_auto')">
       <div class="set-icon" style="background:rgba(255,0,0,.12);">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FF0000" stroke-width="2" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
